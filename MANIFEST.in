@@ -1,5 +1,7 @@
-include README.txt
-recursive-include Examples/fort1 code1.f  code2.f  components.py  coupling.xml  Makefile  README.txt
-recursive-include Examples/cpp1 components.py  coupling.xml  README.txt
-recursive-include Examples/pyth1 components.py  coupling.xml  README.txt
+include Examples/fort1/code1.f  Examples/fort1/code2.f  Examples/fort1/components.py  Examples/fort1/coupling.xml  Examples/fort1/Makefile Examples/fort1/README.txt
+include Examples/cpp1/components.py  Examples/cpp1/coupling.xml  Examples/cpp1/README.txt
+include Examples/pyth1/components.py  Examples/pyth1/coupling.xml  Examples/pyth1/README.txt
+include Examples/fort2/code1.f  Examples/fort2/code2.f  Examples/fort2/components.py  Examples/fort2/coupling.xml  Examples/fort2/Makefile  Examples/fort2/README.txt
+include Examples/cpp2/components.py  Examples/cpp2/coupling.xml  Examples/cpp2/README.txt Examples/cpp2/Makefile  Examples/cpp2/prog.cxx
+include Examples/pyth2/components.py  Examples/pyth2/coupling.xml  Examples/pyth2/README.txt
 

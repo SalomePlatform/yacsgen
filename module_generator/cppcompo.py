@@ -8,10 +8,11 @@ from cpp_tmpl import compoEXEMakefile, compoMakefile, exeCPP
 
 class CPPComponent(Component):
   def __init__(self, name, services=None, libs="", rlibs="", includes="", 
-                     kind="lib", exe_path=None):
+                     kind="lib", exe_path=None, sources=None):
     self.exe_path = exe_path
     Component.__init__(self, name, services, impl="CPP", libs=libs, 
-                             rlibs=rlibs, includes=includes, kind=kind)
+                             rlibs=rlibs, includes=includes, kind=kind,
+                             sources=sources)
 
   def validate(self):
     """ validate component definition parameters"""
@@ -32,10 +33,12 @@ class CPPComponent(Component):
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
     if self.kind == "lib":
+      sources = " ".join(self.sources)
       return {"Makefile.am":compoMakefile.substitute(module=gen.module.name, 
                                                      component=self.name,
                                                      libs=self.libs, 
                                                      rlibs=self.rlibs,
+                                                     sources=sources,
                                                      includes=self.includes),
               cxxfile:self.makecxx(gen), hxxfile:self.makehxx(gen)}
     if self.kind == "exe":

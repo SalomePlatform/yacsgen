@@ -114,11 +114,12 @@ pyinitEXEService=pyinitService
 #Makefile
 
 pycompoMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}.py
+salomepython_PYTHON = ${component}.py ${sources}
 """
 pycompoMakefile=Template(pycompoMakefile)
 
 pycompoEXEMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
+salomepython_PYTHON = ${sources}
 dist_salomescript_SCRIPTS= ${component}.exe
 """
 pycompoEXEMakefile=Template(pycompoEXEMakefile)

@@ -6,6 +6,7 @@
        CALL cplDB(compo,CP_ITERATION,t0,t1,1,'PARAM',1,nval,tt,info)
        write(6,*)'info=',info
        write(6,*)'tt=',tt
+       call bidul()
        c=a+b
        return 
        end

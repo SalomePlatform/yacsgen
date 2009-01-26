@@ -364,7 +364,7 @@ include $$(top_srcdir)/adm_local/make_common_starter.am
 AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
 
 lib_LTLIBRARIES = lib${component}Engine.la
-lib${component}Engine_la_SOURCES      = ${component}.cxx
+lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
 lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
 lib${component}Engine_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}

@@ -12,10 +12,10 @@ else:
 
 class F77Component(CPPComponent):
   def __init__(self, name, services=None, libs="", rlibs="", 
-                     kind="lib", exe_path=None):
-    self.exe_path = exe_path
-    Component.__init__(self, name, services, impl="F77", 
-                             libs=libs, rlibs=rlibs, kind=kind)
+                     kind="lib", exe_path=None, sources=None):
+    CPPComponent.__init__(self, name, services, libs=libs, rlibs=rlibs, 
+                                kind=kind, exe_path=exe_path, sources=sources)
+    self.impl = "F77"
 
   def makebody(self):
     for serv in self.services:

@@ -6,9 +6,11 @@ from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo
 from pyth_tmpl import pycompoEXEMakefile, pycompoMakefile
 
 class PYComponent(Component):
-  def __init__(self, name, services=None, python_path=None, kind="lib"):
+  def __init__(self, name, services=None, python_path=None, kind="lib",
+                     sources=None):
     self.python_path = python_path or []
-    Component.__init__(self, name, services, impl="PY", kind=kind)
+    Component.__init__(self, name, services, impl="PY", kind=kind,
+                             sources=sources)
 
   def validate(self):
     Component.validate(self)
@@ -18,13 +20,19 @@ class PYComponent(Component):
 
   def makeCompo(self, gen):
     pyfile = "%s.py" % self.name
+    sources = " ".join(self.sources)
     if self.kind == "lib":
       return {"Makefile.am":pycompoMakefile.substitute(module=gen.module.name, 
-              component=self.name), pyfile:self.makepy(gen)}
+                                                       component=self.name,
+                                                       sources=sources), 
+              pyfile:self.makepy(gen)
+             }
     if self.kind == "exe":
       return {"Makefile.am":pycompoEXEMakefile.substitute(module=gen.module.name, 
-              component=self.name), self.name+".exe":self.makepyexe(gen),
-              }
+                                                          component=self.name,
+                                                          sources=sources), 
+              self.name+".exe":self.makepyexe(gen),
+             }
 
   def makepy(self, gen):
     services = []

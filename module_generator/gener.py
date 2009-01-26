@@ -70,10 +70,11 @@ class Module(object):
       if compo.name in lcompo:
         raise Invalid("%s is already defined as a component of the module" % compo.name)
       lcompo.add(compo.name)
+      compo.validate()
 
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="", 
-                     includes="", kind="lib"):
+                     includes="", kind="lib", sources=None):
     self.name = name
     self.impl = impl
     self.kind = kind
@@ -81,7 +82,7 @@ class Component(object):
     self.libs = libs
     self.rlibs = rlibs
     self.includes = includes
-    self.validate()
+    self.sources = sources or []
 
   def validate(self):
     if self.impl not in ValidImpl:
@@ -94,6 +95,10 @@ class Component(object):
         raise Invalid("%s is already defined as a service of the module" % serv.name)
       lnames.add(serv.name)
       serv.validate()
+
+    for src in self.sources:
+      if not os.path.exists(src):
+        raise Invalid("Source file %s does not exist" % src)
 
   def getImpl(self):
     return "SO", ""
@@ -207,6 +212,10 @@ class Generator(object):
                     "adm_local":{"make_common_starter.am":makecommon, "check_aster.m4":check_aster},
                     }, namedir)
     os.chmod(os.path.join(namedir, "autogen.sh"), 0777)
+    #copy source files if any in creates tree
+    for compo in module.components:
+      for src in compo.sources:
+        shutil.copyfile(src, os.path.join(namedir, "src", compo.name, src))
 
     for m4file in ("check_Kernel.m4", "check_omniorb.m4", 
                    "ac_linker_options.m4", "ac_cxx_option.m4",

@@ -8,6 +8,9 @@ context={'update':1,
 
 cwd=os.getcwd()
 
+defs="""
+import bidul
+"""
 
 body="""
       #b1
@@ -20,6 +23,7 @@ body="""
       val=numpy.zeros(10,'d')
       info,tt,ii,mval=calcium.cp_ldb(component, dep, 0.,1., 1, "aa", nval,val)
       print mval,val
+      bidul.f()
       c=a+b
       d=a-b
       err=calcium.cp_fin(component,calcium.CP_ARRET)
@@ -29,9 +33,10 @@ c1=PYComponent("compo2",services=[
                        outport=[("c","double"),("d","double")],
                        instream=[("aa","CALCIUM_double","I"),],
                        outstream=[("ba","CALCIUM_double","I"),],
-                       defs="#def1",body=body,
+                       defs=defs,body=body,
                  ),
          ],
+         sources=["bidul.py"],
          )
 
 
