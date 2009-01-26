@@ -1,0 +1,27 @@
+#!/bin/sh
+cat >make-exe << END
+P actions make_exec
+P actions make_cmde
+P version NEW9
+P nomjob forma01a
+P ncpus 1
+A memjeveux 4.000000
+P mem_aster 100
+A tpmax 60
+P memjob 32768
+P mpi_nbcpu 1
+P mpi_nbnoeud 1
+P tpsjob 1
+P mode batch
+P soumbtc oui
+P consbtc oui
+
+R f ${PWD}/src D 0
+F exec ${PWD}/aster.exe DR 0
+F conf ${PWD}/config.txt D 0
+R capy ${PWD}/catalo D 0
+R cmde ${PWD}/commande DR 0
+END
+
+
+$1 make-exe

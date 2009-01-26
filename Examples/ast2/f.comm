@@ -1,0 +1,8 @@
+print a,b,c
+YACS_INIT(COMPO=component)
+
+ECRIRE_MAILLAGE()
+LECTURE_FORCE()
+
+d=36.5
+

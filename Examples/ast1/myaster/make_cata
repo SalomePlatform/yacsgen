@@ -1,0 +1,20 @@
+#!/bin/sh
+cat >make-cmd << END
+P debug nodebug
+P mode interactif
+P version NEW9
+P ncpus 1
+A args
+A memjeveux 16.0
+A tpmax 300
+P facmtps 1
+P corefilesize unlimited
+R capy ${PWD}/catalo D 0
+R cmde ${PWD}/commande DR 0
+P consbtc oui
+P soumbtc oui
+P actions make_cmde
+END
+
+
+$1 make-cmd

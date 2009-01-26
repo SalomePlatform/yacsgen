@@ -1,5 +1,5 @@
-A Python component
-====================
+A Python standalone component (in executable form)
+=======================================================
 
 To build this example, modify the components.py file
 to take into account your configuration.

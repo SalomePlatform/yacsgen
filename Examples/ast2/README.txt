@@ -1,22 +1,32 @@
-A C++ standalone component (executable form)
-=================================================
+A Code_Aster standalone component (in executable form)
+===========================================================
 
-To build this example, modify the components.py and Makefile files
+To build this example, modify the files components.py, fcompo/Makefile, myaster/config.txt, myaster/Makefile
 to take into account your configuration.
 
 1- your prerequisite file 
 2- your KERNEL_ROOT_DIR
+3- your Code_Aster installation
 
 Then set the environment (including PYTHONPATH for YACGEN, ../.. from here and execute components.py ::
 
   source <your prerequisite file>
+
+process components.py ::
+
   python components.py
 
-You should get a SALOME module in source form (cppcompos_SRC), its installation (install) and
-a SALOME application (appli) composed of modules KERNEL, GUI, YACS and cppcompos.
+You should get a SALOME module in source form (pycompos_SRC), its installation (install) and
+a SALOME application (appli) composed of modules KERNEL, GUI, YACS and pycompos.
 
-To build the standalone component, run::
+Build the fcompo library ::
 
+  cd fcompo
+  make
+
+Build the Code_Aster library ::
+
+  cd myaster
   make
 
 To run a coupling:

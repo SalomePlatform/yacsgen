@@ -1,3 +1,6 @@
+A C++ component dynamically loadable
+=========================================
+
 To build this example, modify the components.py file
 to take into account your configuration.
 
