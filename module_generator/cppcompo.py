@@ -2,6 +2,7 @@
   Module that defines CPPComponent for SALOME components implemented in C++
 """
 
+import os
 from gener import Component, Invalid
 from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
 from cpp_tmpl import compoEXEMakefile, compoMakefile, exeCPP
@@ -33,7 +34,7 @@ class CPPComponent(Component):
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
     if self.kind == "lib":
-      sources = " ".join(self.sources)
+      sources = " ".join(map(os.path.basename,self.sources))
       return {"Makefile.am":compoMakefile.substitute(module=gen.module.name, 
                                                      component=self.name,
                                                      libs=self.libs, 

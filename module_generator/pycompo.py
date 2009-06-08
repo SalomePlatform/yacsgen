@@ -1,6 +1,7 @@
 """
   Module that defines PYComponent for SALOME components implemented in Python
 """
+import os
 from gener import Component, Invalid
 from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo
 from pyth_tmpl import pycompoEXEMakefile, pycompoMakefile
@@ -20,7 +21,7 @@ class PYComponent(Component):
 
   def makeCompo(self, gen):
     pyfile = "%s.py" % self.name
-    sources = " ".join(self.sources)
+    sources = " ".join(map(os.path.basename,self.sources))
     if self.kind == "lib":
       return {"Makefile.am":pycompoMakefile.substitute(module=gen.module.name, 
                                                        component=self.name,

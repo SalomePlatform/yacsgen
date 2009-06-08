@@ -215,7 +215,7 @@ class Generator(object):
     #copy source files if any in creates tree
     for compo in module.components:
       for src in compo.sources:
-        shutil.copyfile(src, os.path.join(namedir, "src", compo.name, src))
+        shutil.copyfile(src, os.path.join(namedir, "src", compo.name, os.path.basename(src)))
 
     for m4file in ("check_Kernel.m4", "check_omniorb.m4", 
                    "ac_linker_options.m4", "ac_cxx_option.m4",
