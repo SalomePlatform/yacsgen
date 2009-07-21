@@ -49,6 +49,8 @@ AC_PROG_CXX
 CHECK_F77
 CHECK_BOOST
 CHECK_OMNIORB
+CHECK_PACO
+CHECK_MPI
 
 MODULE_NAME=${module}
 AC_SUBST(MODULE_NAME)
@@ -71,6 +73,8 @@ echo "  OmniOrbpy (CORBA) ...... : $$omniORBpy_ok"
 echo "  Python ................. : $$python_ok"
 echo "  Boost  ................. : $$boost_ok"
 echo "  SALOME KERNEL .......... : $$Kernel_ok"
+echo "  PaCO++ ................. : $$PaCO_ok"
+echo "  MPI .................... : $$mpi_ok"
 echo "  Code Aster ............. : $$Aster_ok"
 echo
 echo "------------------------------------------------------------------------"
@@ -89,8 +93,9 @@ if test "x$$omniORBpy_ok" = "xno"; then
   AC_MSG_ERROR([OmniOrbpy is required],1)
 fi
 if test "x$$Kernel_ok" = "xno"; then
-  AC_MSG_ERROR([Expat is required],1)
+  AC_MSG_ERROR([SALOME KERNEL is required],1)
 fi
+${paco_configure}
 
 AC_CONFIG_FILES([
         Makefile
@@ -102,6 +107,12 @@ ${makefiles}
 AC_OUTPUT
 """
 configure=Template(configure)
+
+paco_configure="""\
+if test "x$$PaCO_ok" = "xno"; then
+  AC_MSG_ERROR([PaCO++ is required],1)
+fi
+"""
 
 makecommon="""
 # Standard directory for installation

@@ -8,10 +8,15 @@ except:
 class Invalid(Exception):
   pass
 
-from mod_tmpl import resMakefile, makecommon, configure
+from mod_tmpl import resMakefile, makecommon, configure, paco_configure
 from mod_tmpl import mainMakefile, autogen, application
-from cata_tmpl import catalog, interface, idl, idlMakefile
+from cata_tmpl import catalog, interface, idl, idlMakefile, parallel_interface
+from cata_tmpl import xml, xml_interface, xml_service
+from cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
+from cata_tmpl import idlMakefilePACO_salomepython_DATA, idlMakefilePACO_salomeidl_DATA
+from cata_tmpl import idlMakefilePACO_INCLUDES
 from cata_tmpl import cataOutStream, cataInStream, cataOutparam, cataInparam
+from cata_tmpl import cataOutParallelStream, cataInParallelStream
 from cata_tmpl import cataService, cataCompo
 from aster_tmpl import check_aster
 
@@ -42,9 +47,13 @@ calciumTypes = {"CALCIUM_double":"CALCIUM_double",
                 "CALCIUM_logical":"CALCIUM_logical",
                } 
 
-ValidImpl = ("CPP", "PY", "F77", "ASTER")
+DatastreamParallelTypes = {"Param_Double_Port":"Param_Double_Port"}
+
+ValidImpl = ("CPP", "PY", "F77", "ASTER", "PACO")
+ValidImplTypes = ("sequential", "parallel")
 ValidTypes = corbaTypes.keys()
 ValidStreamTypes = calciumTypes.keys()
+ValidParallelStreamTypes = DatastreamParallelTypes.keys()
 ValidDependencies = ("I", "T")
 PyValidTypes = ValidTypes+["pyobj"]
 
@@ -105,15 +114,18 @@ class Component(object):
 
 class Service(object):
   def __init__(self, name, inport=None, outport=None, instream=None, 
-                     outstream=None, body="", defs=""):
+                     outstream=None, parallel_instream=None, parallel_outstream=None, body="", defs="", impl_type="sequential"):
     self.name = name
     self.inport = inport or []
     self.outport = outport or []
     self.instream = instream or []
     self.outstream = outstream or []
+    self.parallel_instream = parallel_instream or []
+    self.parallel_outstream = parallel_outstream or []
     self.defs = defs
     self.body = body
     self.impl = ""
+    self.impl_type = impl_type
 
   def validate(self):
     lports = set()
@@ -141,6 +153,20 @@ class Service(object):
       if name in lports:
         raise Invalid("%s is already defined as a stream port" % name)
       lports.add(name)
+    
+    for port in self.parallel_instream:
+      name, typ = self.validateParallelStream(port)
+      if name in lports:
+        raise Invalid("%s is already defined as a stream port" % name)
+      lports.add(name)
+
+    for port in self.parallel_outstream:
+      name, typ = self.validateParallelStream(port)
+      if name in lports:
+        raise Invalid("%s is already defined as a stream port" % name)
+      lports.add(name)
+
+    self.validateImplType()
 
   def validatePort(self, port):
     try:
@@ -157,6 +183,10 @@ class Service(object):
       raise Invalid("%s is not a valid type. It should be one of %s" % (typ, validtypes))
     return name, typ
 
+  def validateImplType(self):
+    if self.impl_type not in ValidImplTypes:
+      raise Invalid("%s is not a valid impl type. It should be one of %s" % (self.impl_type, ValidImplTypes))
+
   def validateStream(self, port):
     try:
       name, typ, dep = port
@@ -168,11 +198,21 @@ class Service(object):
       raise Invalid("%s is not a valid dependency. It should be one of %s" % (dep, ValidDependencies))
     return name, typ, dep
 
+  def validateParallelStream(self, port):
+    try:
+      name, typ = port
+    except:
+      raise Invalid("%s is not a valid definition of a parallel stream port (name,type)" % (port,))
+    if typ not in ValidParallelStreamTypes:
+      raise Invalid("%s is not a valid type. It should be one of %s" % (typ, ValidParallelStreamTypes))
+    return name, typ
+
 class Generator(object):
   def __init__(self, module, context=None):
     self.module = module
     self.context = context or {}
     self.kernel = self.context["kernel"]
+    self.makeflags = self.context.get("makeflags")
     self.aster = ""
 
   def generate(self):
@@ -180,6 +220,7 @@ class Generator(object):
     namedir = module.name+"_SRC"
     force = self.context.get("force")
     update = self.context.get("update")
+    paco = self.context.get("paco")
     if os.path.exists(namedir):
       if force:
         shutil.rmtree(namedir)
@@ -205,12 +246,44 @@ class Generator(object):
     self.makeFiles({"autogen.sh":autogen,
                     "Makefile.am":mainMakefile,
                     "README":"", "NEWS":"", "AUTHORS":"", "ChangeLog":"",
-                    "configure.ac":configure.substitute(module=module.name.lower(), makefiles='\n'.join(makefiles)),
-                    "idl":{"Makefile.am":idlMakefile.substitute(module=module.name), idlfile:self.makeidl()},
                     "src":srcs,
                     "resources":{"Makefile.am":resMakefile.substitute(module=module.name), catalogfile:self.makeCatalog()},
                     "adm_local":{"make_common_starter.am":makecommon, "check_aster.m4":check_aster},
                     }, namedir)
+
+    if paco:
+      xmlfile = "%s.xml" % module.name
+      PACO_BUILT_SOURCES = idlMakefilePaCO_BUILT_SOURCES.substitute(module=module.name)
+      PACO_SALOMEINCLUDE_HEADERS = idlMakefilePaCO_nodist_salomeinclude_HEADERS.substitute(module=module.name)
+      PACO_salomepython_DATA = idlMakefilePACO_salomepython_DATA.substitute(module=module.name)
+      PACO_salomeidl_DATA = idlMakefilePACO_salomeidl_DATA.substitute(module=module.name)
+      PACO_INCLUDES = idlMakefilePACO_INCLUDES
+
+      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
+                                                          makefiles='\n'.join(makefiles),
+                                                          paco_configure=paco_configure),
+                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name, 
+                                                                  PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
+                                                                  PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
+                                                                  PACO_INCLUDES=PACO_INCLUDES,
+                                                                  PACO_salomepython_DATA=PACO_salomepython_DATA,
+                                                                  PACO_salomeidl_DATA=PACO_salomeidl_DATA), 
+                             idlfile:self.makeidl(),
+                             xmlfile:self.makexml()},
+                      }, namedir)
+    else :
+      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(), 
+                                                          makefiles='\n'.join(makefiles),
+                                                          paco_configure=""),
+                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
+                                                                  PACO_BUILT_SOURCES="",
+                                                                  PACO_SALOMEINCLUDE_HEADERS="",
+                                                                  PACO_INCLUDES="",
+                                                                  PACO_salomepython_DATA="",
+                                                                  PACO_salomeidl_DATA=""), 
+                             idlfile:self.makeidl()},
+                      }, namedir)
+
     os.chmod(os.path.join(namedir, "autogen.sh"), 0777)
     #copy source files if any in creates tree
     for compo in module.components:
@@ -220,7 +293,8 @@ class Generator(object):
     for m4file in ("check_Kernel.m4", "check_omniorb.m4", 
                    "ac_linker_options.m4", "ac_cxx_option.m4",
                    "python.m4", "enable_pthreads.m4", "check_f77.m4", 
-                   "acx_pthread.m4", "check_boost.m4"):
+                   "acx_pthread.m4", "check_boost.m4", "check_paco++.m4",
+                   "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4"):
       shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file), 
                       os.path.join(namedir, "adm_local", m4file))
 
@@ -252,6 +326,10 @@ class Generator(object):
           streams.append(cataInStream.substitute(name=name, type=calciumTypes[typ], dep=dep))
         for name, typ, dep in serv.outstream:
           streams.append(cataOutStream.substitute(name=name, type=calciumTypes[typ], dep=dep))
+        for name, typ in serv.parallel_instream:
+          streams.append(cataInParallelStream.substitute(name=name, type=DatastreamParallelTypes[typ]))
+        for name, typ in serv.parallel_outstream:
+          streams.append(cataOutParallelStream.substitute(name=name, type=DatastreamParallelTypes[typ]))
         datastreams = "\n".join(streams)
         services.append(cataService.substitute(service=serv.name, author="EDF-RD",
                                                inparams=inparams, outparams=outparams, datastreams=datastreams))
@@ -261,24 +339,52 @@ class Generator(object):
     return catalog.substitute(components='\n'.join(components))
 
   def makeidl(self):
+    from pacocompo import PACOComponent
     interfaces = []
     for compo in self.module.components:
-      services = []
-      for serv in compo.services:
-        params = []
-        for name, typ in serv.inport:
-          if compo.impl in ("PY", "ASTER") and typ == "pyobj":
-            typ = "Engines::fileBlock"
-          params.append("in %s %s" % (typ, name))
-        for name, typ in serv.outport:
-          if compo.impl in ("PY", "ASTER") and typ == "pyobj":
-            typ = "Engines::fileBlock"
-          params.append("out %s %s" % (typ, name))
-        service = "    void %s(" % serv.name
-        service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
-        services.append(service)
-      interfaces.append(interface.substitute(component=compo.name, services="\n".join(services)))
+      if isinstance(compo, PACOComponent):
+        services = []
+        for serv in compo.services:
+          params = []
+          for name, typ in serv.inport:
+            params.append("in %s %s" % (typ, name))
+          for name, typ in serv.outport:
+            params.append("out %s %s" % (typ, name))
+          service = "    void %s(" % serv.name
+          service = service+",".join(params)+");"
+          services.append(service)
+        interfaces.append(parallel_interface.substitute(component=compo.name, services="\n".join(services)))
+      else: 
+        services = []
+        for serv in compo.services:
+          params = []
+          for name, typ in serv.inport:
+            if compo.impl in ("PY", "ASTER") and typ == "pyobj":
+              typ = "Engines::fileBlock"
+            params.append("in %s %s" % (typ, name))
+          for name, typ in serv.outport:
+            if compo.impl in ("PY", "ASTER") and typ == "pyobj":
+              typ = "Engines::fileBlock"
+            params.append("out %s %s" % (typ, name))
+          service = "    void %s(" % serv.name
+          service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
+          services.append(service)
+        interfaces.append(interface.substitute(component=compo.name, services="\n".join(services)))
     return idl.substitute(module=self.module.name, interfaces='\n'.join(interfaces))
+
+  # For PaCO++
+  def makexml(self):
+    from pacocompo import PACOComponent
+    interfaces = []
+    for compo in self.module.components:
+      if isinstance(compo, PACOComponent):
+        services = []
+        for serv in compo.services:
+          if serv.impl_type == "parallel":
+            service = xml_service.substitute(service_name=serv.name)
+            services.append(service)
+        interfaces.append(xml_interface.substitute(component=compo.name, xml_services="\n".join(services)))
+    return xml.substitute(module=self.module.name, interfaces='\n'.join(interfaces))
 
   def makeFiles(self, dic, basedir):
     for name, content in dic.items():
@@ -299,18 +405,39 @@ class Generator(object):
 
   def configure(self):
     prefix = self.module.prefix
+    paco = self.context.get("paco")
+    mpi = self.context.get("mpi")
     if prefix:
       prefix = os.path.abspath(prefix)
       cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s --prefix=%s"
-      ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix))
+      if paco:
+        cmd += " --with-paco=%s"
+        if mpi:
+          cmd += " --with-mpi=%s"
+          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix, paco, mpi))
+        else :  
+          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix, paco))
+      else :  
+        ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix))
     else:
       cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s"
-      ier = os.system(cmd % (self.module.name, self.kernel, self.aster))
+      if paco:
+        cmd += " --with-paco=%s"
+        if mpi:
+          cmd += " --with-mpi=%s"
+          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, paco, mpi))
+        else:  
+          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, paco))
+      else:  
+        ier = os.system(cmd % (self.module.name, self.kernel, self.aster))
     if ier != 0:
       raise Invalid("configure has ended in error")
 
   def make(self):
-    ier = os.system("cd %s_SRC;make" % self.module.name)
+    make_command = "make "
+    if self.makeflags:
+      make_command += self.makeflags
+    ier = os.system("cd %s_SRC;%s" % (self.module.name, make_command))
     if ier != 0:
       raise Invalid("make has ended in error")
 

@@ -6,5 +6,6 @@
 from gener import Module, Service, Generator
 from fcompo import F77Component
 from cppcompo import CPPComponent
+from pacocompo import PACOComponent
 from pycompo import PYComponent
 from astcompo import ASTERComponent
