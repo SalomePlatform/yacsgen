@@ -2,8 +2,8 @@ import os
 from module_generator import Generator,Module,Service,CPPComponent
 
 context={'update':1,
-         "prerequisites":"/local/cchris/.packages.d/envSalome50",
-         "kernel":"/local/chris/SALOME2/RELEASES/Install/KERNEL_V5",
+         "prerequisites":"/home/aribes/Dev/EnvFiles/prerequis.sh",
+         "kernel":"/home/aribes/Dev/Install/SALOME/SALOME_BR/KERNEL_INSTALL_V5_1_main"
         }
 
 cwd=os.getcwd()
@@ -41,5 +41,7 @@ g.bootstrap()
 g.configure()
 g.make()
 g.install()
-g.make_appli("appli",restrict=["KERNEL","GUI","YACS"])
+g.make_appli("appli",restrict=["KERNEL","GUI","YACS"],
+             altmodules={"GUI":"/home/aribes/Dev/Install/SALOME/SALOME_BR/GUI_INSTALL_V5_1_main",
+                         "YACS":"/home/aribes/Dev/Install/SALOME/SALOME_BR/YACS_INSTALL_BR_V511_PR"})
 

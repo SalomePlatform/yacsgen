@@ -32,7 +32,7 @@ ACLOCAL_AMFLAGS = -I adm_local
 """
 
 configure="""
-AC_INIT(salome,4.1)
+AC_INIT(${module}, 1.0)
 AC_CONFIG_AUX_DIR(adm_local)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(${module}_config.h)

@@ -93,6 +93,8 @@ lib${module}_la_LIBADD     = $$(KERNEL_LIBS)
 
 CLEANFILES = *.hh *SK.cc *.py *.hxx *.cxx
 
+EXTRA_DIST = $$(IDL_FILES)
+
 clean-local:
 \trm -rf ${module} ${module}__POA
 
