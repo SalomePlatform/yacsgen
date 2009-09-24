@@ -232,6 +232,7 @@ hxxCompo="""
 #ifndef _${component}_HXX_
 #define _${component}_HXX_
 
+#include <SALOME_Component.hh>
 #include "Superv_Component_i.hxx"
 #include "${module}.hh"
 

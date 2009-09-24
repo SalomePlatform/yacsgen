@@ -22,10 +22,15 @@ from aster_tmpl import check_aster
 
 corbaTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
               "string":"const char*", "dblevec":"const %s::dblevec&",
-              "stringvec":"const %s::stringvec&", "intvec":"const %s::intvec&"}
+              "stringvec":"const %s::stringvec&", "intvec":"const %s::intvec&",
+              "dataref":"const Engines::dataref&",
+             }
+
 corbaOutTypes = {"double":"CORBA::Double&", "long":"CORBA::Long&",
-                "string":"CORBA::String_out", "dblevec":"%s::dblevec_out",
-                "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out"}
+                 "string":"CORBA::String_out", "dblevec":"%s::dblevec_out",
+                 "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out",
+                 "dataref":"Engines::dataref_out",
+                }
 
 def corba_in_type(typ, module):
   if typ in ("dblevec", "intvec", "stringvec"):

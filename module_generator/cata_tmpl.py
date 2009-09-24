@@ -18,6 +18,7 @@ module ${module}
 typedef sequence<string> stringvec;
 typedef sequence<double> dblevec;
 typedef sequence<long> intvec;
+typedef Engines::dataref dataref;
 
 ${interfaces}
 };
