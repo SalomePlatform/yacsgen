@@ -52,7 +52,6 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV)
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
     self.argv=[${argv}]
     #modif pour aster 9.0
@@ -99,7 +98,6 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV)
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     self.init=0
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
 
@@ -121,7 +119,6 @@ asterEXECompo=Template(asterEXECompo)
 
 asterService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
     self.jdc=Cata.cata.JdC(procedure=jdc,cata=Cata.cata,nom="Salome",context_ini=${dvars})
     j=self.jdc
@@ -180,12 +177,11 @@ asterService="""
        print ">> JDC.py : FIN RAPPORT"
        sys.stdout.flush()
        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr), "${component}.py",0))
-       
+
     if j.par_lot == 'NON':
        print "FIN EXECUTION"
        err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
        #retour sans erreur (il faut pousser les variables de sortie)
-       print "End of ${component}.${service}"
        sys.stdout.flush()
        self.endService("${component}.${service}")
        return ${rvars}
@@ -217,7 +213,6 @@ asterService="""
        else:
          #retour sans erreur (il faut pousser les variables de sortie)
          err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
-         print "End of ${component}.${service}"
          sys.stdout.flush()
          self.endService("${component}.${service}")
          return ${rvars}
@@ -232,7 +227,6 @@ asterService=Template(asterService)
 
 asterCEXEService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
     if not self.init:
       self.init=1

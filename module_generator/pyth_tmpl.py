@@ -30,7 +30,6 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
 
   def init_service(self,service):
@@ -81,7 +80,6 @@ pyCompoEXE=Template(pyCompoEXE)
 
 pyService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
     component=self.proxy
     returns=None
@@ -90,7 +88,6 @@ ${convertinparams}
 #BODY
 ${body}
 #ENDBODY
-      print "End of ${component}.${service}"
       sys.stdout.flush()
       self.endService("${component}.${service}")
 ${convertoutparams}
