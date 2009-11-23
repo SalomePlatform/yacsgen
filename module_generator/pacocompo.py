@@ -44,7 +44,7 @@ class PACOComponent(Component):
     Component.validate(self)
     kinds = ("lib")
     if self.kind not in kinds:
-      raise Invalid("kind must be one of %s" % kinds)
+      raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
     parallel_libs = ("dummy", "mpi")
     if self.parallel_lib not in parallel_libs:
       raise Invalid("parallel_lib must be one of %s" % parallel_libs)

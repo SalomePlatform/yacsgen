@@ -9,12 +9,20 @@ salomepython_PYTHON = ${component}.py
 
 """
 astercompoMakefile=Template(astercompoMakefile)
-astercexeMakefile=astercompoMakefile
 
-asterexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}_module.py
+astercexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
+salomepython_PYTHON = ${component}.py ${component}_container.py E_SUPERV.py
 # These files are executable scripts
 dist_salomescript_SCRIPTS= ${component}.exe
+salomeres_DATA = ${component}_config.txt
+"""
+astercexeMakefile=Template(astercexeMakefile)
+
+asterexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
+salomepython_PYTHON = ${component}_module.py ${component}_component.py E_SUPERV.py
+# These files are executable scripts
+dist_salomescript_SCRIPTS= ${component}.exe
+salomeres_DATA = ${component}_config.txt
 """
 asterexeMakefile=Template(asterexeMakefile)
 
@@ -90,6 +98,9 @@ except:
 ${servicesdef}
 #ENDDEF
 
+class ExecutionError(Exception):
+  '''General exception during execution'''
+
 class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
   '''
      To be identified as a SALOME component this Python class
@@ -104,6 +115,19 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV)
   def init_service(self,service):
 ${initservice}
     return False
+
+  def interpstring(self,text,args):
+    try:
+      self.jdc.g_context.update(args)
+      CONTEXT.set_current_step(self.jdc)
+      linecache.cache['<string>']=0,None,string.split(text,'\\n'),'<string>'
+      exec text in self.jdc.const_context,self.jdc.g_context
+      CONTEXT.unset_current_step()
+    except EOFError:
+      CONTEXT.unset_current_step()
+    except:
+      CONTEXT.unset_current_step()
+      raise
 
 ${servicesimpl}
 """
@@ -228,27 +252,34 @@ asterService=Template(asterService)
 asterCEXEService="""
   def ${service}(self,${inparams}):
     self.beginService("${component}.${service}")
-    if not self.init:
-      self.init=1
-      ier=self.main()
-    j=self.jdc
-    self.jdc.g_context.update(${dvars})
     try:
-      CONTEXT.set_current_step(self.jdc)
-      linecache.cache['<string>']=0,0,string.split(jdc,'\\n'),'<string>'
-      exec jdc in self.jdc.g_context
-      CONTEXT.unset_current_step()
+      args=${dvars}
+      if not args.has_key("jdc"):
+        fcomm=open("jdc",'r')
+        jdc=fcomm.read()
+        fcomm.close()
+        #args["jdc"]=jdc
+      if not self.init:
+        self.init=1
+        fcomm=open("fort.1",'w')
+        fcomm.write(jdc)
+        fcomm.close()
+        ier=self.main(args)
+        if ier != 0:
+          raise ExecutionError("Error in initial execution")
+      else:
+        self.interpstring(jdc,args)
+
       self.endService("${component}.${service}")
-    except EOFError:
-      self.endService("${component}.${service}")
+      j=self.jdc
+      return ${rvars}
     except:
-      sys.stdout.flush()
       exc_typ,exc_val,exc_fr=sys.exc_info()
       l=traceback.format_exception(exc_typ,exc_val,exc_fr)
       self.endService("${component}.${service}")
-      CONTEXT.unset_current_step()
+      sys.stdout.flush()
+      sys.stderr.flush()
       raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,"".join(l),"${component}.py",0))
-    return ${rvars}
 """
 asterCEXEService=Template(asterCEXEService)
 asterEXEService=asterCEXEService
@@ -333,14 +364,7 @@ cexe="""#!/bin/sh
 
 export SALOME_CONTAINERNAME=$$1
 
-cp ${export} temp.export
-cat >> temp.export << END
-F mess $$PWD/messages R 6
-F resu $$PWD/resu R 8
-F erre $$PWD/erre R 9
-END
-
-${asrun} temp.export
+${compoexe}
 """
 cexe=Template(cexe)
 
@@ -350,14 +374,7 @@ export SALOME_CONTAINER=$$1
 export SALOME_CONTAINERNAME=$$2
 export SALOME_INSTANCE=$$3
 
-cp ${export} temp.export
-cat >> temp.export << END
-F mess $$PWD/messages R 6
-F resu $$PWD/resu R 8
-F erre $$PWD/erre R 9
-END
-
-${asrun} temp.export
+${compoexe}
 """
 exeaster=Template(exeaster)
 

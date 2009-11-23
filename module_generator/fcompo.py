@@ -18,17 +18,20 @@ class F77Component(CPPComponent):
     self.impl = "F77"
 
   def makebody(self):
+    """generate definitions (defs attribute of services) et bodys (body attribute of services)"""
     for serv in self.services:
       #defs generation
       params = ["void *compo"]
       strparams = []
       for name, typ in serv.inport:
+        if typ == "file":continue #files are not passed through service interface
         if typ == "string":
           params.append("const STR_PSTR(%s)"%name)
           strparams.append("STR_PLEN(%s)"%name)
         else:
           params.append("%s %s" % (f77Types[typ], name))
       for name, typ in serv.outport:
+        if typ == "file":continue #files are not passed through service interface
         if typ == "string":
           params.append("const STR_PSTR(%s)"%name)
           strparams.append("STR_PLEN(%s)"%name)
@@ -44,12 +47,14 @@ class F77Component(CPPComponent):
       #length allocated for out string
       lstr = 20
       for name, typ in serv.inport:
+        if typ == "file":continue #files are not passed through service interface
         if typ == "string":
           params.append("STR_CPTR(%s)" % name)
           strparams.append("STR_CLEN(%s)"%name)
         else:
           params.append("&%s" % name)
       for name, typ in serv.outport:
+        if typ == "file":continue #files are not passed through service interface
         if typ == "string":
           params.append("STR_CPTR(%s.ptr())" % name)
           strparams.append("STR_CLEN(%s.ptr())"%name)
@@ -61,5 +66,9 @@ class F77Component(CPPComponent):
       serv.body = serv.body+"\n   F_CALL(%s,%s)(%s);" % (serv.name.lower(), serv.name.upper(), args)
 
   def makeCompo(self, gen):
+    """build a dictionary that defines component files
+       dictionary key = file name
+       dictionary value = file content or dictionary defining subdirectory content
+    """
     self.makebody()
     return CPPComponent.makeCompo(self, gen)

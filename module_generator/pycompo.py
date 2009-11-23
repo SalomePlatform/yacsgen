@@ -5,21 +5,36 @@ import os
 from gener import Component, Invalid
 from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo
 from pyth_tmpl import pycompoEXEMakefile, pycompoMakefile
+import textwrap
+from string import split,rstrip,join
+
+def indent(text, prefix='    '):
+  """Indent text by prepending a given prefix to each line."""
+  if not text: return ''
+  lines = split(text, '\n')
+  lines = map(lambda line, prefix=prefix: prefix + line, lines)
+  if lines: lines[-1] = rstrip(lines[-1])
+  return join(lines, '\n')
 
 class PYComponent(Component):
   def __init__(self, name, services=None, python_path=None, kind="lib",
                      sources=None):
+    """initialise component attributes"""
     self.python_path = python_path or []
     Component.__init__(self, name, services, impl="PY", kind=kind,
                              sources=sources)
 
   def validate(self):
+    """validate component attributes"""
     Component.validate(self)
     kinds = ("lib","exe")
     if self.kind not in kinds:
-      raise Invalid("kind must be one of %s" % kinds)
+      raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
 
   def makeCompo(self, gen):
+    """generate component sources as a dictionary containing 
+       file names (key) and file content (values)
+    """
     pyfile = "%s.py" % self.name
     sources = " ".join(map(os.path.basename,self.sources))
     if self.kind == "lib":
@@ -36,6 +51,7 @@ class PYComponent(Component):
              }
 
   def makepy(self, gen):
+    """generate standard SALOME component source (python module)"""
     services = []
     inits = []
     defs = []
@@ -44,6 +60,7 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
@@ -53,13 +70,18 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.outport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
+      #dedent and indent the body
+      body=textwrap.dedent(serv.body)
+      body=indent(body,' '*6)
+
       service = pyService.substitute(component=self.name, service=serv.name, inparams=inparams,
-                                     outparams=outparams, body=serv.body, 
+                                     outparams=outparams, body= body,
                                      convertinparams=convertinparams,
                                      convertoutparams=convertoutparams)
       streams = []
@@ -83,6 +105,7 @@ class PYComponent(Component):
                               python_path=python_path)
 
   def makepyexe(self, gen):
+    """generate standalone component source (python executable)"""
     services = []
     inits = []
     defs = []
@@ -91,6 +114,7 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
@@ -100,14 +124,18 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.outport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
-      service = pyService.substitute(component=self.name, service=serv.name, 
-                                     inparams=inparams, outparams=outparams, 
-                                     body=serv.body, 
+      #dedent and indent the body
+      body=textwrap.dedent(serv.body)
+      body=indent(body,' '*6)
+      service = pyService.substitute(component=self.name, service=serv.name,
+                                     inparams=inparams, outparams=outparams,
+                                     body=body,
                                      convertinparams=convertinparams,
                                      convertoutparams=convertoutparams,
                                     )

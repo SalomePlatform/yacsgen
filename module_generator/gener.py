@@ -1,4 +1,5 @@
 import os, shutil, glob, socket
+import traceback
 
 try:
   from string import Template
@@ -7,6 +8,8 @@ except:
 
 class Invalid(Exception):
   pass
+
+debug=0
 
 from mod_tmpl import resMakefile, makecommon, configure, paco_configure
 from mod_tmpl import mainMakefile, autogen, application
@@ -23,13 +26,13 @@ from aster_tmpl import check_aster
 corbaTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
               "string":"const char*", "dblevec":"const %s::dblevec&",
               "stringvec":"const %s::stringvec&", "intvec":"const %s::intvec&",
-              "dataref":"const Engines::dataref&",
+              "dataref":"const Engines::dataref&","file":None
              }
 
 corbaOutTypes = {"double":"CORBA::Double&", "long":"CORBA::Long&",
                  "string":"CORBA::String_out", "dblevec":"%s::dblevec_out",
                  "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out",
-                 "dataref":"Engines::dataref_out",
+                 "dataref":"Engines::dataref_out","file":None
                 }
 
 def corba_in_type(typ, module):
@@ -76,7 +79,13 @@ class Module(object):
     self.name = name
     self.components = components or []
     self.prefix = prefix or "%s_INSTALL" % name
-    self.validate()
+    try:
+      self.validate()
+    except Invalid,e:
+      if debug:
+        traceback.print_exc()
+      print "Error in module %s: %s" % (name,e)
+      raise SystemExit
 
   def validate(self):
     lcompo = set()
@@ -221,6 +230,7 @@ class Generator(object):
     self.aster = ""
 
   def generate(self):
+    """generate SALOME module as described by module attribute"""
     module = self.module
     namedir = module.name+"_SRC"
     force = self.context.get("force")
@@ -306,14 +316,18 @@ class Generator(object):
     return
 
   def makeArgs(self, service):
+    """generate source service for arguments"""
     params = []
     for name, typ in service.inport:
+      if typ=="file":continue #files are not passed through service interface
       params.append("%s %s" % (corba_in_type(typ, self.module.name), name))
     for name, typ in service.outport:
+      if typ=="file":continue #files are not passed through service interface
       params.append("%s %s" % (corba_out_type(typ, self.module.name), name))
     return ",".join(params)
 
   def makeCatalog(self):
+    """generate SALOME components catalog source"""
     components = []
     for compo in self.module.components:
       services = []
@@ -344,6 +358,7 @@ class Generator(object):
     return catalog.substitute(components='\n'.join(components))
 
   def makeidl(self):
+    """generate module IDL file source (CORBA interface)"""
     from pacocompo import PACOComponent
     interfaces = []
     for compo in self.module.components:
@@ -352,22 +367,26 @@ class Generator(object):
         for serv in compo.services:
           params = []
           for name, typ in serv.inport:
+            if typ == "file":continue #files are not passed through IDL interface
             params.append("in %s %s" % (typ, name))
           for name, typ in serv.outport:
+            if typ == "file":continue #files are not passed through IDL interface
             params.append("out %s %s" % (typ, name))
           service = "    void %s(" % serv.name
           service = service+",".join(params)+");"
           services.append(service)
         interfaces.append(parallel_interface.substitute(component=compo.name, services="\n".join(services)))
-      else: 
+      else:
         services = []
         for serv in compo.services:
           params = []
           for name, typ in serv.inport:
+            if typ == "file":continue #files are not passed through IDL interface
             if compo.impl in ("PY", "ASTER") and typ == "pyobj":
               typ = "Engines::fileBlock"
             params.append("in %s %s" % (typ, name))
           for name, typ in serv.outport:
+            if typ == "file":continue #files are not passed through IDL interface
             if compo.impl in ("PY", "ASTER") and typ == "pyobj":
               typ = "Engines::fileBlock"
             params.append("out %s %s" % (typ, name))
@@ -392,6 +411,10 @@ class Generator(object):
     return xml.substitute(module=self.module.name, interfaces='\n'.join(interfaces))
 
   def makeFiles(self, dic, basedir):
+    """create files and directories defined in dictionary dic in basedir directory
+       dic key = file name to create
+       dic value = file content or dictionary defining the content of a sub directory
+    """
     for name, content in dic.items():
       filename = os.path.join(basedir, name)
       if isinstance(content, str):
@@ -404,11 +427,13 @@ class Generator(object):
         self.makeFiles(content, filename)
 
   def bootstrap(self):
+    """execute module autogen.sh script: execution of libtool, autoconf, automake"""
     ier = os.system("cd %s_SRC;sh autogen.sh" % self.module.name)
     if ier != 0:
       raise Invalid("bootstrap has ended in error")
 
   def configure(self):
+    """execute module configure script with installation prefix (prefix attribute of module)"""
     prefix = self.module.prefix
     paco = self.context.get("paco")
     mpi = self.context.get("mpi")
@@ -439,6 +464,7 @@ class Generator(object):
       raise Invalid("configure has ended in error")
 
   def make(self):
+    """execute module Makefile : make"""
     make_command = "make "
     if self.makeflags:
       make_command += self.makeflags
@@ -447,11 +473,13 @@ class Generator(object):
       raise Invalid("make has ended in error")
 
   def install(self):
+    """install module: make install """
     ier = os.system("cd %s_SRC;make install" % self.module.name)
     if ier != 0:
       raise Invalid("install has ended in error")
 
   def make_appli(self, appliname, restrict=None, altmodules=None):
+    """generate SALOME application"""
     makedirs(appliname)
 
     rootdir, kerdir = os.path.split(self.kernel)

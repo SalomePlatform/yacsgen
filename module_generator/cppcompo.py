@@ -20,7 +20,7 @@ class CPPComponent(Component):
     Component.validate(self)
     kinds = ("lib", "exe")
     if self.kind not in kinds:
-      raise Invalid("kind must be one of %s" % kinds)
+      raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
 
     if self.kind == "exe" :
       if not self.exe_path:
