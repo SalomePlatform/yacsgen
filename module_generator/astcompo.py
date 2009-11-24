@@ -18,15 +18,12 @@ from aster_tmpl import container, component
 
 class ASTERComponent(Component):
   def __init__(self, name, services=None, libs="", rlibs="", aster_dir="", 
-                     python_path=None, argv=None, kind="lib", exe_path=None,
-                     asrun=None, export_extras=""):
+                     python_path=None, argv=None, kind="lib", exe_path=None):
     """initialise component attributes"""
     self.aster_dir = aster_dir
     self.python_path = python_path or []
     self.argv = argv or []
     self.exe_path = exe_path
-    self.asrun = asrun
-    self.export_extras = export_extras
     Component.__init__(self, name, services, impl="ASTER", libs=libs, 
                              rlibs=rlibs, kind=kind)
 
