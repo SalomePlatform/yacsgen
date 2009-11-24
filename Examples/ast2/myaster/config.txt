@@ -12,6 +12,8 @@
 #  LINK       : linker command
 #  OPTL       : linker options
 #  CC         : C compiler command
+#  DEFS       : pre-processor #define commands separated by space or comma
+#               they will be added to all compilation options OPTx_x
 #  OPTC_D     : C compiler options using DEBUG mode
 #  OPTC_O     : C compiler options using NODEBUG mode
 #  INCL       : C include flags
@@ -31,51 +33,55 @@
 #  REPOUT     : tools directory
 #  MAKE_SURCH_OFFI/MAKE_CAPY_OFFI : Python modules to compiling elements catalogs
 #  CRP / CRS  : tools to check source files and programming rules
+#  ID_PERF    : a label to identify a group of machines (use by TEST_TEMPS command)
 #
-ENV_SH         | env     | -     | /local/chris/ASTER/instals/NEW9/profile.sh
+ID_PERF        | id      | -     | claui2c6
+#
+ENV_SH         | env     | -     | /local/cchris/Aster/V10/Install/STA10.0/profile.sh
 #
 LIB            | ar      | ?     | /usr/bin/ar -rv
 #
-#BIBL           | python  | 2.4   | -L/usr/lib/python2.4/config -lpython2.4
-BIBL           | python  | 2.4   | -lpython2.4
-BIBL           | med     | 2.3.5 | -Wl,-R -Wl,/local/chris/pkg/med235/install/lib -L/local/chris/pkg/med235/install/lib -lmed
+BIBL           | python  | 2.4   | -lpython2.5
+BIBL           | med     | 2.3.5 | -Wl,-R -Wl,/local/cchris/pkg/med235/install/lib -L/local/cchris/pkg/med235/install/lib -lmed
 BIBL           | hdf5    | 1.6.5 | -lhdf5
-BIBL           | sys     | ?     | -Wl,--allow-multiple-definition -Wl,--export-dynamic -lieee -ldl -lpthread -lutil -lm /usr/lib/libz.a
-BIBL           | mpi     | 2     | -lmpi
-BIBL           | zmat    | 8.3   | 
-BIBL           | mumps   | 4.3.2 | 
-BIBL           | scotch  | 4.0   | -L/local/chris/ASTER/instals/public/scotch_4.0/bin -lscotch -lcommon -lscotcherr -lscotcherrcom
-BIBL           | math    | ?     | /usr/lib/liblapack.a /usr/lib/libblas.a /usr/lib/libg2c.a
-BIBL           | salome  | ?     | -L/local/chris/SALOME2/RELEASES/Install/KERNEL_V5/lib/salome -lCalciumC -lSalomeDSCSuperv -lSalomeDSCContainer -lSalomeDatastream -lSalomeDSCSupervBasic -Wl,--rpath -Wl,/local/chris/SALOME2/RELEASES/Install/KERNEL_V5/lib/salome
+BIBL           | zmat    | 8.4   | 
+BIBL           | mumps   | ?     | /local/cchris/Aster/V10/Install/public/mumps-4.7.3/lib/libdmumps.a /local/cchris/Aster/V10/Install/public/mumps-4.7.3/lib/libzmumps.a /local/cchris/Aster/V10/Install/public/mumps-4.7.3/lib/libpord.a /local/cchris/Aster/V10/Install/public/mumps-4.7.3/libseq/libmpiseq.a
+BIBL           | scotch  | 4.0   | 
+BIBL           | math    | ?     | /usr/lib/liblapack.a /usr/lib/libblas.a /usr/lib/gcc/x86_64-linux-gnu/4.3/libgfortran.a /usr/lib/gcc/x86_64-linux-gnu/4.3/libgfortran.a
+BIBL           | mpi     | 2     | 
+BIBL           | c++     | ?     | -L/usr/lib/gcc/x86_64-linux-gnu/4.3 -lstdc++ -lsupc++
+BIBL           | sys     | ?     | -Wl,--allow-multiple-definition -Wl,--export-dynamic -lieee -ldl -lpthread -lutil -lm -lz
+BIBL           | salome  | ?     | -L/local/cchris/Salome/Install/KERNEL_V5/lib/salome -lCalciumC -lSalomeDSCSuperv -lSalomeDSCContainer -lSalomeDatastream -lSalomeDSCSupervBasic -Wl,--rpath -Wl,/local/cchris/Salome/Install/KERNEL_V5/lib/salome
 #
-NOBUILD        | option  | ?     |  bibfor/from_c
+DEFS           | defined | ?     | LINUX64 _HAVE_MUMPS
+#
+NOBUILD        | option  | ?     |  bibfor/from_c bibc/scotch
 #
 PYTHON         | python  | 2.4   | /usr/bin/python
 #
-LINK           | link    | ?     | /usr/bin/g77
-OPTL           | link    | ?     | -v
+LINK           | link    | ?     | /usr/bin/gfortran
+OPTL           | link    | ?     |  -fopenmp
 #
 CC             | cc      | ?     | /usr/bin/gcc
-#OPTC_D         | cc      | ?     | -c -g -DP_LINUX  -D_USE_MPI
-OPTC_D         | cc      | ?     | -c -g -DP_LINUX 
-#OPTC_O         | cc      | ?     | -c -O2 -DP_LINUX -D_USE_MPI
-OPTC_O         | cc      | ?     | -c -O2 -DP_LINUX 
-INCL           | include | ?     | -I/local/chris/ASTER/instals/NEW9/bibc/include -I/usr/include/python2.4 -I/usr/include -I/usr/include/lam -I/local/chris/ASTER/instals/public/scotch_4.0/bin
+OPTC_D         | cc      | ?     | -c -g  -fno-stack-protector
+OPTC_O         | cc      | ?     | -c -O2 -fno-stack-protector
+INCL           | include | ?     | -I/local/cchris/Aster/V10/Install/STA10.0/bibc/include -I/usr/include/python2.5 -I/local/cchris/Aster/V10/Install/public/hdf5-1.6.5/include
 #
-F77            | f77     | ?     | /usr/bin/g77
-OPTF_D         | f77     | ?     | -c -g
-OPTF_O         | f77     | ?     | -c -O2 -I/usr/include/lam
-INCLF          | include | ?     | -I/local/chris/SALOME2/RELEASES/Install/KERNEL_V5/include/salome
+F77            | f77     | ?     | /usr/bin/gfortran
+OPTF_D         | f77     | ?     | -c -g  -fopenmp  -fdefault-double-8 -fdefault-integer-8 -fdefault-real-8
+OPTF_O         | f77     | ?     | -c -O2 -fopenmp  -fdefault-double-8 -fdefault-integer-8 -fdefault-real-8
+INCLF          | include | ?     | -I/local/cchris/Salome/Install/KERNEL_V5/include/salome
 #
-F90            | f90     | ?     | 
-OPTF90_D       | f90     | ?     | -c -g
-OPTF90_O       | f90     | ?     | -c -O2
-INCLF90        | include | ?     | 
+F90            | f90     | ?     | /usr/bin/gfortran
+OPTF90_D       | f90     | ?     | -c -g  -ffixed-line-length-0 -x f77-cpp-input  -fdefault-double-8 -fdefault-integer-8 -fdefault-real-8
+OPTF90_O       | f90     | ?     | -c -O2 -ffixed-line-length-0 -x f77-cpp-input  -fdefault-double-8 -fdefault-integer-8 -fdefault-real-8
+INCLF90        | include | ?     |  -I/local/cchris/Aster/V10/Install/STA10.0/bibf90/include_mumps-4.7.3
 #
 G77_AGLA       | g77     | ?     | unused
 #
 SRCFOR         | src     | 11-04 | bibfor
-#SRCF90         | src     | 11-04 | bibf90
+#Comment following line if you have no f90 compiler
+SRCF90         | src     | 11-04 | bibf90
 SRCFERM        | src     | 11-04 | fermetur
 SRCC           | src     | 11-04 | bibc
 SRCPY          | src     | 11-04 | bibpyt
@@ -107,22 +113,26 @@ ARGEXE         | exec    | 03-02 | -eficas_path ./Python
 MAKE_SURCH_OFFI | build  | 11-04 | Lecture_Cata_Ele/make_surch_offi.py
 MAKE_CAPY_OFFI  | build  | 11-04 | Lecture_Cata_Ele/make_capy_offi.py
 #
-REPOUT         | exec    | 11-04 | /local/chris/ASTER/instals/outils
-REPMAT         | exec    | 02-05 | /local/chris/ASTER/instals/NEW9/materiau
-REPDEX         | exec    | 02-05 | /local/chris/ASTER/instals/NEW9/datg
+REPOUT         | exec    | 11-04 | /local/cchris/Aster/V10/Install/outils
+REPMAT         | exec    | 02-05 | /local/cchris/Aster/V10/Install/STA10.0/materiau
+REPDEX         | exec    | 02-05 | /local/cchris/Aster/V10/Install/STA10.0/datg
 #
 SUPERV         | exec    | 03-02 | Accas
 SUPERV         | exec    | 03-02 | Build
+SUPERV         | exec    | 03-02 | Comportement
 SUPERV         | exec    | 03-02 | Execution
+SUPERV         | exec    | 03-02 | Intranet
 SUPERV         | exec    | 03-02 | Macro
-SUPERV         | exec    | 03-02 | Messages
+SUPERV         | exec    | 12-06 | Meidee
+SUPERV         | exec    | 09-06 | Messages
 SUPERV         | exec    | 03-02 | Noyau
-SUPERV         | exec    | 03-02 | Stanley
+SUPERV         | exec    | 05-04 | Outils
+SUPERV         | exec    | 01-07 | SD
+SUPERV         | exec    | 01-03 | Stanley
 SUPERV         | exec    | 03-02 | Utilitai
 SUPERV         | exec    | 03-02 | Validation
 #
 GZIP           | tool    | ?     | ?GZIP?
-CRP            | tool    | ?     | /local/chris/ASTER/instals/outils/CRPCRS/crp_aster.sh
-CRS            | tool    | ?     | /local/chris/ASTER/instals/outils/CRPCRS/crs.sh
 #
 I18N           | i18n    | -     | 
+

@@ -1,7 +1,7 @@
 
 #ASTER
-ASTER_ROOT=/local/chris/ASTER/instals
+ASTER_ROOT=/local/cchris/Aster/V10/Install
 
 aster.exe:
-	./make_exec $(ASTER_ROOT)/ASTK/ASTK_SERV/bin/as_run
+	./make_exec 
 

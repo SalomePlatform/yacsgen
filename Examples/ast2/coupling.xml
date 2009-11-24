@@ -16,8 +16,7 @@
   <component>caster</component>
   <method>s1</method>
   <load container="A"/>
-  <inport name="jdc" type="string"/>
-  <inport name="argv" type="string"/>
+  <inport name="jdc" type="file"/>
   <inport name="a" type="double"/>
   <inport name="b" type="int"/>
   <inport name="c" type="string"/>
@@ -60,16 +59,6 @@
     <code>print "dans python node:",p1</code>
   </script>
   <inport name="p1" type="double"/>
-</inline>
-
-<inline name="ljdc" >
-  <script>
-    <code>f=open(comm)</code>
-    <code>jdc=f.read()</code>
-    <code>f.close()</code>
-  </script>
-  <inport name="comm" type="string"/>
-  <outport name="jdc" type="string"/>
 </inline>
 
 <outnode name="dataout" >
@@ -126,10 +115,6 @@
    <fromnode>datain</fromnode><fromport>f1</fromport>
    <tonode>node2</tonode> <toport>a</toport>
 </datalink>
-<datalink>
-   <fromnode>ljdc</fromnode><fromport>jdc</fromport>
-   <tonode>node1</tonode> <toport>jdc</toport>
-</datalink>
 
 <parameter>
   <tonode>node1</tonode> <toport>a</toport>
@@ -154,13 +139,8 @@
 </parameter>
 
 <parameter>
-  <tonode>ljdc</tonode> <toport>comm</toport>
-  <value><string>f.comm</string> </value>
-</parameter>
-
-<parameter>
-  <tonode>node1</tonode> <toport>argv</toport>
-  <value><string>-memjeveux 4 </string> </value>
+  <tonode>node1</tonode> <toport>jdc</toport>
+  <value><objref>f.comm</objref></value>
 </parameter>
 
 </proc>

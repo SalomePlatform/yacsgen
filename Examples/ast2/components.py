@@ -4,22 +4,24 @@
 import os
 from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
-context={'update':1,"prerequisites":"/local/cchris/.packages.d/envSalome50",
-          "kernel":"/local/chris/SALOME2/RELEASES/Install/KERNEL_V5"}
-aster_home="/local/chris/ASTER/instals"
-aster_root=os.path.join(aster_home,"NEW9")
-asrun=os.path.join(aster_home,"ASTK/ASTK_SERV/bin/as_run")
+context={'update':1,
+         "prerequisites":"/local/cchris/.packages.d/envSalome5",
+         "kernel":"/local/cchris/Salome/Install/KERNEL_V5"
+        }
+
+aster_home="/local/cchris/Aster/V10/Install"
+aster_version="STA10.0"
+
+aster_root=os.path.join(aster_home,aster_version)
 
 fcompodir=os.path.join(os.getcwd(),"fcompo")
 myasterdir=os.path.join(os.getcwd(),"myaster","bibpyt")
+
 install_prefix="./install"
 appli_dir="appli"
-export="""F exec %s D 0
-R cmde %s D 0
-""" % (os.path.join(os.getcwd(),"myaster","aster.exe"),os.path.join(os.getcwd(),"myaster","commande"))
 
 c1=ASTERComponent("caster",services=[
-          Service("s1",inport=[("argv","string"),("a","double"),("b","long"),("c","string")],
+          Service("s1",inport=[("jdc","file"),("a","double"),("b","long"),("c","string")],
                        outport=[("d","double")],
                        instream=[("aa","CALCIUM_double","T"),("ab","CALCIUM_double","I"),
                                  ("ac","CALCIUM_integer","I"),("ad","CALCIUM_real","I"),
@@ -30,12 +32,10 @@ c1=ASTERComponent("caster",services=[
                  ),
          ],
          aster_dir=aster_root,
-         exe_path=os.path.join(os.getcwd(),"exeaster"),
-         asrun=asrun,
          kind="exe",
-         export_extras=export,
+         exe_path=os.path.join(os.getcwd(),"exeaster"),
          )
-          
+
 c2=F77Component("cfort",services=[
           Service("s1",inport=[("a","double"),("b","long"),("c","string")],
                        outport=[("d","double"),("e","long"),("f","string")],

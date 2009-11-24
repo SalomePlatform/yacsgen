@@ -17,7 +17,7 @@ process components.py ::
   python components.py
 
 You should get a SALOME module in source form (pycompos_SRC), its installation (install) and
-a SALOME application (appli) composed of modules KERNEL, GUI, YACS and pycompos.
+a SALOME application (appli) composed of modules KERNEL, GUI, YACS and astmod_SRC.
 
 Build the fcompo library ::
 
@@ -35,5 +35,5 @@ To run a coupling:
  2. start a SALOME session : ./appli/runSession
  3. start YACS coupler with coupling file : driver coupling.xml
  4. examine output files in /tmp
- 5. shutdown SALOME : shutdowSalome.py
+ 5. shutdown SALOME : shutdownSalome.py
  6. exit session : CTRL-D (or exit)
