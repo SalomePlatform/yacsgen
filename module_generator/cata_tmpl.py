@@ -135,6 +135,7 @@ catalog="""<?xml version='1.0' encoding='us-ascii' ?>
 <!-- Commonly used types  -->
 <type-list>
   <objref name="pyobj" id="python:obj:1.0"/>
+  <objref name="file" id="file"/>
 </type-list>
 
 <!-- Component list -->
