@@ -7,7 +7,7 @@ to take into account your configuration.
 1- your prerequisite file 
 2- your KERNEL_ROOT_DIR
 
-Then set the environment (including PYTHONPATH for YACGEN, ../.. from here and execute components.py ::
+Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here and execute components.py ::
 
   source <your prerequisite file>
   python components.py

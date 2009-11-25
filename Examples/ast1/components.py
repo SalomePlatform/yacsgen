@@ -4,9 +4,10 @@
 import os
 from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
-context={'update':1,"prerequisites":"/local/cchris/.packages.d/envSalome50",
-          "kernel":"/local/chris/SALOME2/RELEASES/Install/KERNEL_V5"}
-aster_root="/local/chris/ASTER/instals/NEW9"
+#import context from ..
+execfile("../context.py")
+
+aster_root=os.path.join(aster_home,aster_version)
 
 libfcompodir=os.path.join(os.getcwd(),"fcompo")
 myasterdir=os.path.join(os.getcwd(),"myaster","bibpyt")
@@ -28,7 +29,7 @@ c1=ASTERComponent("caster",services=[
          python_path=[myasterdir],
          argv=["-memjeveux","4",'-rep_outils','/local/chris/ASTER/instals/outils'],
          )
-          
+
 c2=F77Component("cfort",services=[
           Service("s1",inport=[("a","double"),("b","long"),("c","string")],
                        outport=[("d","double"),("e","long"),("f","string")],

@@ -1,7 +1,7 @@
 
-FC=g77
+FC=gfortran
 
-KERNEL_ROOT_DIR=/local/chris/SALOME2/RELEASES/Install/KERNEL_V5
+KERNEL_ROOT_DIR=/local/cchris/Salome/Install/KERNEL_V5
 
 all:prog1 prog2
 prog1:code1.o

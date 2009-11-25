@@ -1,10 +1,8 @@
 import os
 from module_generator import Generator,Module,Service,PYComponent
 
-context={'update':1,
-         "prerequisites":"/local/cchris/.packages.d/envSalome50",
-         "kernel":"/local/chris/SALOME2/RELEASES/Install/KERNEL_V5",
-        }
+#import context from ..
+execfile("../context.py")
 
 cwd=os.getcwd()
 
