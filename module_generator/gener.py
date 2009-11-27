@@ -75,10 +75,11 @@ def makedirs(namedir):
   os.makedirs(namedir)
 
 class Module(object):
-  def __init__(self, name, components=None, prefix=""):
+  def __init__(self, name, components=None, prefix="",layout="multidir"):
     self.name = name
     self.components = components or []
     self.prefix = prefix or "%s_INSTALL" % name
+    self.layout=layout
     try:
       self.validate()
     except Invalid,e:
@@ -125,6 +126,9 @@ class Component(object):
 
   def getImpl(self):
     return "SO", ""
+
+  def getMakefileItems(self,gen):
+    return {}
 
 class Service(object):
   def __init__(self, name, inport=None, outport=None, instream=None, 
@@ -248,14 +252,42 @@ class Generator(object):
 
     srcs = {}
     makefile = "SUBDIRS="
-    makefiles = []
-    for compo in module.components:
-      makefile = makefile+" "+compo.name
-      srcs[compo.name] = compo.makeCompo(self)
-      makefiles.append("     src/"+compo.name+"/Makefile")
+    makefileItems={"header":"""
+include $(top_srcdir)/adm_local/make_common_starter.am
+AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
+""",
+                   "salomepython_PYTHON":[],
+                   "dist_salomescript_SCRIPTS":[],
+                   "salomeres_DATA":[],
+                   "lib_LTLIBRARIES":[],
+                   "salomeinclude_HEADERS":[],
+                   "body":"",
+                  }
 
-    srcs["Makefile.am"] = makefile+'\n'
-    idlfile = "%s.idl" % module.name
+    for compo in module.components:
+      #for components files
+      fdict=compo.makeCompo(self)
+      if self.module.layout=="multidir":
+        srcs[compo.name] = fdict
+        #for src/Makefile.am
+        makefile = makefile+" "+compo.name
+      else:
+        srcs.update(fdict)
+        #for src/Makefile.am
+        mdict=compo.getMakefileItems(self)
+        makefileItems["salomepython_PYTHON"]=makefileItems["salomepython_PYTHON"]+mdict.get("salomepython_PYTHON",[])
+        makefileItems["dist_salomescript_SCRIPTS"]=makefileItems["dist_salomescript_SCRIPTS"]+mdict.get("dist_salomescript_SCRIPTS",[])
+        makefileItems["salomeres_DATA"]=makefileItems["salomeres_DATA"]+mdict.get("salomeres_DATA",[])
+        makefileItems["lib_LTLIBRARIES"]=makefileItems["lib_LTLIBRARIES"]+mdict.get("lib_LTLIBRARIES",[])
+        makefileItems["salomeinclude_HEADERS"]=makefileItems["salomeinclude_HEADERS"]+mdict.get("salomeinclude_HEADERS",[])
+        makefileItems["body"]=makefileItems["body"]+mdict.get("body","")+'\n'
+
+    if self.module.layout=="multidir":
+      srcs["Makefile.am"] = makefile+'\n'
+    else:
+      srcs["Makefile.am"] = self.makeMakefile(makefileItems)
+
+    #for catalog files
     catalogfile = "%sCatalog.xml" % module.name
 
     self.makeFiles({"autogen.sh":autogen,
@@ -266,6 +298,14 @@ class Generator(object):
                     "adm_local":{"make_common_starter.am":makecommon, "check_aster.m4":check_aster},
                     }, namedir)
 
+    #for configure.ac
+    configure_makefiles = []
+    if self.module.layout=="multidir":
+      for compo in module.components:
+        configure_makefiles.append("     src/"+compo.name+"/Makefile")
+    #for idl files
+    idlfile = "%s.idl" % module.name
+
     if paco:
       xmlfile = "%s.xml" % module.name
       PACO_BUILT_SOURCES = idlMakefilePaCO_BUILT_SOURCES.substitute(module=module.name)
@@ -275,7 +315,7 @@ class Generator(object):
       PACO_INCLUDES = idlMakefilePACO_INCLUDES
 
       self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
-                                                          makefiles='\n'.join(makefiles),
+                                                          makefiles='\n'.join(configure_makefiles),
                                                           paco_configure=paco_configure),
                       "idl":{"Makefile.am":idlMakefile.substitute(module=module.name, 
                                                                   PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
@@ -288,7 +328,7 @@ class Generator(object):
                       }, namedir)
     else :
       self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(), 
-                                                          makefiles='\n'.join(makefiles),
+                                                          makefiles='\n'.join(configure_makefiles),
                                                           paco_configure=""),
                       "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
                                                                   PACO_BUILT_SOURCES="",
@@ -300,10 +340,13 @@ class Generator(object):
                       }, namedir)
 
     os.chmod(os.path.join(namedir, "autogen.sh"), 0777)
-    #copy source files if any in creates tree
+    #copy source files if any in created tree
     for compo in module.components:
       for src in compo.sources:
-        shutil.copyfile(src, os.path.join(namedir, "src", compo.name, os.path.basename(src)))
+        if self.module.layout=="multidir":
+          shutil.copyfile(src, os.path.join(namedir, "src", compo.name, os.path.basename(src)))
+        else:
+          shutil.copyfile(src, os.path.join(namedir, "src", os.path.basename(src)))
 
     for m4file in ("check_Kernel.m4", "check_omniorb.m4", 
                    "ac_linker_options.m4", "ac_cxx_option.m4",
@@ -314,6 +357,24 @@ class Generator(object):
                       os.path.join(namedir, "adm_local", m4file))
 
     return
+
+  def makeMakefile(self,makefileItems):
+    makefile=""
+    if makefileItems.has_key("header"):
+      makefile=makefile + makefileItems["header"]+'\n'
+    if makefileItems.has_key("lib_LTLIBRARIES"):
+      makefile=makefile+"lib_LTLIBRARIES= "+" ".join(makefileItems["lib_LTLIBRARIES"])+'\n'
+    if makefileItems.has_key("salomepython_PYTHON"):
+      makefile=makefile+"salomepython_PYTHON= "+" ".join(makefileItems["salomepython_PYTHON"])+'\n'
+    if makefileItems.has_key("dist_salomescript_SCRIPTS"):
+      makefile=makefile+"dist_salomescript_SCRIPTS= "+" ".join(makefileItems["dist_salomescript_SCRIPTS"])+'\n'
+    if makefileItems.has_key("salomeres_DATA"):
+      makefile=makefile+"salomeres_DATA= "+" ".join(makefileItems["salomeres_DATA"])+'\n'
+    if makefileItems.has_key("salomeinclude_HEADERS"):
+      makefile=makefile+"salomeinclude_HEADERS= "+" ".join(makefileItems["salomeinclude_HEADERS"])+'\n'
+    if makefileItems.has_key("body"):
+      makefile=makefile+makefileItems["body"]+'\n'
+    return makefile
 
   def makeArgs(self, service):
     """generate source service for arguments"""

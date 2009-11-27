@@ -4,28 +4,6 @@ try:
 except:
  from compat import Template,set
 
-astercompoMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}.py
-
-"""
-astercompoMakefile=Template(astercompoMakefile)
-
-astercexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}.py ${component}_container.py E_SUPERV.py
-# These files are executable scripts
-dist_salomescript_SCRIPTS= ${component}.exe
-salomeres_DATA = ${component}_config.txt
-"""
-astercexeMakefile=Template(astercexeMakefile)
-
-asterexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}_module.py ${component}_component.py E_SUPERV.py
-# These files are executable scripts
-dist_salomescript_SCRIPTS= ${component}.exe
-salomeres_DATA = ${component}_config.txt
-"""
-asterexeMakefile=Template(asterexeMakefile)
-
 asterCompo="""
 import sys,traceback,os
 import ${module}__POA

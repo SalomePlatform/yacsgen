@@ -12,7 +12,6 @@ from gener import Component, Invalid, makedirs
 from pyth_tmpl import pyinitEXEService, pyinitCEXEService, pyinitService
 from aster_tmpl import asterCEXEService, asterEXEService
 from aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
-from aster_tmpl import asterexeMakefile, astercexeMakefile, astercompoMakefile
 from aster_tmpl import comm, make_etude, cexe, exeaster
 from aster_tmpl import container, component
 
@@ -64,29 +63,39 @@ class ASTERComponent(Component):
     #on suppose que les composants ASTER sont homogenes (utilisent meme install)
     gen.aster = self.aster_dir
     if self.kind == "lib":
-      return {"Makefile.am":astercompoMakefile.substitute(module=gen.module.name,
-                                                          component=self.name),
-             filename:self.makeaster(gen)}
+      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+              filename:self.makeaster(gen)}
     elif self.kind == "cexe":
-      #creation de l'installation aster dans exe_path
       fdict=self.makecexepath(gen)
-      d= {"Makefile.am":astercexeMakefile.substitute(module=gen.module.name,
-                                                     component=self.name),
+      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
            self.name+".exe":cexe.substitute(compoexe=self.exe_path),
            filename:self.makecexeaster(gen)
          }
       d.update(fdict)
       return d
     elif self.kind == "exe":
-      #creation de l'installation aster dans exe_path
       fdict=self.makeexepath(gen)
-      d= {"Makefile.am":asterexeMakefile.substitute(module=gen.module.name,
-                                                        component=self.name),
+      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
            self.name+".exe":exeaster.substitute(compoexe=self.exe_path),
            self.name+"_module.py":self.makeexeaster(gen)
          }
       d.update(fdict)
       return d
+
+  def getMakefileItems(self,gen):
+    makefileItems={"header":"include $(top_srcdir)/adm_local/make_common_starter.am"}
+    if self.kind == "lib":
+      makefileItems["salomepython_PYTHON"]=[self.name+".py"]
+    elif self.kind == "exe":
+      makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py","E_SUPERV.py"]
+      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
+      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+    elif self.kind == "cexe":
+      makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py","E_SUPERV.py"]
+      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
+      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+    return makefileItems
+
 
   def makeexepath(self, gen):
     """standalone component: generate files for calculation code"""

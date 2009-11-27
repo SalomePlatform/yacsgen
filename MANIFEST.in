@@ -1,12 +1,18 @@
-recursive-include Examples/fort1 *.f components.py coupling.xml Makefile README.txt
-recursive-include Examples/cpp1 components.py coupling.xml README.txt
-recursive-include Examples/pyth1 *.py coupling.xml README.txt
-recursive-include Examples/fort2 *.f components.py coupling.xml Makefile README.txt
-recursive-include Examples/cpp2 components.py coupling.xml README.txt Makefile prog.cxx
-recursive-include Examples/pyth2 components.py coupling.xml README.txt
-recursive-include Examples/ast1 components.py coupling.xml f.comm README.txt
-recursive-include Examples/ast1/fcompo compo.f Makefile
-recursive-include Examples/ast1/myaster Makefile make_cata src/*.f catalo/*.capy
-recursive-include Examples/ast2 components.py coupling.xml f.comm README.txt
-recursive-include Examples/ast2/fcompo compo.f Makefile
-recursive-include Examples/ast2/myaster Makefile make_exec config.txt src/*.f catalo/*.capy
+include Examples/context.py
+include Examples/makefile.inc
+include Examples/*/*.f
+include Examples/*/*.py
+include Examples/*/*.cxx
+include Examples/*/coupling.xml
+include Examples/*/Makefile
+include Examples/*/README.txt
+include Examples/*/f.comm
+include Examples/ast*/fcompo/compo.f
+include Examples/ast*/fcompo/Makefile
+include Examples/ast*/myaster/src/*.f
+include Examples/ast*/myaster/catalo/*.capy
+include Examples/ast*/myaster/Makefile
+include Examples/ast1/myaster/make_cata
+include Examples/ast2/myaster/make_exec
+include Examples/ast2/myaster/config.txt
+include Examples/ast2/exeaster

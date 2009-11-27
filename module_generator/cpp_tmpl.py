@@ -113,7 +113,6 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, contId, instanceName, interfaceName)
 {
-  std::cerr << "create component" << std::endl;
 #if ${exe}
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
@@ -270,7 +269,6 @@ hxxCompo=Template(hxxCompo)
 cxxService="""
 void ${component}_i::${service}(${parameters})
 {
-  std::cerr << "${component}_i::${service}" << std::endl;
   beginService("${component}_i::${service}");
   Superv_Component_i * component = dynamic_cast<Superv_Component_i*>(this);
   char       nom_instance[INSTANCE_LEN];
@@ -317,7 +315,6 @@ ${body}
       throw SALOME::SALOME_Exception(es);
     }
   endService("${component}_i::${service}");
-  std::cerr << "end of ${component}_i::${service}" << std::endl;
 }
 
 """
@@ -360,36 +357,22 @@ exeCPP=Template(exeCPP)
 # Makefile
 
 compoMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
-
-lib_LTLIBRARIES = lib${component}Engine.la
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
 lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
 lib${component}Engine_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
 lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
 lib${component}Engine_la_LDFLAGS = ${rlibs}
-salomeinclude_HEADERS = ${component}.hxx
 """
 compoMakefile=Template(compoMakefile)
 
 compoEXEMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
-
-lib_LTLIBRARIES = lib${component}Exelib.la
 lib${component}Exelib_la_SOURCES      = ${component}.cxx
 nodist_lib${component}Exelib_la_SOURCES =
 lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
 lib${component}Exelib_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
 lib${component}Exelib_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
-salomeinclude_HEADERS = ${component}.hxx
-# These files are executable scripts
-dist_salomescript_SCRIPTS= ${component}.exe
 """
 compoEXEMakefile=Template(compoEXEMakefile)
 
