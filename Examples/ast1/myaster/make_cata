@@ -2,7 +2,7 @@
 cat >make-cmd << END
 P debug nodebug
 P mode interactif
-P version NEW9
+P version $2
 P ncpus 1
 A args
 A memjeveux 16.0

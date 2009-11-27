@@ -1,7 +1,7 @@
 
-FC=gfortran
+include ../../makefile.inc
 
-KERNEL_ROOT_DIR=/local/cchris/Salome/Install/KERNEL_V5
+FC=gfortran
 
 all:prog
 prog:compo.o

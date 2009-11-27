@@ -9,7 +9,10 @@ cwd=os.getcwd()
 c1=F77Component("fcode1", services=[Service("serv1",inport=[("a","double"),("b","double")],
                          outport=[("c","double")],
                          outstream=[("PARAM","CALCIUM_double","I")],), ],
-               libs="-L%s -lcode1" % cwd)
+                libs="-L%s -lcode1" % cwd,
+                rlibs="-Wl,--rpath -Wl,%s" % cwd,
+               )
+
 c2=F77Component("fcode2", services=[Service("serv1",inport=[("a","double"),("b","double")],
                          outport=[("c","double")],
                          instream=[("PARAM","CALCIUM_double","I")],), ],

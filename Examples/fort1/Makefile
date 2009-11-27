@@ -1,7 +1,7 @@
 
-FC=gfortran
+include ../makefile.inc
 
-KERNEL_ROOT_DIR=/local/cchris/Salome/Install/KERNEL_V5
+FC=gfortran
 
 all:libcode1.so libcode2.so
 libcode1.so:code1.o
@@ -14,4 +14,4 @@ code2.o:code2.f
 	  $(FC) -c code2.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
 
 clean:
-	rm -rf *.o *.so 
+	rm -rf *.o *.so fcompos_SRC  install fcompos_SRC.bak traceExec_proc appli appli.bak

@@ -1,24 +1,20 @@
-#ASTER
-ASTER_ROOT=/local/chris/ASTER/instals
-#SALOME
-KERNEL_ROOT_DIR=/local/chris/SALOME2/RELEASES/Install/KERNEL_V5
+include ../../makefile.inc
 
-
-ASTER_INSTALL=$(ASTER_ROOT)/NEW9
+ASTER_INSTALL=$(ASTER_ROOT)/$(ASTER_VERSION)
 ASTER_PUB=$(ASTER_ROOT)/public
 ASTER_OUTILS=$(ASTER_ROOT)/outils
 
 ASTER_LIBS = -L$(ASTER_INSTALL)/lib -laster \
              -L$(ASTER_PUB)/scotch_4.0/bin -lscotch -lscotcherr \
-						 -L/local/chris/pkg/med23/install/lib -lmed \
+             -L/local/chris/pkg/med23/install/lib -lmed \
              -lferm -llapack -lhdf5
 
 KERNEL_INCLUDES=-I$(KERNEL_ROOT_DIR)/include/salome
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC -lSalomeDSCSuperv -lSalomeDSCContainer \
              -lSalomeDatastream -lSalomeDSCSupervBasic -Wl,--rpath -Wl,$(KERNEL_ROOT_DIR)/lib/salome
 
-FC=g77
-LD=g77
+FC=gfortran
+LD=gfortran
 FFLAGS=
 CC=gcc
 SOURCES= src/op0078.f src/op0189.f src/op0181.f
@@ -35,7 +31,7 @@ cata: commande/cata.py
 	cp -rf commande/cata.py* bibpyt/Cata
 
 commande/cata.py:$(CATAPY)
-	./make_cata $(ASTER_ROOT)/ASTK/ASTK_SERV/bin/as_run
+	./make_cata $(ASTER_ROOT)/ASTK/ASTK_SERV/bin/as_run $(ASTER_VERSION)
 
 astermodule:astermodule.so pyth
 	cp -rf astermodule.so bibpyt

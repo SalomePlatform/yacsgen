@@ -1,6 +1,6 @@
-FC=gfortran
+include ../../makefile.inc
 
-KERNEL_ROOT_DIR=/local/cchris/Salome/Install/KERNEL_V5
+FC=gfortran
 
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC -lSalomeDSCSuperv -lSalomeDSCContainer -lSalomeDatastream -lSalomeDSCSupervBasic
 

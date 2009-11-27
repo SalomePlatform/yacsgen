@@ -3,7 +3,7 @@
 cat >make-exe << END
 P actions make_exec
 P actions make_cmde
-P version STA10.0
+P version $2
 P nomjob forma01a
 P ncpus 1
 A memjeveux 4.000000
@@ -24,4 +24,4 @@ R capy ${PWD}/catalo D 0
 R cmde ${PWD}/commande DR 0
 END
 
-/local/cchris/Aster/V10/Install/ASTK/ASTK_SERV/bin/as_run  make-exe
+$1/ASTK/ASTK_SERV/bin/as_run  make-exe

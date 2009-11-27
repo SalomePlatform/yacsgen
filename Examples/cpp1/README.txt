@@ -1,7 +1,7 @@
 A C++ component dynamically loadable
 =========================================
 
-To build this example, modify the components.py file
+To build this example, modify the ../context.py file
 to take into account your configuration.
 
 1- your prerequisite file 
@@ -13,7 +13,7 @@ Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here and 
   python components.py
 
 You should get a SALOME module in source form (cppcompos_SRC), its installation (install) and
-a SALOME application (appli) composed of modules KERNEL, GUI, YACS and cppcompos.
+a SALOME application (appli) composed of modules KERNEL, GUI, YACS and the new module cppcompos.
 
 To run a coupling:
 

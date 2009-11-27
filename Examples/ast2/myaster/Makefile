@@ -1,9 +1,8 @@
 
-#ASTER
-ASTER_ROOT=/local/cchris/Aster/V10/Install
+include ../../makefile.inc
 
 aster.exe:
-	./make_exec 
+	./make_exec $(ASTER_ROOT) $(ASTER_VERSION)
 
 clean:
 	rm -rf commande aster.exe make-exe

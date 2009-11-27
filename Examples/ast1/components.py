@@ -27,7 +27,7 @@ c1=ASTERComponent("caster",services=[
          ],
          aster_dir=aster_root,
          python_path=[myasterdir],
-         argv=["-memjeveux","4",'-rep_outils','/local/chris/ASTER/instals/outils'],
+         argv=["-memjeveux","4",'-rep_outils',os.path.join(aster_home,'outils')],
          )
 
 c2=F77Component("cfort",services=[
