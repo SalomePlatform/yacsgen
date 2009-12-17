@@ -535,6 +535,7 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
 
   def install(self):
     """install module: make install """
+    makedirs(self.module.prefix)
     ier = os.system("cd %s_SRC;make install" % self.module.name)
     if ier != 0:
       raise Invalid("install has ended in error")

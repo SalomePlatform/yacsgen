@@ -42,7 +42,7 @@ ${servicesimpl}
 pyCompoEXE="""#!/usr/bin/env python
 """+pyCompo+"""
   def destroy(self):
-     dsccalcium.PyDSCComponent.destroy(self)
+     self._remove_ref()
      self._orb.shutdown(0)
 
 if __name__ == '__main__':

@@ -13,6 +13,8 @@ cxxCompo="""
 #include <signal.h>
 #include <SALOME_NamingService.hxx>
 #include <Utils_SALOME_Exception.hxx>
+#include <pthread.h>
+#include <execinfo.h>
 
 typedef void (*sighandler_t)(int);
 sighandler_t setsig(int sig, sighandler_t handler)
@@ -28,6 +30,20 @@ sighandler_t setsig(int sig, sighandler_t handler)
 
 static void AttachDebugger()
 {
+  void *array[20];
+  size_t size=20;
+  char **strings;
+  size_t i;
+  std::string _what;
+  size = backtrace (array, size);
+  strings = backtrace_symbols (array, size);
+  for (i = 0; i < size; i++)
+     _what=_what+strings[i]+ '\\n';
+  free (strings);
+
+  std::cerr << pthread_self() << std::endl;
+  std::cerr << _what << std::endl;
+
   if(getenv ("DEBUGGER"))
     {
       std::stringstream exec;
@@ -92,12 +108,12 @@ ${servicesdef}
 
 extern "C" void cp_exit(int err);
 
-extern "C" void F_FUNC(cpexit,CPEXIT)(int err)
+extern "C" void F_FUNC(cpexit,CPEXIT)(int *err)
 {
-  if(err==-1)
+  if(*err==-1)
     _exit(-1);
   else
-    cp_exit(err);
+    cp_exit(*err);
 }
 
 using namespace std;
@@ -145,10 +161,12 @@ ${component}_i::~${component}_i()
 
 void ${component}_i::destroy()
 {
-  Engines_Component_i::destroy();
 #if ${exe}
+  _remove_ref();
   if(!CORBA::is_nil(_orb))
     _orb->shutdown(0);
+#else
+  Engines_Component_i::destroy();
 #endif
 }
 
