@@ -112,7 +112,6 @@ ${servicesimpl}
 
 asterEXECompo=asterCEXECompo+"""
   def destroy(self):
-     self._remove_ref()
      self._orb.shutdown(0)
 """
 
