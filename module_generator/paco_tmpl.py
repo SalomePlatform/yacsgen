@@ -26,7 +26,7 @@ except:
 compoMakefile="""
 include $$(top_srcdir)/adm_local/make_common_starter.am
 
-BUILT_SOURCES = SALOME_Exception.hxx SALOME_GenericObj.hxx SALOMEDS.hxx
+BUILT_SOURCES = SALOME_Exception.hxx SALOME_GenericObj.hxx SALOMEDS.hxx SALOME_PyNode.hxx
 
 %.hxx : @KERNEL_ROOT_DIR@/idl/salome/%.idl
 \t$$(OMNIORB_IDL) -bcxx $$(IDLCXXFLAGS) $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) -I@KERNEL_ROOT_DIR@/idl/salome -Wbh=.hxx -Wbs=.cxx $$<
