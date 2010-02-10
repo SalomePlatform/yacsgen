@@ -21,7 +21,7 @@
 """
   Module that defines PACOComponent for SALOME PaCO++ components implemented in C++
 """
-
+import os
 from gener import Component, Invalid
 from paco_tmpl import compoMakefile, hxxCompo, cxxService
 from paco_tmpl import initService, cxxCompo, paco_sources
@@ -57,7 +57,8 @@ class PACOComponent(Component):
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
     if self.kind == "lib":
-      sources = " ".join(self.sources)
+      sources = " ".join(map(os.path.basename, self.sources))
+      sources += " "
       sources += paco_sources.substitute(module=gen.module.name,
                                          component=self.name)
       return {"Makefile.am":compoMakefile.substitute(module=gen.module.name, 
