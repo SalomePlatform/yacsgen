@@ -89,6 +89,9 @@ class Module(object):
       raise SystemExit
 
   def validate(self):
+    # Test Module name, canot have a "-" in the name
+    if self.name.find("-") != -1:
+      raise Invalid("Module name %s is not valid, remove caracter - in the module name" % self.name)
     lcompo = set()
     for compo in self.components:
       if compo.name in lcompo:
