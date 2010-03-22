@@ -47,13 +47,14 @@ def corba_out_type(typ, module):
   else:
     return corbaOutTypes[typ]
 
-calciumTypes = {"CALCIUM_double":"CALCIUM_double", 
-                "CALCIUM_integer":"CALCIUM_integer", 
+calciumTypes = {"CALCIUM_double":"CALCIUM_double",
+                "CALCIUM_integer":"CALCIUM_integer",
                 "CALCIUM_real":"CALCIUM_real",
-                "CALCIUM_string":"CALCIUM_string", 
-                "CALCIUM_complex":"CALCIUM_complex", 
+                "CALCIUM_string":"CALCIUM_string",
+                "CALCIUM_complex":"CALCIUM_complex",
                 "CALCIUM_logical":"CALCIUM_logical",
-               } 
+                "CALCIUM_long":"CALCIUM_long",
+               }
 
 DatastreamParallelTypes = {"Param_Double_Port":"Param_Double_Port"}
 
