@@ -45,4 +45,4 @@ op0181.o:src/op0181.f
 astermodule.so: $(OBJETS)
 	$(LD) -shared -o $@ $(OBJETS) $(KERNEL_LIBS) $(ASTER_LIBS)
 clean:
-	rm -rf *.o *.so bibpyt commande/cata.py*
+	rm -rf *.o *.so bibpyt commande/cata.py* make-cmd commande

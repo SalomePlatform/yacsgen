@@ -1,7 +1,5 @@
 include ../../makefile.inc
 
-FC=gfortran
-
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC -lSalomeDSCSuperv -lSalomeDSCContainer -lSalomeDatastream -lSalomeDSCSupervBasic
 
 all: libfcompo.so

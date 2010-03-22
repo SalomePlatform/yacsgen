@@ -1,8 +1,6 @@
 
 include ../../makefile.inc
 
-FC=gfortran
-
 all:prog
 prog:compo.o
 	$(FC) -o prog compo.o -L../install/lib/salome -lcfortExelib
