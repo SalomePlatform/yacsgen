@@ -21,7 +21,9 @@ class F77Component(CPPComponent):
     """generate definitions (defs attribute of services) et bodys (body attribute of services)"""
     for serv in self.services:
       #defs generation
-      params = ["void *compo"]
+      params=[]
+      if serv.instream or serv.outstream:
+        params = ["void *compo"]
       strparams = []
       for name, typ in serv.inport:
         if typ == "file":continue #files are not passed through service interface
@@ -41,7 +43,9 @@ class F77Component(CPPComponent):
       serv.defs = serv.defs+'\nextern "C" void F_FUNC(%s,%s)(%s);' % (serv.name.lower(), serv.name.upper(), args)
 
       #body generation
-      params = ["&component"]
+      params=[]
+      if serv.instream or serv.outstream:
+        params = ["&component"]
       strparams = []
       strallocs = []
       #length allocated for out string
