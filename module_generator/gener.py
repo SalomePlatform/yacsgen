@@ -544,7 +544,7 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
     if ier != 0:
       raise Invalid("install has ended in error")
 
-  def make_appli(self, appliname, restrict=None, altmodules=None):
+  def make_appli(self, appliname, restrict=None, altmodules=None, resources=""):
     """generate SALOME application"""
     makedirs(appliname)
 
@@ -599,8 +599,15 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
     if not os.path.exists(prerequisites):
       raise Invalid("Can not create an application : prerequisites file not defined or does not exist")
 
+    #add resources catalog if it exists
+    resources_spec=""
+    if os.path.isfile(resources):
+      resources_spec='<resources path="%s" />' % os.path.abspath(resources)
+
     #create config_appli.xml file
-    appli = application.substitute(prerequisites=prerequisites, modules="\n".join(modules))
+    appli = application.substitute(prerequisites=prerequisites,
+                                   modules="\n".join(modules),
+                                   resources=resources_spec)
     fil = open(os.path.join(appliname, "config_appli.xml"), 'w')
     fil.write(appli)
     fil.close()

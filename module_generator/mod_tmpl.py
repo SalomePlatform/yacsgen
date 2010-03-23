@@ -6,6 +6,7 @@ except:
 application="""
 <application>
 <prerequisites path="${prerequisites}"/>
+${resources}
 <modules>
 ${modules}
 </modules>
