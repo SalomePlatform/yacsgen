@@ -4,7 +4,7 @@ END
 
 cat > temp.export << END
 P actions make_etude
-P version STA10.0
+P version STA10.1
 P nomjob salome
 P ncpus 1
 A memjeveux 4.000000
@@ -28,5 +28,5 @@ F resu $PWD/resu R 8
 F erre $PWD/erre R 9
 END
 
-/local/cchris/Aster/V10/Install/ASTK/ASTK_SERV/bin/as_run temp.export
+/local/cchris/Aster/V10.1/aster/ASTK/ASTK_SERV/bin/as_run temp.export
 

@@ -2,7 +2,7 @@ import os
 from module_generator import Generator,Module,Service,PACOComponent
 
 #import context from ..
-execfile("../context.py")
+execfile("../pacocontext.py")
 
 cwd=os.getcwd()
 

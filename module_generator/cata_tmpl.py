@@ -13,6 +13,8 @@ idl="""
 #include "SALOME_Exception.idl"
 #include "SALOME_PACOExtension.idl"
 
+${idldefs}
+
 module ${module}
 {
 typedef sequence<string> stringvec;
@@ -82,8 +84,8 @@ salomepython_DATA = ${module}_idl.py ${PACO_salomepython_DATA}
 lib${module}_la_SOURCES      =
 nodist_lib${module}_la_SOURCES = ${module}SK.cc
 nodist_salomeinclude_HEADERS= ${module}.hh ${PACO_SALOMEINCLUDE_HEADERS}
-lib${module}_la_CXXFLAGS     = -I.  $$(KERNEL_INCLUDES)
-lib${module}_la_LIBADD     = $$(KERNEL_LIBS)
+lib${module}_la_CXXFLAGS     = -I.  $$(SALOME_INCLUDES)
+lib${module}_la_LIBADD     = $$(SALOME_IDL_LIBS)
 ##########################################################
 %SK.cc %.hh : %.idl
 \t$$(OMNIORB_IDL) -bcxx $$(IDLCXXFLAGS) $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) $$<

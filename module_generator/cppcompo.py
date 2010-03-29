@@ -50,7 +50,7 @@ class CPPComponent(Component):
     makefileItems={"header":"""
 include $(top_srcdir)/adm_local/make_common_starter.am
 
-AM_CFLAGS=$(KERNEL_INCLUDES) -fexceptions
+AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
 """}
     if self.kind == "lib":
       makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]

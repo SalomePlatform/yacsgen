@@ -9,6 +9,8 @@ context={'update':1,
          "makeflags":"",
          "prerequisites":"/local/cchris/.packages.d/envSalome5",
          "kernel":KERNEL_ROOT_DIR,
+         "paco":"/local/cchris/pkg/paco/install",
+         "mpi":"/usr/lib/openmpi",
         }
 
 

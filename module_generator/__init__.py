@@ -1,7 +1,7 @@
 """
-  Pacakge to generate SALOME modules with components
+  Package to generate SALOME modules with components
   implemented in C++, Fortran or Python
-  that can use datastream ports 
+  that can use datastream ports
 """
 from gener import Module, Service, Generator
 from fcompo import F77Component

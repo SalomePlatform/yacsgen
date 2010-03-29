@@ -22,57 +22,19 @@ from cata_tmpl import cataOutStream, cataInStream, cataOutparam, cataInparam
 from cata_tmpl import cataOutParallelStream, cataInParallelStream
 from cata_tmpl import cataService, cataCompo
 from aster_tmpl import check_aster
-
-corbaTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
-              "string":"const char*", "dblevec":"const %s::dblevec&",
-              "stringvec":"const %s::stringvec&", "intvec":"const %s::intvec&",
-              "dataref":"const Engines::dataref&","file":None
-             }
-
-corbaOutTypes = {"double":"CORBA::Double&", "long":"CORBA::Long&",
-                 "string":"CORBA::String_out", "dblevec":"%s::dblevec_out",
-                 "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out",
-                 "dataref":"Engines::dataref_out","file":None
-                }
-
-def corba_in_type(typ, module):
-  if typ in ("dblevec", "intvec", "stringvec"):
-    return corbaTypes[typ] % module
-  else:
-    return corbaTypes[typ]
-
-def corba_out_type(typ, module):
-  if typ in ("dblevec", "intvec", "stringvec"):
-    return corbaOutTypes[typ] % module
-  else:
-    return corbaOutTypes[typ]
-
-calciumTypes = {"CALCIUM_double":"CALCIUM_double",
-                "CALCIUM_integer":"CALCIUM_integer",
-                "CALCIUM_real":"CALCIUM_real",
-                "CALCIUM_string":"CALCIUM_string",
-                "CALCIUM_complex":"CALCIUM_complex",
-                "CALCIUM_logical":"CALCIUM_logical",
-                "CALCIUM_long":"CALCIUM_long",
-               }
-
-DatastreamParallelTypes = {"Param_Double_Port":"Param_Double_Port"}
-
-ValidImpl = ("CPP", "PY", "F77", "ASTER", "PACO")
-ValidImplTypes = ("sequential", "parallel")
-ValidTypes = corbaTypes.keys()
-ValidStreamTypes = calciumTypes.keys()
-ValidParallelStreamTypes = DatastreamParallelTypes.keys()
-ValidDependencies = ("I", "T")
-PyValidTypes = ValidTypes+["pyobj"]
+from salomemodules import salome_modules
+from yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in_type, corba_out_type
+from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
+from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
 
 def makedirs(namedir):
+  """Create a new directory named namedir. If a directory already exists copy it to namedir.bak"""
   if os.path.exists(namedir):
     dirbak = namedir+".bak"
     if os.path.exists(dirbak):
       shutil.rmtree(dirbak)
     os.rename(namedir, dirbak)
-    os.listdir(dirbak) #sert seulement a mettre a jour le systeme de fichier sur certaines machines
+    os.listdir(dirbak) #needed to update filesystem on special machines (cluster with NFS, for example)
   os.makedirs(namedir)
 
 class Module(object):
@@ -92,7 +54,7 @@ class Module(object):
   def validate(self):
     # Test Module name, canot have a "-" in the name
     if self.name.find("-") != -1:
-      raise Invalid("Module name %s is not valid, remove caracter - in the module name" % self.name)
+      raise Invalid("Module name %s is not valid, remove character - in the module name" % self.name)
     lcompo = set()
     for compo in self.components:
       if compo.name in lcompo:
@@ -101,7 +63,7 @@ class Module(object):
       compo.validate()
 
 class Component(object):
-  def __init__(self, name, services=None, impl="PY", libs="", rlibs="", 
+  def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
                      includes="", kind="lib", sources=None):
     self.name = name
     self.impl = impl
@@ -258,7 +220,7 @@ class Generator(object):
     makefile = "SUBDIRS="
     makefileItems={"header":"""
 include $(top_srcdir)/adm_local/make_common_starter.am
-AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
+AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
 """,
                    "salomepython_PYTHON":[],
                    "dist_salomescript_SCRIPTS":[],
@@ -268,13 +230,23 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
                    "body":"",
                   }
 
+    #get the list of SALOME modules used and put it in used_modules attribute
+    modules = {}
+    for compo in module.components:
+      for serv in compo.services:
+        for name, typ in serv.inport + serv.outport:
+          mod = moduleTypes[typ]
+          if mod:
+            modules[mod] = 1
+    self.used_modules = modules.keys()
+
     for compo in module.components:
       #for components files
       fdict=compo.makeCompo(self)
       if self.module.layout=="multidir":
         srcs[compo.name] = fdict
         #for src/Makefile.am
-        makefile = makefile+" "+compo.name
+        makefile = makefile + " " + compo.name
       else:
         srcs.update(fdict)
         #for src/Makefile.am
@@ -286,7 +258,7 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
         makefileItems["salomeinclude_HEADERS"]=makefileItems["salomeinclude_HEADERS"]+mdict.get("salomeinclude_HEADERS",[])
         makefileItems["body"]=makefileItems["body"]+mdict.get("body","")+'\n'
 
-    if self.module.layout=="multidir":
+    if self.module.layout == "multidir":
       srcs["Makefile.am"] = makefile+'\n'
     else:
       srcs["Makefile.am"] = self.makeMakefile(makefileItems)
@@ -294,13 +266,23 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
     #for catalog files
     catalogfile = "%sCatalog.xml" % module.name
 
+    #add makefile definitions to make_common_starter.am
+    common_starter = makecommon
+    for mod in self.used_modules:
+      common_starter = common_starter + salome_modules[mod]["makefiledefs"] + '\n'
+
     self.makeFiles({"autogen.sh":autogen,
                     "Makefile.am":mainMakefile,
                     "README":"", "NEWS":"", "AUTHORS":"", "ChangeLog":"",
                     "src":srcs,
                     "resources":{"Makefile.am":resMakefile.substitute(module=module.name), catalogfile:self.makeCatalog()},
-                    "adm_local":{"make_common_starter.am":makecommon, "check_aster.m4":check_aster},
+                    "adm_local":{"make_common_starter.am": common_starter, "check_aster.m4":check_aster},
                     }, namedir)
+
+    #add checks for modules in configure.ac
+    configure_modules=""
+    for mod in self.used_modules:
+      configure_modules = configure_modules + salome_modules[mod]["configdefs"] + '\n'
 
     #for configure.ac
     configure_makefiles = []
@@ -320,20 +302,22 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
 
       self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
                                                           makefiles='\n'.join(configure_makefiles),
-                                                          paco_configure=paco_configure),
-                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name, 
+                                                          paco_configure=paco_configure,
+                                                          modules=configure_modules),
+                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
                                                                   PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
                                                                   PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
                                                                   PACO_INCLUDES=PACO_INCLUDES,
                                                                   PACO_salomepython_DATA=PACO_salomepython_DATA,
-                                                                  PACO_salomeidl_DATA=PACO_salomeidl_DATA), 
-                             idlfile:self.makeidl(),
-                             xmlfile:self.makexml()},
+                                                                  PACO_salomeidl_DATA=PACO_salomeidl_DATA),
+                      idlfile:self.makeidl(),
+                      xmlfile:self.makexml()},
                       }, namedir)
     else :
-      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(), 
+      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
                                                           makefiles='\n'.join(configure_makefiles),
-                                                          paco_configure=""),
+                                                          paco_configure="",
+                                                          modules=configure_modules),
                       "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
                                                                   PACO_BUILT_SOURCES="",
                                                                   PACO_SALOMEINCLUDE_HEADERS="",
@@ -433,10 +417,10 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
           params = []
           for name, typ in serv.inport:
             if typ == "file":continue #files are not passed through IDL interface
-            params.append("in %s %s" % (typ, name))
+            params.append("in %s %s" % (idlTypes[typ], name))
           for name, typ in serv.outport:
             if typ == "file":continue #files are not passed through IDL interface
-            params.append("out %s %s" % (typ, name))
+            params.append("out %s %s" % (idlTypes[typ], name))
           service = "    void %s(" % serv.name
           service = service+",".join(params)+");"
           services.append(service)
@@ -449,17 +433,27 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
             if typ == "file":continue #files are not passed through IDL interface
             if compo.impl in ("PY", "ASTER") and typ == "pyobj":
               typ = "Engines::fileBlock"
+            else:
+              typ=idlTypes[typ]
             params.append("in %s %s" % (typ, name))
           for name, typ in serv.outport:
             if typ == "file":continue #files are not passed through IDL interface
             if compo.impl in ("PY", "ASTER") and typ == "pyobj":
               typ = "Engines::fileBlock"
+            else:
+              typ=idlTypes[typ]
             params.append("out %s %s" % (typ, name))
           service = "    void %s(" % serv.name
           service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
           services.append(service)
         interfaces.append(interface.substitute(component=compo.name, services="\n".join(services)))
-    return idl.substitute(module=self.module.name, interfaces='\n'.join(interfaces))
+
+    #build idl includes for SALOME modules
+    idldefs=""
+    for mod in self.used_modules:
+      idldefs = idldefs + salome_modules[mod]["idldefs"]
+
+    return idl.substitute(module=self.module.name, interfaces='\n'.join(interfaces),idldefs=idldefs)
 
   # For PaCO++
   def makexml(self):

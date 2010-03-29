@@ -36,8 +36,8 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) $$(PACO_INCLUDES) -fexceptions
 lib_LTLIBRARIES = lib${component}Engine.la
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl $$(KERNEL_INCLUDES) $$(PACO_INCLUDES) $$(MPI_INCLUDES) ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS)
+lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl $$(SALOME_INCLUDES) $$(PACO_INCLUDES) $$(MPI_INCLUDES) ${includes}
+lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS) $$(SALOME_LIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 salomeinclude_HEADERS = ${component}.hxx
 """

@@ -44,6 +44,9 @@ if test "x$$Kernel_ok" = "xno"; then
   AC_MSG_ERROR([You must define a correct KERNEL_ROOT_DIR or use the --with-kernel= configure option !])
 fi
 
+dnl Check Salome modules Install
+${modules}
+
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_CXX
@@ -143,6 +146,10 @@ docdir             = $(datadir)/doc/salome
 IDL_INCLUDES = -I$(KERNEL_ROOT_DIR)/idl/salome
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
 KERNEL_INCLUDES= -I$(KERNEL_ROOT_DIR)/include/salome $(OMNIORB_INCLUDES) $(BOOST_CPPFLAGS)
+
+SALOME_LIBS= ${KERNEL_LIBS}
+SALOME_IDL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeIDLKernel
+SALOME_INCLUDES= ${KERNEL_INCLUDES}
 
 """
 

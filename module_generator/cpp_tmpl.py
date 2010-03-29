@@ -377,9 +377,9 @@ exeCPP=Template(exeCPP)
 compoMakefile="""
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Engine_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Engine_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 """
 compoMakefile=Template(compoMakefile)
@@ -387,9 +387,9 @@ compoMakefile=Template(compoMakefile)
 compoEXEMakefile="""
 lib${component}Exelib_la_SOURCES      = ${component}.cxx
 nodist_lib${component}Exelib_la_SOURCES =
-lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Exelib_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Exelib_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Exelib_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
 """
 compoEXEMakefile=Template(compoEXEMakefile)
