@@ -32,6 +32,19 @@ ValidTypes = corbaTypes.keys()
 PyValidTypes = ValidTypes+["pyobj"]
 
 def add_type(typename, corbaType, corbaOutType, module, idltype):
+  """ add a data type YACS from other module than KERNEL to the list of available types
+
+       :param typename: YACS data type name
+       :type typename: string
+       :param corbaType: representation for C++ CORBA in parameter
+       :type corbaType: string
+       :param corbaOutType: representation for C++ CORBA out parameter
+       :type corbaOutType: string
+       :param module: name of the module that defines the data type (GEOM for GEOM_Object)
+       :type module: string
+       :param idltype: representation for CORBA idl
+       :type idltype: string
+  """
   corbaTypes[typename] = corbaType
   corbaOutTypes[typename] = corbaOutType
   moduleTypes[typename] = module
