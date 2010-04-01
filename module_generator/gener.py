@@ -64,7 +64,8 @@ class Module(object):
 
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
-                     includes="", kind="lib", sources=None):
+                     includes="", kind="lib", sources=None,
+                     inheritedclass="",compodefs=""):
     self.name = name
     self.impl = impl
     self.kind = kind
@@ -73,6 +74,8 @@ class Component(object):
     self.rlibs = rlibs
     self.includes = includes
     self.sources = sources or []
+    self.inheritedclass=inheritedclass
+    self.compodefs=compodefs
 
   def validate(self):
     if self.impl not in ValidImpl:

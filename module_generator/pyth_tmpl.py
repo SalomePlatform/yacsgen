@@ -18,11 +18,15 @@ try:
 except:
   numpy=None
 
+#COMPODEFS
+${compodefs}
+#ENDDEF
+
 #DEFS
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
+class ${component}(${inheritedclass} ${module}__POA.${component},dsccalcium.PyDSCComponent):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
@@ -31,6 +35,7 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
+${callconstructor}
 
   def init_service(self,service):
 ${initservice}

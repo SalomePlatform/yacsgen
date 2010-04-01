@@ -9,11 +9,13 @@ from cpp_tmpl import exeCPP, compoEXEMakefile, compoMakefile
 
 class CPPComponent(Component):
   def __init__(self, name, services=None, libs="", rlibs="", includes="",
-                     kind="lib", exe_path=None, sources=None):
+                     kind="lib", exe_path=None, sources=None, inheritedclass="",
+                     compodefs=""):
     self.exe_path = exe_path
     Component.__init__(self, name, services, impl="CPP", libs=libs,
                              rlibs=rlibs, includes=includes, kind=kind,
-                             sources=sources)
+                             sources=sources,inheritedclass=inheritedclass,
+                             compodefs=compodefs)
 
   def validate(self):
     """ validate component definition parameters"""
@@ -81,8 +83,14 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
       service = service+gen.makeArgs(serv)+");"
       services.append(service)
     servicesdef = "\n".join(services)
+
+    inheritedclass=self.inheritedclass
+    if self.inheritedclass:
+      inheritedclass= " public virtual " + self.inheritedclass + ","
+
     return hxxCompo.substitute(component=self.name, module=gen.module.name,
-                               servicesdef=servicesdef)
+                               servicesdef=servicesdef, inheritedclass=inheritedclass,
+                               compodefs=self.compodefs)
 
   def makecxx(self, gen, exe=0):
     """return a string that is the content of .cxx file

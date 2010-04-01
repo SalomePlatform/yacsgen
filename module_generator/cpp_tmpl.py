@@ -253,7 +253,11 @@ hxxCompo="""
 #include "Superv_Component_i.hxx"
 #include "${module}.hh"
 
-class ${component}_i:
+//COMPODEFS
+${compodefs}
+//ENDDEF
+
+class ${component}_i: ${inheritedclass}
   public virtual POA_${module}::${component},
   public virtual Superv_Component_i
 {
