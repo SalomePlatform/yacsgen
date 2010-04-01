@@ -231,13 +231,21 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
                   }
 
     #get the list of SALOME modules used and put it in used_modules attribute
+    def get_dependent_modules(mod,modules):
+      modules[mod]=1
+      if not salome_modules[mod].has_key("depends"):return
+      for m in salome_modules[mod]["depends"]:
+        if modules.has_key(m):continue
+        get_dependent_modules(m,modules)
+
     modules = {}
     for compo in module.components:
       for serv in compo.services:
         for name, typ in serv.inport + serv.outport:
           mod = moduleTypes[typ]
           if mod:
-            modules[mod] = 1
+            get_dependent_modules(mod,modules)
+
     self.used_modules = modules.keys()
 
     for compo in module.components:

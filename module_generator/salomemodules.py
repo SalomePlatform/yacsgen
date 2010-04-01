@@ -28,4 +28,80 @@ fi
 
 salome_modules["GEOM"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
 
+#module MED
+idldefs="""
+#include "MED_Gen.idl"
+#include "MED.idl"
+"""
+makefiledefs="""
+#module MED
+MED_IDL_INCLUDES = -I$(MED_ROOT_DIR)/idl/salome
+MED_INCLUDES= -I$(MED_ROOT_DIR)/include/salome
+MED_IDL_LIBS= -L$(MED_ROOT_DIR)/lib/salome -lSalomeIDLMED
+MED_LIBS= -L$(MED_ROOT_DIR)/lib/salome
+SALOME_LIBS += ${MED_LIBS}
+SALOME_IDL_LIBS += ${MED_IDL_LIBS}
+SALOME_INCLUDES += ${MED_INCLUDES}
+IDL_INCLUDES += ${MED_IDL_INCLUDES}
+"""
+configdefs="""
+if test "x${MED_ROOT_DIR}" != "x" && test -d ${MED_ROOT_DIR} ; then
+  AC_MSG_RESULT(Using MED installation in ${MED_ROOT_DIR})
+else
+  AC_MSG_ERROR([Cannot find module MED. Have you set MED_ROOT_DIR ?],1)
+fi
+"""
 
+salome_modules["MED"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
+
+#module SMESH
+idldefs="""
+#include "SMESH_Gen.idl"
+#include "SMESH_Mesh.idl"
+"""
+makefiledefs="""
+#module SMESH
+SMESH_IDL_INCLUDES = -I$(SMESH_ROOT_DIR)/idl/salome
+SMESH_INCLUDES= -I$(SMESH_ROOT_DIR)/include/salome
+SMESH_IDL_LIBS= -L$(SMESH_ROOT_DIR)/lib/salome -lSalomeIDLSMESH
+SMESH_LIBS= -L$(SMESH_ROOT_DIR)/lib/salome
+SALOME_LIBS += ${SMESH_LIBS}
+SALOME_IDL_LIBS += ${SMESH_IDL_LIBS}
+SALOME_INCLUDES += ${SMESH_INCLUDES}
+IDL_INCLUDES += ${SMESH_IDL_INCLUDES}
+"""
+configdefs="""
+if test "x${SMESH_ROOT_DIR}" != "x" && test -d ${SMESH_ROOT_DIR} ; then
+  AC_MSG_RESULT(Using SMESH installation in ${SMESH_ROOT_DIR})
+else
+  AC_MSG_ERROR([Cannot find module SMESH. Have you set SMESH_ROOT_DIR ?],1)
+fi
+"""
+
+salome_modules["SMESH"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs,
+                         "depends":["GEOM","MED"]}
+
+#module VISU
+idldefs="""
+#include "VISU_Gen.idl"
+"""
+makefiledefs="""
+#module VISU
+VISU_IDL_INCLUDES = -I$(VISU_ROOT_DIR)/idl/salome
+VISU_INCLUDES= -I$(VISU_ROOT_DIR)/include/salome
+VISU_IDL_LIBS= -L$(VISU_ROOT_DIR)/lib/salome -lSalomeIDLVISU
+VISU_LIBS= -L$(VISU_ROOT_DIR)/lib/salome
+SALOME_LIBS += ${VISU_LIBS}
+SALOME_IDL_LIBS += ${VISU_IDL_LIBS}
+SALOME_INCLUDES += ${VISU_INCLUDES}
+IDL_INCLUDES += ${VISU_IDL_INCLUDES}
+"""
+configdefs="""
+if test "x${VISU_ROOT_DIR}" != "x" && test -d ${VISU_ROOT_DIR} ; then
+  AC_MSG_RESULT(Using VISU installation in ${VISU_ROOT_DIR})
+else
+  AC_MSG_ERROR([Cannot find module VISU. Have you set VISU_ROOT_DIR ?],1)
+fi
+"""
+
+salome_modules["VISU"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
