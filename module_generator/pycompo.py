@@ -169,11 +169,19 @@ class PYComponent(Component):
       inits.append(init)
 
     python_path = ",".join([repr(p) for p in self.python_path])
+
+    inheritedclass=self.inheritedclass
+    callconstructor=""
+    if self.inheritedclass:
+      inheritedclass= self.inheritedclass + ","
+      callconstructor="""
+    if hasattr(%s,"__init__"):
+      %s.__init__(self)""" % (self.inheritedclass,self.inheritedclass)
+
     return pyCompoEXE.substitute(component=self.name, module=gen.module.name,
-                                 servicesdef="\n".join(defs), 
+                                 servicesdef="\n".join(defs),
                                  servicesimpl="\n".join(services),
-                                 initservice='\n'.join(inits), 
-                                 python_path=python_path)
-
-
+                                 initservice='\n'.join(inits),
+                                 python_path=python_path,inheritedclass=inheritedclass,
+                                 compodefs=self.compodefs, callconstructor=callconstructor)
 
