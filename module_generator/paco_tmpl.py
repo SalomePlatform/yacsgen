@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 *-
-#  Copyright (C) 2009 - EDF R&D
+#  Copyright (C) 2009-2010  EDF R&D
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -16,6 +16,9 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 #  Author : Andre RIBES (EDF R&D)
 
 try:
@@ -36,8 +39,8 @@ AM_CFLAGS=$$(KERNEL_INCLUDES) $$(PACO_INCLUDES) -fexceptions
 lib_LTLIBRARIES = lib${component}Engine.la
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl $$(KERNEL_INCLUDES) $$(PACO_INCLUDES) $$(MPI_INCLUDES) ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS)
+lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl $$(SALOME_INCLUDES) $$(PACO_INCLUDES) $$(MPI_INCLUDES) ${includes}
+lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS) $$(SALOME_LIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 salomeinclude_HEADERS = ${component}.hxx
 """

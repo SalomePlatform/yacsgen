@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """
   This module defines the ASTERComponent class for ASTER component generation
   An ASTER component comes in 3 flavors :
@@ -10,6 +29,7 @@ import re, os, sys
 from gener import Component, Invalid, makedirs
 
 from pyth_tmpl import pyinitEXEService, pyinitCEXEService, pyinitService
+import aster_tmpl
 from aster_tmpl import asterCEXEService, asterEXEService
 from aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
 from aster_tmpl import comm, make_etude, cexe, exeaster
@@ -62,6 +82,16 @@ class ASTERComponent(Component):
     filename = "%s.py" % self.name
     #on suppose que les composants ASTER sont homogenes (utilisent meme install)
     gen.aster = self.aster_dir
+
+    #get ASTER version
+    f = os.path.join(self.aster_dir, "bibpyt", 'Accas', 'properties.py')
+    self.version=(0,0,0)
+    if os.path.isfile(f):
+      mydict = {}
+      execfile(f, mydict)
+      v,r,p = mydict['version'].split('.')
+      self.version=(int(v),int(r),int(p))
+
     if self.kind == "lib":
       return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
               filename:self.makeaster(gen)}
@@ -99,15 +129,20 @@ class ASTERComponent(Component):
 
   def makeexepath(self, gen):
     """standalone component: generate files for calculation code"""
-    #patch to E_SUPERV.py
+
+    #copy and patch E_SUPERV.py
     fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
     esuperv = fil.read()
     fil.close()
-    esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-    esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-    esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-    esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-    esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+
+    if self.version < (10,1,2):
+      #patch to E_SUPERV.py
+      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+
     #use a specific main program (modification of config.txt file)
     fil = open(os.path.join(self.aster_dir, "config.txt"))
     config = fil.read()
@@ -128,15 +163,20 @@ class ASTERComponent(Component):
 
   def makecexepath(self, gen):
     """specific container: generate files"""
-    #patch to E_SUPERV.py
+
+    #copy and patch E_SUPERV.py
     fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
     esuperv = fil.read()
     fil.close()
-    esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-    esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-    esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-    esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-    esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+
+    if self.version < (10,1,2):
+      #patch to E_SUPERV.py
+      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+
 
     #use a specific main program
     fil = open(os.path.join(self.aster_dir, "config.txt"))
@@ -207,6 +247,7 @@ class ASTERComponent(Component):
                                          instream=instream, outstream=outstream)
       services.append(service)
       inits.append(init)
+
     return asterEXECompo.substitute(component=self.name, module=gen.module.name,
                                     servicesdef="\n".join(defs), 
                                     servicesimpl="\n".join(services), 
@@ -266,12 +307,14 @@ class ASTERComponent(Component):
                                           outstream=outstream)
       services.append(service)
       inits.append(init)
+
     return asterCEXECompo.substitute(component=self.name, 
                                      module=gen.module.name,
                                      servicesdef="\n".join(defs), 
                                      servicesimpl="\n".join(services), 
                                      initservice='\n'.join(inits),
                                      aster_dir=self.aster_dir)
+
   def getImpl(self):
     if self.kind == "cexe":
       return "CEXE", self.name+".exe"

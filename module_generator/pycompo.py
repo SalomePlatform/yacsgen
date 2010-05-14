@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """
   Module that defines PYComponent for SALOME components implemented in Python
 """
@@ -17,11 +36,12 @@ def indent(text, prefix='    '):
 
 class PYComponent(Component):
   def __init__(self, name, services=None, python_path=None, kind="lib",
-                     sources=None):
+                     sources=None, inheritedclass="", compodefs=""):
     """initialise component attributes"""
     self.python_path = python_path or []
     Component.__init__(self, name, services, impl="PY", kind=kind,
-                             sources=sources)
+                             sources=sources, inheritedclass=inheritedclass,
+                             compodefs=compodefs)
 
   def validate(self):
     """validate component attributes"""
@@ -103,10 +123,20 @@ class PYComponent(Component):
       inits.append(init)
 
     python_path = ",".join([repr(p) for p in self.python_path])
+
+    inheritedclass=self.inheritedclass
+    callconstructor=""
+    if self.inheritedclass:
+      inheritedclass= self.inheritedclass + ","
+      callconstructor="""
+    if hasattr(%s,"__init__"):
+      %s.__init__(self)""" % (self.inheritedclass,self.inheritedclass)
+
     return pyCompo.substitute(component=self.name, module=gen.module.name,
-                              servicesdef="\n".join(defs), servicesimpl="\n".join(services), 
+                              servicesdef="\n".join(defs), servicesimpl="\n".join(services),
                               initservice='\n'.join(inits),
-                              python_path=python_path)
+                              python_path=python_path,inheritedclass=inheritedclass,
+                              compodefs=self.compodefs, callconstructor=callconstructor)
 
   def makepyexe(self, gen):
     """generate standalone component source (python executable)"""
@@ -158,11 +188,19 @@ class PYComponent(Component):
       inits.append(init)
 
     python_path = ",".join([repr(p) for p in self.python_path])
+
+    inheritedclass=self.inheritedclass
+    callconstructor=""
+    if self.inheritedclass:
+      inheritedclass= self.inheritedclass + ","
+      callconstructor="""
+    if hasattr(%s,"__init__"):
+      %s.__init__(self)""" % (self.inheritedclass,self.inheritedclass)
+
     return pyCompoEXE.substitute(component=self.name, module=gen.module.name,
-                                 servicesdef="\n".join(defs), 
+                                 servicesdef="\n".join(defs),
                                  servicesimpl="\n".join(services),
-                                 initservice='\n'.join(inits), 
-                                 python_path=python_path)
-
-
+                                 initservice='\n'.join(inits),
+                                 python_path=python_path,inheritedclass=inheritedclass,
+                                 compodefs=self.compodefs, callconstructor=callconstructor)
 

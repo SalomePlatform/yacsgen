@@ -1,3 +1,21 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
 
 from gener import Component
 from cppcompo import CPPComponent
@@ -21,7 +39,9 @@ class F77Component(CPPComponent):
     """generate definitions (defs attribute of services) et bodys (body attribute of services)"""
     for serv in self.services:
       #defs generation
-      params = ["void *compo"]
+      params=[]
+      if serv.instream or serv.outstream:
+        params = ["void *compo"]
       strparams = []
       for name, typ in serv.inport:
         if typ == "file":continue #files are not passed through service interface
@@ -41,7 +61,9 @@ class F77Component(CPPComponent):
       serv.defs = serv.defs+'\nextern "C" void F_FUNC(%s,%s)(%s);' % (serv.name.lower(), serv.name.upper(), args)
 
       #body generation
-      params = ["&component"]
+      params=[]
+      if serv.instream or serv.outstream:
+        params = ["&component"]
       strparams = []
       strallocs = []
       #length allocated for out string

@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -253,7 +272,11 @@ hxxCompo="""
 #include "Superv_Component_i.hxx"
 #include "${module}.hh"
 
-class ${component}_i:
+//COMPODEFS
+${compodefs}
+//ENDDEF
+
+class ${component}_i: ${inheritedclass}
   public virtual POA_${module}::${component},
   public virtual Superv_Component_i
 {
@@ -377,9 +400,9 @@ exeCPP=Template(exeCPP)
 compoMakefile="""
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Engine_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Engine_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 """
 compoMakefile=Template(compoMakefile)
@@ -387,9 +410,9 @@ compoMakefile=Template(compoMakefile)
 compoEXEMakefile="""
 lib${component}Exelib_la_SOURCES      = ${component}.cxx
 nodist_lib${component}Exelib_la_SOURCES =
-lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Exelib_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Exelib_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Exelib_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
 """
 compoEXEMakefile=Template(compoEXEMakefile)

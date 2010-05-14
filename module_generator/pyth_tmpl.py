@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -18,11 +37,15 @@ try:
 except:
   numpy=None
 
+#COMPODEFS
+${compodefs}
+#ENDDEF
+
 #DEFS
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
+class ${component}(${inheritedclass} ${module}__POA.${component},dsccalcium.PyDSCComponent):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
@@ -31,6 +54,7 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
+${callconstructor}
 
   def init_service(self,service):
 ${initservice}

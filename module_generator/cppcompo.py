@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """
   Module that defines CPPComponent for SALOME components implemented in C++
 """
@@ -9,11 +28,13 @@ from cpp_tmpl import exeCPP, compoEXEMakefile, compoMakefile
 
 class CPPComponent(Component):
   def __init__(self, name, services=None, libs="", rlibs="", includes="",
-                     kind="lib", exe_path=None, sources=None):
+                     kind="lib", exe_path=None, sources=None, inheritedclass="",
+                     compodefs=""):
     self.exe_path = exe_path
     Component.__init__(self, name, services, impl="CPP", libs=libs,
                              rlibs=rlibs, includes=includes, kind=kind,
-                             sources=sources)
+                             sources=sources,inheritedclass=inheritedclass,
+                             compodefs=compodefs)
 
   def validate(self):
     """ validate component definition parameters"""
@@ -50,7 +71,7 @@ class CPPComponent(Component):
     makefileItems={"header":"""
 include $(top_srcdir)/adm_local/make_common_starter.am
 
-AM_CFLAGS=$(KERNEL_INCLUDES) -fexceptions
+AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
 """}
     if self.kind == "lib":
       makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
@@ -81,8 +102,14 @@ AM_CFLAGS=$(KERNEL_INCLUDES) -fexceptions
       service = service+gen.makeArgs(serv)+");"
       services.append(service)
     servicesdef = "\n".join(services)
+
+    inheritedclass=self.inheritedclass
+    if self.inheritedclass:
+      inheritedclass= " public virtual " + self.inheritedclass + ","
+
     return hxxCompo.substitute(component=self.name, module=gen.module.name,
-                               servicesdef=servicesdef)
+                               servicesdef=servicesdef, inheritedclass=inheritedclass,
+                               compodefs=self.compodefs)
 
   def makecxx(self, gen, exe=0):
     """return a string that is the content of .cxx file

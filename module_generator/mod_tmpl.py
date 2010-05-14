@@ -1,3 +1,22 @@
+#  Copyright (C) 2009-2010  EDF R&D
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -6,6 +25,7 @@ except:
 application="""
 <application>
 <prerequisites path="${prerequisites}"/>
+${resources}
 <modules>
 ${modules}
 </modules>
@@ -42,6 +62,9 @@ CHECK_KERNEL
 if test "x$$Kernel_ok" = "xno"; then
   AC_MSG_ERROR([You must define a correct KERNEL_ROOT_DIR or use the --with-kernel= configure option !])
 fi
+
+dnl Check Salome modules Install
+${modules}
 
 AC_PROG_LIBTOOL
 AC_PROG_CC
@@ -142,6 +165,10 @@ docdir             = $(datadir)/doc/salome
 IDL_INCLUDES = -I$(KERNEL_ROOT_DIR)/idl/salome
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
 KERNEL_INCLUDES= -I$(KERNEL_ROOT_DIR)/include/salome $(OMNIORB_INCLUDES) $(BOOST_CPPFLAGS)
+
+SALOME_LIBS= ${KERNEL_LIBS}
+SALOME_IDL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeIDLKernel
+SALOME_INCLUDES= ${KERNEL_INCLUDES}
 
 """
 
