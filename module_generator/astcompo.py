@@ -117,11 +117,15 @@ class ASTERComponent(Component):
     if self.kind == "lib":
       makefileItems["salomepython_PYTHON"]=[self.name+".py"]
     elif self.kind == "exe":
-      makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py","E_SUPERV.py"]
+      makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py"]
+      if self.version < (10,1,2):
+        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
       makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
       makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
     elif self.kind == "cexe":
-      makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py","E_SUPERV.py"]
+      makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py"]
+      if self.version < (10,1,2):
+        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
       makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
       makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
     return makefileItems
@@ -130,18 +134,19 @@ class ASTERComponent(Component):
   def makeexepath(self, gen):
     """standalone component: generate files for calculation code"""
 
-    #copy and patch E_SUPERV.py
-    fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-    esuperv = fil.read()
-    fil.close()
+    fdict={}
 
     if self.version < (10,1,2):
       #patch to E_SUPERV.py
+      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+      esuperv = fil.read()
+      fil.close()
       esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
       esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
       esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
       esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
       esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+      fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program (modification of config.txt file)
     fil = open(os.path.join(self.aster_dir, "config.txt"))
@@ -154,29 +159,27 @@ class ASTERComponent(Component):
                       'site-packages','salome','%s_component.py'%self.name)
     config = re.sub("Execution\/E_SUPERV.py", path, config)
 
-    fdict= {
-             "%s_component.py"%self.name:component.substitute(component=self.name),
-             "%s_config.txt" % self.name:config,
-             "E_SUPERV.py":esuperv,
-           }
+    fdict["%s_config.txt" % self.name] = config
+    fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
+
     return fdict
 
   def makecexepath(self, gen):
     """specific container: generate files"""
 
-    #copy and patch E_SUPERV.py
-    fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-    esuperv = fil.read()
-    fil.close()
+    fdict={}
 
     if self.version < (10,1,2):
       #patch to E_SUPERV.py
+      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+      esuperv = fil.read()
+      fil.close()
       esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
       esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
       esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
       esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
       esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
-
+      fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program
     fil = open(os.path.join(self.aster_dir, "config.txt"))
@@ -188,11 +191,9 @@ class ASTERComponent(Component):
                       'site-packages','salome','%s_container.py' % self.name)
     config = re.sub("Execution\/E_SUPERV.py", path, config)
 
-    fdict= {
-             "%s_container.py" % self.name:container,
-             "%s_config.txt" % self.name:config,
-             "E_SUPERV.py":esuperv,
-           }
+    fdict["%s_container.py" % self.name] = container
+    fdict["%s_config.txt" % self.name] = config
+
     return fdict
 
   def makeexeaster(self, gen):
@@ -228,11 +229,11 @@ class ASTERComponent(Component):
       outparams = ",".join(params)
       rvars = ",".join(datas)
 
-      service = asterEXEService.substitute(component=self.name, 
-                                           service=serv.name, 
+      service = asterEXEService.substitute(component=self.name,
+                                           service=serv.name,
                                            inparams=inparams,
-                                           outparams=outparams, 
-                                           body=serv.body, 
+                                           outparams=outparams,
+                                           body=serv.body,
                                            dvars=dvars, rvars=rvars)
       streams = []
       for name, typ, dep in serv.instream:
@@ -248,11 +249,20 @@ class ASTERComponent(Component):
       services.append(service)
       inits.append(init)
 
+    if self.version < (10,1,2):
+      importesuperv="from E_SUPERV import SUPERV"
+    else:
+      importesuperv="""sys.path=["%s"]+sys.path
+from Execution.E_SUPERV import SUPERV
+""" % os.path.join(self.aster_dir, "bibpyt")
+
     return asterEXECompo.substitute(component=self.name, module=gen.module.name,
-                                    servicesdef="\n".join(defs), 
-                                    servicesimpl="\n".join(services), 
+                                    servicesdef="\n".join(defs),
+                                    servicesimpl="\n".join(services),
                                     initservice='\n'.join(inits),
-                                    aster_dir=self.aster_dir)
+                                    aster_dir=self.aster_dir,
+                                    importesuperv=importesuperv,
+                                    )
 
   def makecexeaster(self, gen):
     """specific container: generate SALOME component source"""
@@ -286,11 +296,11 @@ class ASTERComponent(Component):
       outparams = ",".join(params)
       rvars = ",".join(datas)
 
-      service = asterCEXEService.substitute(component=self.name, 
-                                            service=serv.name, 
+      service = asterCEXEService.substitute(component=self.name,
+                                            service=serv.name,
                                             inparams=inparams,
-                                            outparams=outparams, 
-                                            body=serv.body, 
+                                            outparams=outparams,
+                                            body=serv.body,
                                             dvars=dvars, rvars=rvars)
       streams = []
       for name, typ, dep in serv.instream:
@@ -308,12 +318,21 @@ class ASTERComponent(Component):
       services.append(service)
       inits.append(init)
 
+    if self.version < (10,1,2):
+      importesuperv="from E_SUPERV import SUPERV"
+    else:
+      importesuperv="""sys.path=["%s"] +sys.path
+from Execution.E_SUPERV import SUPERV
+""" % os.path.join(self.aster_dir, "bibpyt")
+
     return asterCEXECompo.substitute(component=self.name, 
                                      module=gen.module.name,
                                      servicesdef="\n".join(defs), 
                                      servicesimpl="\n".join(services), 
                                      initservice='\n'.join(inits),
-                                     aster_dir=self.aster_dir)
+                                     aster_dir=self.aster_dir,
+                                     importesuperv=importesuperv,
+                                     )
 
   def getImpl(self):
     if self.kind == "cexe":

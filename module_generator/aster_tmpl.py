@@ -83,7 +83,7 @@ import calcium
 import dsccalcium
 import SALOME
 import linecache
-from E_SUPERV import SUPERV
+${importesuperv}
 
 try:
   import numpy
