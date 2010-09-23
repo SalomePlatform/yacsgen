@@ -17,7 +17,8 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import os
+import os,sys
+#sys.path.insert(0,"../..")
 
 KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","/local/cchris/Salome/Install/KERNEL_V5")
 GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","/local/cchris/Salome/Install/GUI_V5")
