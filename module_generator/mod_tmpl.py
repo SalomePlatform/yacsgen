@@ -46,10 +46,11 @@ echo "Running libtoolize..." ; libtoolize --copy --force           || exit 1
 echo "Running automake..."   ; automake --add-missing --copy       || exit 1
 """
 
-mainMakefile="""include $(top_srcdir)/adm_local/make_common_starter.am
-SUBDIRS = idl resources src
+mainMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
+SUBDIRS = idl resources src ${docsubdir}
 ACLOCAL_AMFLAGS = -I adm_local
 """
+mainMakefile=Template(mainMakefile)
 
 configure="""
 AC_INIT(${module}, 1.0)
@@ -80,6 +81,8 @@ AC_SUBST(MODULE_NAME)
 
 AC_CHECK_ASTER
 
+${other_check}
+
 echo
 echo
 echo
@@ -89,7 +92,6 @@ echo "------------------------------------------------------------------------"
 echo
 echo "Configuration Options Summary:"
 echo
-echo "Mandatory products:"
 echo "  Threads ................ : $$threads_ok"
 echo "  OmniOrb (CORBA) ........ : $$omniORB_ok"
 echo "  OmniOrbpy (CORBA) ...... : $$omniORBpy_ok"
@@ -99,6 +101,7 @@ echo "  SALOME KERNEL .......... : $$Kernel_ok"
 echo "  PaCO++ ................. : $$PaCO_ok"
 echo "  MPI .................... : $$mpi_ok"
 echo "  Code Aster ............. : $$Aster_ok"
+${other_summary}
 echo
 echo "------------------------------------------------------------------------"
 echo
@@ -118,6 +121,8 @@ fi
 if test "x$$Kernel_ok" = "xno"; then
   AC_MSG_ERROR([SALOME KERNEL is required],1)
 fi
+${other_require}
+
 ${paco_configure}
 
 AC_CONFIG_FILES([
@@ -160,7 +165,7 @@ admlocalm4dir        = $(admlocaldir)/unix/config_files
 sharedpkgpythondir =$(pkgpythondir)/shared_modules
 
 # Documentation directory
-docdir             = $(datadir)/doc/salome
+salomedocdir             = $(prefix)/share/doc/salome/gui/${MODULE_NAME}
 
 IDL_INCLUDES = -I$(KERNEL_ROOT_DIR)/idl/salome
 KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
@@ -179,3 +184,42 @@ salomeres_DATA = $${DATA_INST}
 EXTRA_DIST = $${DATA_INST}
 """
 resMakefile=Template(resMakefile)
+
+check_sphinx="""
+AC_DEFUN([CHECK_SPHINX],[
+
+AC_CHECKING(for sphinx doc generator)
+
+sphinx_ok=yes
+dnl where is sphinx ?
+AC_PATH_PROG(SPHINX,sphinx-build)
+if test "x$SPHINX" = "x"
+then
+  AC_MSG_WARN(sphinx not found)
+  sphinx_ok=no
+fi
+
+dnl Can I load ths sphinx module ?
+dnl This code comes from the ax_python_module macro.
+if test -z $PYTHON;
+then
+   PYTHON="python"
+fi
+PYTHON_NAME=`basename $PYTHON`
+AC_MSG_CHECKING($PYTHON_NAME module: sphinx)
+   $PYTHON -c "import sphinx" 2>/dev/null
+   if test $? -eq 0;
+   then
+     AC_MSG_RESULT(yes)
+     eval AS_TR_CPP(HAVE_PYMOD_sphinx)=yes
+   else
+     AC_MSG_RESULT(no)
+     eval AS_TR_CPP(HAVE_PYMOD_sphinx)=no
+     sphinx_ok=no
+   fi
+
+AM_CONDITIONAL(SPHINX_IS_OK, [test x"$sphinx_ok" = xyes])
+
+])
+"""
+

@@ -17,24 +17,39 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import os,sys
-#sys.path.insert(0,"../..")
+import os
 
-KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","/local/cchris/Salome/Install/KERNEL_V5")
-GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","/local/cchris/Salome/Install/GUI_V5")
-YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR","/local/cchris/Salome/Install/YACS_V5")
+#import context from ..
+execfile("../context.py")
 
-context={'update':1,
-         "makeflags":"",
-         "prerequisites":"/local/cchris/.packages.d/envSalome51main",
-         "kernel":KERNEL_ROOT_DIR,
-         "gui":GUI_ROOT_DIR,
-        }
+from module_generator import Generator,Module,Service,PYComponent
 
+defs="""
+"""
 
-aster_home="/local/cchris/Aster/V10.1/aster"
-aster_version="STA10.1"
-#aster_home="/local/cchris/Aster/V10/Install"
-#aster_version="STA10.0"
+body="""
+      c=a+b
+      d=a-b
+"""
+c1=PYComponent("compo2",services=[
+          Service("s1",inport=[("a","double"),("b","double")],
+                       outport=[("c","double"),("d","double")],
+                       defs=defs,body=body,
+                 ),
+         ],
+         )
+
+modul=Module("pycompos",components=[c1],prefix="./install",
+              doc=["*.rst",],
+              gui=["pycomposGUI.py","demo.ui","*.png"],
+            )
+
+g=Generator(modul,context)
+g.generate()
+g.bootstrap()
+g.configure()
+g.make()
+g.install()
+g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR})
 
 

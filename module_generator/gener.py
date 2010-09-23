@@ -19,6 +19,7 @@
 
 import os, shutil, glob, socket
 import traceback
+import warnings
 
 try:
   from string import Template
@@ -32,6 +33,7 @@ debug=0
 
 from mod_tmpl import resMakefile, makecommon, configure, paco_configure
 from mod_tmpl import mainMakefile, autogen, application
+from mod_tmpl import check_sphinx
 from cata_tmpl import catalog, interface, idl, idlMakefile, parallel_interface
 from cata_tmpl import xml, xml_interface, xml_service
 from cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
@@ -45,6 +47,8 @@ from salomemodules import salome_modules
 from yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in_type, corba_out_type
 from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
 from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
+from gui_tmpl import pyguimakefile, pysalomeapp, cppguimakefile, cppsalomeapp
+from doc_tmpl import docmakefile, docconf
 
 def makedirs(namedir):
   """Create a new directory named namedir. If a directory already exists copy it to namedir.bak"""
@@ -57,11 +61,13 @@ def makedirs(namedir):
   os.makedirs(namedir)
 
 class Module(object):
-  def __init__(self, name, components=None, prefix="",layout="multidir"):
+  def __init__(self, name, components=None, prefix="",layout="multidir", doc=None, gui=None):
     self.name = name
     self.components = components or []
     self.prefix = prefix or "%s_INSTALL" % name
     self.layout=layout
+    self.doc = doc
+    self.gui = gui
     try:
       self.validate()
     except Invalid,e:
@@ -80,6 +86,10 @@ class Module(object):
         raise Invalid("%s is already defined as a component of the module" % compo.name)
       lcompo.add(compo.name)
       compo.validate()
+    if self.gui and self.layout != "multidir":
+      raise Invalid("A module with GUI can not be generated if layout is not multidir")
+    if self.doc and not self.gui:
+      warnings.warn("You can't have an help doc without a GUI. doc parameter will be ignored")
 
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
@@ -218,8 +228,11 @@ class Generator(object):
     self.module = module
     self.context = context or {}
     self.kernel = self.context["kernel"]
+    self.gui = self.context.get("gui")
     self.makeflags = self.context.get("makeflags")
     self.aster = ""
+    if self.module.gui and not self.gui:
+      raise Invalid("To generate a module with GUI, you need to set the 'gui' parameter in the context dictionnary")
 
   def generate(self):
     """generate SALOME module as described by module attribute"""
@@ -242,7 +255,7 @@ class Generator(object):
     makefile = "SUBDIRS="
     makefileItems={"header":"""
 include $(top_srcdir)/adm_local/make_common_starter.am
-AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
+AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
 """,
                    "salomepython_PYTHON":[],
                    "dist_salomescript_SCRIPTS":[],
@@ -288,10 +301,21 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
         makefileItems["salomeinclude_HEADERS"]=makefileItems["salomeinclude_HEADERS"]+mdict.get("salomeinclude_HEADERS",[])
         makefileItems["body"]=makefileItems["body"]+mdict.get("body","")+'\n'
 
+    if module.gui:
+      GUIname=module.name+"GUI"
+      fdict=self.makeGui(namedir)
+      srcs[GUIname] = fdict
+      #for src/Makefile.am
+      makefile = makefile + " " + GUIname
+
     if self.module.layout == "multidir":
       srcs["Makefile.am"] = makefile+'\n'
     else:
       srcs["Makefile.am"] = self.makeMakefile(makefileItems)
+
+    docsubdir=""
+    if module.gui and module.doc:
+      docsubdir="doc"
 
     #for catalog files
     catalogfile = "%sCatalog.xml" % module.name
@@ -301,12 +325,16 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
     for mod in self.used_modules:
       common_starter = common_starter + salome_modules[mod]["makefiledefs"] + '\n'
 
+    adm_local={"make_common_starter.am": common_starter, "check_aster.m4":check_aster}
+    if module.gui and module.doc:
+      adm_local["check_sphinx.m4"]=check_sphinx
+
     self.makeFiles({"autogen.sh":autogen,
-                    "Makefile.am":mainMakefile,
+                    "Makefile.am":mainMakefile.substitute(docsubdir=docsubdir),
                     "README":"", "NEWS":"", "AUTHORS":"", "ChangeLog":"",
                     "src":srcs,
                     "resources":{"Makefile.am":resMakefile.substitute(module=module.name), catalogfile:self.makeCatalog()},
-                    "adm_local":{"make_common_starter.am": common_starter, "check_aster.m4":check_aster},
+                    "adm_local":adm_local,
                     }, namedir)
 
     #add checks for modules in configure.ac
@@ -319,43 +347,81 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
     if self.module.layout=="multidir":
       for compo in module.components:
         configure_makefiles.append("     src/"+compo.name+"/Makefile")
+
+    if module.gui:
+      configure_makefiles.append("     src/%sGUI/Makefile" % module.name)
+      if module.doc:
+        configure_makefiles.append("     doc/Makefile")
+
+    other_check=""
+    other_summary=""
+    other_require=""
+
+    if module.gui:
+      other_check=other_check + """CHECK_SALOME_GUI
+CHECK_QT
+"""
+      other_summary=other_summary+'''echo "  SALOME GUI ............. : $SalomeGUI_ok"
+echo "  Qt ..................... : $qt_ok"
+'''
+      other_require=other_require + """
+      if test "x$SalomeGUI_ok" = "xno"; then
+        AC_MSG_ERROR([SALOME GUI is required],1)
+      fi
+      if test "x$qt_ok" = "xno"; then
+        AC_MSG_ERROR([Qt library is required],1)
+      fi
+"""
+      if module.doc:
+        other_check=other_check+"CHECK_SPHINX\n"
+        other_summary=other_summary+'''echo "  Sphinx ................. : $sphinx_ok"\n'''
+        other_require=other_require + """
+      if test "x$sphinx_ok" = "xno"; then
+        AC_MSG_ERROR([Sphinx documentation generator is required],1)
+      fi
+"""
+
+    files={}
     #for idl files
     idlfile = "%s.idl" % module.name
+    paco_config=""
+    PACO_BUILT_SOURCES=""
+    PACO_SALOMEINCLUDE_HEADERS=""
+    PACO_INCLUDES=""
+    PACO_salomepython_DATA=""
+    PACO_salomeidl_DATA=""
 
     if paco:
-      xmlfile = "%s.xml" % module.name
       PACO_BUILT_SOURCES = idlMakefilePaCO_BUILT_SOURCES.substitute(module=module.name)
       PACO_SALOMEINCLUDE_HEADERS = idlMakefilePaCO_nodist_salomeinclude_HEADERS.substitute(module=module.name)
       PACO_salomepython_DATA = idlMakefilePACO_salomepython_DATA.substitute(module=module.name)
       PACO_salomeidl_DATA = idlMakefilePACO_salomeidl_DATA.substitute(module=module.name)
       PACO_INCLUDES = idlMakefilePACO_INCLUDES
+      paco_config=paco_configure
 
-      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
-                                                          makefiles='\n'.join(configure_makefiles),
-                                                          paco_configure=paco_configure,
-                                                          modules=configure_modules),
-                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
-                                                                  PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
-                                                                  PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
-                                                                  PACO_INCLUDES=PACO_INCLUDES,
-                                                                  PACO_salomepython_DATA=PACO_salomepython_DATA,
-                                                                  PACO_salomeidl_DATA=PACO_salomeidl_DATA),
-                      idlfile:self.makeidl(),
-                      xmlfile:self.makexml()},
-                      }, namedir)
-    else :
-      self.makeFiles({"configure.ac":configure.substitute(module=module.name.lower(),
-                                                          makefiles='\n'.join(configure_makefiles),
-                                                          paco_configure="",
-                                                          modules=configure_modules),
-                      "idl":{"Makefile.am":idlMakefile.substitute(module=module.name,
-                                                                  PACO_BUILT_SOURCES="",
-                                                                  PACO_SALOMEINCLUDE_HEADERS="",
-                                                                  PACO_INCLUDES="",
-                                                                  PACO_salomepython_DATA="",
-                                                                  PACO_salomeidl_DATA=""), 
-                             idlfile:self.makeidl()},
-                      }, namedir)
+    files["configure.ac"]=configure.substitute(module=module.name.lower(),
+                                               makefiles='\n'.join(configure_makefiles),
+                                               paco_configure=paco_config,
+                                               modules=configure_modules,
+                                               other_check=other_check,
+                                               other_summary=other_summary,
+                                               other_require=other_require,
+                                              )
+
+    idlfiles={"Makefile.am":    idlMakefile.substitute(module=module.name,
+                                                       PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
+                                                       PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
+                                                       PACO_INCLUDES=PACO_INCLUDES,
+                                                       PACO_salomepython_DATA=PACO_salomepython_DATA,
+                                                       PACO_salomeidl_DATA=PACO_salomeidl_DATA),
+              idlfile : self.makeidl(),
+             }
+    if paco:
+      idlfiles["%s.xml" % module.name]=self.makexml()
+
+    files["idl"]=idlfiles
+
+    self.makeFiles(files,namedir)
 
     os.chmod(os.path.join(namedir, "autogen.sh"), 0777)
     #copy source files if any in created tree
@@ -366,15 +432,84 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
         else:
           shutil.copyfile(src, os.path.join(namedir, "src", os.path.basename(src)))
 
-    for m4file in ("check_Kernel.m4", "check_omniorb.m4", 
+    for m4file in ("check_Kernel.m4", "check_omniorb.m4",
                    "ac_linker_options.m4", "ac_cxx_option.m4",
-                   "python.m4", "enable_pthreads.m4", "check_f77.m4", 
+                   "python.m4", "enable_pthreads.m4", "check_f77.m4",
                    "acx_pthread.m4", "check_boost.m4", "check_paco++.m4",
                    "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4"):
-      shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file), 
+      shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file),
                       os.path.join(namedir, "adm_local", m4file))
+    if self.module.gui:
+      for m4file in ("check_GUI.m4", "check_qt.m4", "check_opengl.m4"):
+        shutil.copyfile(os.path.join(self.gui, "adm_local", "unix", "config_files", m4file),
+                        os.path.join(namedir, "adm_local", m4file))
 
+    self.makeDoc(namedir)
     return
+
+  def makeDoc(self,namedir):
+    if not self.module.gui:
+      return
+    if not self.module.doc:
+      return
+    rep=os.path.join(namedir,"doc")
+    os.makedirs(rep)
+    for docs in self.module.doc:
+      for doc in glob.glob(docs):
+        name = os.path.basename(doc)
+        shutil.copyfile(doc, os.path.join(rep, name))
+    d={}
+    if not os.path.exists(os.path.join(namedir, "doc", "Makefile.am")):
+      #create a minimal makefile.am
+      d["Makefile.am"]=docmakefile
+    if not os.path.exists(os.path.join(namedir, "doc", "conf.py")):
+      #create a minimal conf.py
+      d["conf.py"]=docconf.substitute(module=self.module.name)
+    self.makeFiles(d,os.path.join(namedir,"doc"))
+
+  def makeGui(self,namedir):
+    if not self.module.gui:
+      return
+    ispython=False
+    iscpp=False
+    #Force creation of intermediate directories
+    os.makedirs(os.path.join(namedir, "src", self.module.name+"GUI"))
+
+    for srcs in self.module.gui:
+      for src in glob.glob(srcs):
+        shutil.copyfile(src, os.path.join(namedir, "src", self.module.name+"GUI", os.path.basename(src)))
+        if src[-3:]==".py":ispython=True
+        if src[-4:]==".cxx":iscpp=True
+    if ispython and iscpp:
+      raise Invalid("Module GUI must be pure python or pure C++ but not mixed")
+    if ispython:
+      return self.makePyGUI(namedir)
+    if iscpp:
+      return self.makeCPPGUI(namedir)
+
+  def makePyGUI(self,namedir):
+    d={}
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "Makefile.am")):
+      #create a minimal makefile.am
+      sources=[]
+      other=[]
+      for srcs in self.module.gui:
+        for src in glob.glob(srcs):
+          if src[-3:]==".py":
+            sources.append(os.path.basename(src))
+          else:
+            other.append(os.path.basename(src))
+      makefile=pyguimakefile.substitute(sources=" ".join(sources),other_sources=" ".join(other))
+      d["Makefile.am"]=makefile
+
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
+      #create a minimal SalomeApp.xml
+      salomeapp=pysalomeapp.substitute(module=self.module.name)
+      d["SalomeApp.xml"]=salomeapp
+    return d
+
+  def makeCPPGUI(self,namedir):
+    return {}
 
   def makeMakefile(self,makefileItems):
     makefile=""
@@ -526,29 +661,19 @@ AM_CFLAGS=$$(SALOME_INCLUDES) -fexceptions
     prefix = self.module.prefix
     paco = self.context.get("paco")
     mpi = self.context.get("mpi")
+    args = (self.module.name, self.kernel, self.aster)
+    cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s" % args
+    if self.gui:
+      cmd = cmd + " --with-gui=%s" % self.gui
     if prefix:
       prefix = os.path.abspath(prefix)
-      cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s --prefix=%s"
-      if paco:
-        cmd += " --with-paco=%s"
-        if mpi:
-          cmd += " --with-mpi=%s"
-          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix, paco, mpi))
-        else :  
-          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix, paco))
-      else :  
-        ier = os.system(cmd % (self.module.name, self.kernel, self.aster, prefix))
-    else:
-      cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s"
-      if paco:
-        cmd += " --with-paco=%s"
-        if mpi:
-          cmd += " --with-mpi=%s"
-          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, paco, mpi))
-        else:  
-          ier = os.system(cmd % (self.module.name, self.kernel, self.aster, paco))
-      else:  
-        ier = os.system(cmd % (self.module.name, self.kernel, self.aster))
+      cmd = cmd + " --prefix=%s" % prefix
+    if paco:
+      cmd += " --with-paco=%s" % paco
+    if mpi:
+      cmd += " --with-mpi=%s" % mpi
+
+    ier = os.system(cmd)
     if ier != 0:
       raise Invalid("configure has ended in error")
 
