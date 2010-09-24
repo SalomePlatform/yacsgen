@@ -89,7 +89,7 @@ class Module(object):
     if self.gui and self.layout != "multidir":
       raise Invalid("A module with GUI can not be generated if layout is not multidir")
     if self.doc and not self.gui:
-      warnings.warn("You can't have an help doc without a GUI. doc parameter will be ignored")
+      warnings.warn("The documentation will be generated but it will not appear as an help doc, if your module has no GUI.")
 
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
@@ -314,7 +314,7 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
       srcs["Makefile.am"] = self.makeMakefile(makefileItems)
 
     docsubdir=""
-    if module.gui and module.doc:
+    if module.doc:
       docsubdir="doc"
 
     #for catalog files
@@ -326,7 +326,7 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
       common_starter = common_starter + salome_modules[mod]["makefiledefs"] + '\n'
 
     adm_local={"make_common_starter.am": common_starter, "check_aster.m4":check_aster}
-    if module.gui and module.doc:
+    if module.doc:
       adm_local["check_sphinx.m4"]=check_sphinx
 
     self.makeFiles({"autogen.sh":autogen,
@@ -350,8 +350,8 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
 
     if module.gui:
       configure_makefiles.append("     src/%sGUI/Makefile" % module.name)
-      if module.doc:
-        configure_makefiles.append("     doc/Makefile")
+    if module.doc:
+      configure_makefiles.append("     doc/Makefile")
 
     other_check=""
     other_summary=""
@@ -372,10 +372,10 @@ echo "  Qt ..................... : $qt_ok"
         AC_MSG_ERROR([Qt library is required],1)
       fi
 """
-      if module.doc:
-        other_check=other_check+"CHECK_SPHINX\n"
-        other_summary=other_summary+'''echo "  Sphinx ................. : $sphinx_ok"\n'''
-        other_require=other_require + """
+    if module.doc:
+      other_check=other_check+"CHECK_SPHINX\n"
+      other_summary=other_summary+'''echo "  Sphinx ................. : $sphinx_ok"\n'''
+      other_require=other_require + """
       if test "x$sphinx_ok" = "xno"; then
         AC_MSG_ERROR([Sphinx documentation generator is required],1)
       fi
@@ -448,8 +448,6 @@ echo "  Qt ..................... : $qt_ok"
     return
 
   def makeDoc(self,namedir):
-    if not self.module.gui:
-      return
     if not self.module.doc:
       return
     rep=os.path.join(namedir,"doc")
@@ -506,10 +504,37 @@ echo "  Qt ..................... : $qt_ok"
       #create a minimal SalomeApp.xml
       salomeapp=pysalomeapp.substitute(module=self.module.name)
       d["SalomeApp.xml"]=salomeapp
+
     return d
 
   def makeCPPGUI(self,namedir):
-    return {}
+    d={}
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "Makefile.am")):
+      #create a minimal makefile.am
+      sources=[]
+      other=[]
+      ui_files=[]
+      for srcs in self.module.gui:
+        for src in glob.glob(srcs):
+          if src[-4:]==".cxx":
+            sources.append(os.path.basename(src))
+          elif src[-2:]==".h":
+            sources.append(os.path.basename(src)[:-2]+"_moc.cxx")
+          elif src[-3:]==".ui":
+            ui_files.append("ui_"+os.path.basename(src)[:-3]+".h")
+          else:
+            other.append(os.path.basename(src))
+
+      makefile=cppguimakefile.substitute(sources=" ".join(sources),other_sources=" ".join(other),
+                                         module=self.module.name, uisources= " ".join(ui_files))
+      d["Makefile.am"]=makefile
+
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
+      #create a minimal SalomeApp.xml
+      salomeapp=cppsalomeapp.substitute(module=self.module.name)
+      d["SalomeApp.xml"]=salomeapp
+
+    return d
 
   def makeMakefile(self,makefileItems):
     makefile=""
