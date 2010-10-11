@@ -61,6 +61,35 @@ def makedirs(namedir):
   os.makedirs(namedir)
 
 class Module(object):
+  """
+   A :class:`Module` instance represents a SALOME module that contains components given as a list of
+   component instances (:class:`CPPComponent` or :class:`PYComponent` or :class:`F77Component` or :class:`ASTERComponent`)
+   with the parameter *components*.
+
+   :param name: gives the name of the module. The SALOME source module
+      will be located in the <name_SRC> directory.
+   :type name: str
+   :param components: gives the list of components of the module.
+   :param prefix: is the path of the installation directory.
+   :param layout: If given and has the value "monodir", all components
+      will be generated in a single directory. The default is to generate each component in its
+      own directory.
+   :param doc: can be used to add an online documentation to the module. It must be a list of file names (sources, images, ...) that will be
+      used to build a sphinx documentation (see http://sphinx.pocoo.org, for more information). If not given, the Makefile.am
+      and the conf.py (sphinx configuration) files are generated. In this case, the file name extension of source files must be .rst.
+      See small examples in Examples/pygui1 and Examples/cppgui1.
+   :param gui: can be used to add a GUI to the module. It must be a list of file names (sources, images, qt designer files, ...).
+      If not given, the Makefile.am and SalomeApp.xml are generated. All image files are put in the resources directory of the module.
+      The GUI can be implemented in C++ (file name extension '.cxx') or in Python (file name extension '.py').
+      See small examples in Examples/pygui1 and Examples/cppgui1.
+
+   For example, the following call defines a module named "mymodule" with 2 components c1 and c2  (they must have been
+   defined before) that will be installed in the "install" directory::
+
+      >>> m = module_generator.Module('mymodule', components=[c1,c2],
+                                                  prefix="./install")
+
+  """
   def __init__(self, name, components=None, prefix="",layout="multidir", doc=None, gui=None):
     self.name = name
     self.components = components or []
@@ -129,6 +158,37 @@ class Component(object):
     return {}
 
 class Service(object):
+  """
+   A :class:`Service` instance represents a component service with dataflow and datastream ports.
+
+   :param name: gives the name of the service.
+   :type name: str
+   :param inport: gives the list of input dataflow ports.
+   :param outport: gives the list of output dataflow ports. An input or output dataflow port is defined
+      by a 2-tuple (port name, data type name). The list of supported basic data types is: "double", "long", "string",
+      "dblevec", "stringvec", "intvec", "file" and "pyobj" only for Python services. Depending on the implementation
+      language, it is also possible to use some types from SALOME modules (see :ref:`yacstypes`).
+   :param instream: gives the list of input datastream ports.
+   :param outstream: gives the list of output datastream ports. An input or output datastream port is defined
+      by a 3-tuple (port name, data type name, mode name). The list of possible data types is: "CALCIUM_double", "CALCIUM_integer",
+      "CALCIUM_real", "CALCIUM_string", "CALCIUM_complex", "CALCIUM_logical", "CALCIUM_long". The mode can be "I" (iterative mode)
+      or "T" (temporal mode).
+   :param defs: gives the source code to insert in the definition section of the component. It can be C++ includes
+      or Python imports
+   :type defs: str
+   :param body: gives the source code to insert in the service call. It can be any C++
+      or Python code that fits well in the body of the service method.
+   :type body: str
+
+   For example, the following call defines a minimal Python service with one input dataflow port (name "a", type double)
+   and one input datastream port::
+
+      >>> s1 = module_generator.Service('myservice', inport=[("a","double"),],
+                                        instream=[("aa","CALCIUM_double","I")],
+                                        body="print a")
+
+
+  """
   def __init__(self, name, inport=None, outport=None, instream=None, 
                      outstream=None, parallel_instream=None, parallel_outstream=None, body="", defs="", impl_type="sequential"):
     self.name = name
@@ -224,6 +284,19 @@ class Service(object):
     return name, typ
 
 class Generator(object):
+  """
+   A :class:`Generator` instance take a :class:`Module` instance as its first parameter and can be used to generate the
+   SALOME source module, builds it, installs it and includes it in a SALOME application.
+
+   :param module: gives the :class:`Module` instance that will be used for the generation.
+   :param context: If given , its content is used to specify the prerequisites
+      environment file (key *"prerequisites"*) and the SALOME KERNEL installation directory (key *"kernel"*).
+   :type context: dict
+
+   For example, the following call creates a generator for the module m::
+
+      >>> g = module_generator.Generator(m,context)
+  """
   def __init__(self, module, context=None):
     self.module = module
     self.context = context or {}
@@ -235,7 +308,7 @@ class Generator(object):
       raise Invalid("To generate a module with GUI, you need to set the 'gui' parameter in the context dictionnary")
 
   def generate(self):
-    """generate SALOME module as described by module attribute"""
+    """Generate a SALOME source module"""
     module = self.module
     namedir = module.name+"_SRC"
     force = self.context.get("force")
@@ -676,13 +749,13 @@ echo "  Qt ..................... : $qt_ok"
         self.makeFiles(content, filename)
 
   def bootstrap(self):
-    """execute module autogen.sh script: execution of libtool, autoconf, automake"""
+    """Execute the first build step (bootstrap autotools with autogen.sh script) : execution of libtool, autoconf, automake"""
     ier = os.system("cd %s_SRC;sh autogen.sh" % self.module.name)
     if ier != 0:
       raise Invalid("bootstrap has ended in error")
 
   def configure(self):
-    """execute module configure script with installation prefix (prefix attribute of module)"""
+    """Execute the second build step (configure) with installation prefix as given by the prefix attribute of module"""
     prefix = self.module.prefix
     paco = self.context.get("paco")
     mpi = self.context.get("mpi")
@@ -703,7 +776,7 @@ echo "  Qt ..................... : $qt_ok"
       raise Invalid("configure has ended in error")
 
   def make(self):
-    """execute module Makefile : make"""
+    """Execute the third build step (compile and link) : make"""
     make_command = "make "
     if self.makeflags:
       make_command += self.makeflags
@@ -712,14 +785,39 @@ echo "  Qt ..................... : $qt_ok"
       raise Invalid("make has ended in error")
 
   def install(self):
-    """install module: make install """
+    """Execute the installation step : make install """
     makedirs(self.module.prefix)
     ier = os.system("cd %s_SRC;make install" % self.module.name)
     if ier != 0:
       raise Invalid("install has ended in error")
 
   def make_appli(self, appliname, restrict=None, altmodules=None, resources=""):
-    """generate SALOME application"""
+    """
+   Create a SALOME application containing the module and preexisting SALOME modules.
+
+   :param appliname: is a string that gives the name of the application (directory path where the application
+      will be installed).
+   :type appliname: str
+   :param restrict: If given (a list of module names), only those SALOME modules will be included in the
+      application. The default is to include all modules that are located in the same directory as the KERNEL module and have
+      the same suffix (for example, if KERNEL directory is KERNEL_V5 and GEOM directory is GEOM_V5, GEOM module is automatically
+      included, except if restrict is used).
+   :param altmodules: can be used to add SALOME modules that cannot be managed with the precedent rule. This parameter
+      is a dict with a module name as the key and the installation path as the value.
+   :param resources: can be used to define an alternative resources catalog (path of the file).
+
+   For example, the following calls create a SALOME application with external modules and resources catalog in "appli" directory::
+
+     >>> g=Generator(m,context)
+     >>> g.generate()
+     >>> g.bootstrap()
+     >>> g.configure()
+     >>> g.make()
+     >>> g.install()
+     >>> g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR},
+                      resources="myresources.xml")
+
+    """
     makedirs(appliname)
 
     rootdir, kerdir = os.path.split(self.kernel)

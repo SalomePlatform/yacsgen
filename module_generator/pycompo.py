@@ -35,6 +35,28 @@ def indent(text, prefix='    '):
   return join(lines, '\n')
 
 class PYComponent(Component):
+  """
+   A :class:`PYComponent` instance represents a Python SALOME component with services given as a list of :class:`Service`
+   instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (python executable). The default is to build the component as a python module.
+   :param sources: gives all the external Python source files to add in the component directory (list of paths).
+   :param python_path: If it is given (as a list of paths), all the paths are added to the python path (sys.path).
+   :param compodefs: can be used to add extra definition code in the component for example when using a base class
+      to define the component class by deriving it (see *inheritedclass* parameter)
+   :param inheritedclass: can be used to define a base class for the component. The base class can be defined in external
+      source or with the *compodefs* parameter. The value of the *inheritedclass* parameter is the name of the base class.
+
+   For example, the following call defines a Python component named "mycompo" with one service s1 (it must have been defined before)::
+
+      >>> c1 = module_generator.PYComponent('mycompo', services=[s1,],
+                                                       python_path="apath")
+
+  """
   def __init__(self, name, services=None, python_path=None, kind="lib",
                      sources=None, inheritedclass="", compodefs=""):
     """initialise component attributes"""

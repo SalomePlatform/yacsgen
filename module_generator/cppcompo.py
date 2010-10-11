@@ -27,6 +27,30 @@ from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
 from cpp_tmpl import exeCPP, compoEXEMakefile, compoMakefile
 
 class CPPComponent(Component):
+  """
+   A :class:`CPPComponent` instance represents a C++ SALOME component with services given as a list of :class:`Service`
+   instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (executable or shell script). The default is to build the component as a dynamic library.
+   :param libs: gives all the libraries options to add when linking the generated component (-L...).
+   :param rlibs: gives all the runtime libraries options to add when linking the generated component (-R...).
+   :param includes: gives all the include options to add when compiling the generated component (-I...).
+   :param sources: gives all the external source files to add in the compilation step (list of paths).
+   :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
+   :param compodefs: can be used to add extra definition code in the component for example when using a base class
+      to define the component class by deriving it (see *inheritedclass* parameter)
+   :param inheritedclass: can be used to define a base class for the component. The base class can be defined in external
+      source or with the *compodefs* parameter. The value of the *inheritedclass* parameter is the name of the base class.
+
+   For example, the following call defines a standalone component named "mycompo" with one service s1 (it must have been defined before)::
+
+      >>> c1 = module_generator.CPPComponent('mycompo', services=[s1,], kind="exe",
+                                             exe_path="./launch.sh")
+  """
   def __init__(self, name, services=None, libs="", rlibs="", includes="",
                      kind="lib", exe_path=None, sources=None, inheritedclass="",
                      compodefs=""):

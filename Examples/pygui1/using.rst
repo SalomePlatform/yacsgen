@@ -15,3 +15,6 @@ The Object Browser is in a tab, with tree_view
 
 Other
 ----------
+.. image:: exec.png
+  :align: center
+

@@ -40,7 +40,7 @@ c1=PYComponent("compo2",services=[
          )
 
 modul=Module("pycompos",components=[c1],prefix="./install",
-              doc=["*.rst",],
+              doc=["*.rst","*.png"],
               gui=["pycomposGUI.py","demo.ui","*.png"],
             )
 

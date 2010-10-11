@@ -36,6 +36,30 @@ from aster_tmpl import comm, make_etude, cexe, exeaster
 from aster_tmpl import container, component
 
 class ASTERComponent(Component):
+  """
+   A :class:`ASTERComponent` instance represents an ASTER SALOME component (special component for Code_Aster that is a mix of
+   Fortran and Python code) with services given as a list of :class:`Service` instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (executable or shell script). The default is to build the component as a dynamic library.
+   :param libs: gives all the libraries options to add when linking the generated component (-L...).
+   :param rlibs: gives all the runtime libraries options to add when linking the generated component (-R...).
+   :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
+   :param aster_dir: gives the Code_Aster installation directory.
+   :param python_path: If it is given (as a list of paths), all the paths are added to the python path (sys.path).
+   :param argv: is a list of strings that gives the command line parameters for Code_Aster. This parameter is only useful when
+      kind is "lib".
+
+   For example, the following call defines a Code_Aster component named "mycompo" with one service s1 (it must have been defined before).
+   This standalone component takes some command line arguments::
+
+      >>> c1 = module_generator.ASTERComponent('mycompo', services=[s1,], kind="exe",
+                                                          exe_path="launch.sh",
+                                                          argv=["-memjeveux","4"])
+  """
   def __init__(self, name, services=None, libs="", rlibs="", aster_dir="", 
                      python_path=None, argv=None, kind="lib", exe_path=None):
     """initialise component attributes"""
