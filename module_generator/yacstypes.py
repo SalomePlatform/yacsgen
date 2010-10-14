@@ -31,7 +31,7 @@ corbaOutTypes = {"double":"CORBA::Double&", "long":"CORBA::Long&",
                  "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out",
                  "file":None
                 }
-moduleTypes = {"double":"", "long":"", "string":"", "dblevec":"", "stringvec":"", "intvec":"", "file":"" }
+moduleTypes = {"double":"", "long":"", "string":"", "dblevec":"", "stringvec":"", "intvec":"", "file":"" , "pyobj":"" }
 
 idlTypes = {"double":"double", "long":"long", "string":"string", "dblevec":"dblevec", "stringvec":"stringvec", "intvec":"intvec", "file":"" }
 
