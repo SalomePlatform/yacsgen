@@ -5,9 +5,33 @@ from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 from PyQt4 import QtCore, QtGui, uic
 
+import salome
+import pycompos_ORB
+
 # Get SALOME PyQt interface
 import SalomePyQt
 sgPyQt = SalomePyQt.SalomePyQt()
+
+# Get SALOME Swig interface
+import libSALOME_Swig
+sg = libSALOME_Swig.SALOMEGUI_Swig()
+
+# object counter
+__objectid__ = 0
+
+###
+# get active study ID
+###
+def _getStudyId():
+    return sgPyQt.getStudyId()
+
+###
+# get active study
+###
+def _getStudy():
+    studyId = _getStudyId()
+    study = salome.myStudyManager.GetStudyByID( studyId )
+    return study
 
 # called when module is initialized
 # return map of popup windows to be used by the module
@@ -36,11 +60,37 @@ def activate():
   a = sgPyQt.createAction( 942, "Hello2", "Hello2", "Show hello2 dialog box" ,"exec.png")
   sgPyQt.createMenu( a, mid )
   sgPyQt.createTool( a, tid )
+  a = sgPyQt.createAction( 943, "Create object", "Create object", "Create object","exec.png" )
+  sgPyQt.createMenu( a, mid )
+  sgPyQt.createTool( a, tid )
+
   return True
 
 # called when module is deactivated
 def deactivate():
   pass
+
+_engine=None
+def getEngine():
+  global _engine
+  if not _engine:
+    _engine= salome.lcc.FindOrLoadComponent( "FactoryServerPy", "pycompos" )
+  return _engine
+
+###
+# Create new object
+###
+def CreateObject():
+    global __objectid__
+    default_name = str( sgPyQt.stringSetting( "pycompos", "def_obj_name", "Object" ).trimmed() )
+    # generate object name
+    __objectid__  = __objectid__ + 1
+    name = "%s_%d" % ( default_name, __objectid__ )
+    if not name: return
+    getEngine().createObject( _getStudy(), name )
+    print getEngine().s1(4,5)
+    print getEngine().ComponentDataType()
+    sg.updateObjBrowser( True )
 
 class DemoImpl(QtGui.QDialog):
     def __init__(self, *args):
@@ -69,5 +119,7 @@ def OnGUIEvent( commandID ):
     widget = DemoImpl(sgPyQt.getDesktop())
     widget.show()
 
+  elif commandID==943:
+    CreateObject()
 
 

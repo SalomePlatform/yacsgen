@@ -123,7 +123,8 @@ class Module(object):
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
                      includes="", kind="lib", sources=None,
-                     inheritedclass="",compodefs=""):
+                     inheritedclass="",compodefs="",
+                     idls=None,interfacedefs="",inheritedinterface="",addedmethods=""):
     self.name = name
     self.impl = impl
     self.kind = kind
@@ -134,6 +135,10 @@ class Component(object):
     self.sources = sources or []
     self.inheritedclass=inheritedclass
     self.compodefs=compodefs
+    self.idls=idls
+    self.interfacedefs=interfacedefs
+    self.inheritedinterface=inheritedinterface
+    self.addedmethods=addedmethods
 
   def validate(self):
     if self.impl not in ValidImpl:
@@ -189,8 +194,8 @@ class Service(object):
 
 
   """
-  def __init__(self, name, inport=None, outport=None, instream=None, 
-                     outstream=None, parallel_instream=None, parallel_outstream=None, body="", defs="", impl_type="sequential"):
+  def __init__(self, name, inport=None, outport=None, instream=None, outstream=None,
+                     parallel_instream=None, parallel_outstream=None, defs="", body="", impl_type="sequential"):
     self.name = name
     self.inport = inport or []
     self.outport = outport or []
@@ -229,7 +234,7 @@ class Service(object):
       if name in lports:
         raise Invalid("%s is already defined as a stream port" % name)
       lports.add(name)
-    
+
     for port in self.parallel_instream:
       name, typ = self.validateParallelStream(port)
       if name in lports:
@@ -481,12 +486,24 @@ echo "  Qt ..................... : $qt_ok"
                                                other_require=other_require,
                                               )
 
+    #if components have other idls
+    other_idls=""
+    other_sks=""
+    for compo in module.components:
+      if compo.idls:
+        for idl in compo.idls:
+          for fidl in glob.glob(idl):
+            other_idls=other_idls+os.path.basename(fidl) +" "
+            other_sks=other_sks+os.path.splitext(os.path.basename(fidl))[0]+"SK.cc "
+
     idlfiles={"Makefile.am":    idlMakefile.substitute(module=module.name,
                                                        PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
                                                        PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
                                                        PACO_INCLUDES=PACO_INCLUDES,
                                                        PACO_salomepython_DATA=PACO_salomepython_DATA,
-                                                       PACO_salomeidl_DATA=PACO_salomeidl_DATA),
+                                                       PACO_salomeidl_DATA=PACO_salomeidl_DATA,
+                                                       other_idls=other_idls,other_sks=other_sks,
+                                                       ),
               idlfile : self.makeidl(),
              }
     if paco:
@@ -505,6 +522,12 @@ echo "  Qt ..................... : $qt_ok"
         else:
           shutil.copyfile(src, os.path.join(namedir, "src", os.path.basename(src)))
 
+      if compo.idls:
+        #copy provided idl files in idl directory
+        for idl in compo.idls:
+          for fidl in glob.glob(idl):
+            shutil.copyfile(fidl, os.path.join(namedir, "idl", os.path.basename(fidl)))
+
     for m4file in ("check_Kernel.m4", "check_omniorb.m4",
                    "ac_linker_options.m4", "ac_cxx_option.m4",
                    "python.m4", "enable_pthreads.m4", "check_f77.m4",
@@ -512,6 +535,7 @@ echo "  Qt ..................... : $qt_ok"
                    "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4"):
       shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file),
                       os.path.join(namedir, "adm_local", m4file))
+
     if self.module.gui:
       for m4file in ("check_GUI.m4", "check_qt.m4", "check_opengl.m4"):
         shutil.copyfile(os.path.join(self.gui, "adm_local", "unix", "config_files", m4file),
@@ -687,7 +711,9 @@ echo "  Qt ..................... : $qt_ok"
           service = "    void %s(" % serv.name
           service = service+",".join(params)+");"
           services.append(service)
+
         interfaces.append(parallel_interface.substitute(component=compo.name, services="\n".join(services)))
+
       else:
         services = []
         for serv in compo.services:
@@ -709,12 +735,20 @@ echo "  Qt ..................... : $qt_ok"
           service = "    void %s(" % serv.name
           service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
           services.append(service)
-        interfaces.append(interface.substitute(component=compo.name, services="\n".join(services)))
+
+        inheritedinterface=""
+        if compo.inheritedinterface:
+          inheritedinterface=compo.inheritedinterface+","
+        interfaces.append(interface.substitute(component=compo.name, services="\n".join(services),inheritedinterface=inheritedinterface))
 
     #build idl includes for SALOME modules
     idldefs=""
     for mod in self.used_modules:
       idldefs = idldefs + salome_modules[mod]["idldefs"]
+
+    for compo in self.module.components:
+      if compo.interfacedefs:
+        idldefs = idldefs + compo.interfacedefs
 
     return idl.substitute(module=self.module.name, interfaces='\n'.join(interfaces),idldefs=idldefs)
 

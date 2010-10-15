@@ -235,7 +235,7 @@ extern "C"
         Engines::Container_var container = Engines::Container::_narrow(obj);
         ${component}_i * myEngine = new ${component}_i(orb, poa, container, instanceName.c_str(), "${component}");
         pman->activate();
-        obj=myEngine->_this();
+        obj=myEngine->POA_${module}_ORB::${component}::_this();
         Engines::Component_var component = Engines::Component::_narrow(obj);
         string component_registerName = containerName + "/" + instanceName;
         salomens->Register(component,component_registerName.c_str());
@@ -276,9 +276,8 @@ hxxCompo="""
 ${compodefs}
 //ENDDEF
 
-class ${component}_i: ${inheritedclass}
-  public virtual POA_${module}::${component},
-  public virtual Superv_Component_i
+class ${component}_i: public virtual POA_${module}_ORB::${component},
+                      ${inheritedclass} public virtual Superv_Component_i
 {
   public:
     ${component}_i(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa,
@@ -402,7 +401,7 @@ lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
 lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
 lib${component}Engine_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
-lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
+lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 """
 compoMakefile=Template(compoMakefile)
@@ -412,7 +411,7 @@ lib${component}Exelib_la_SOURCES      = ${component}.cxx
 nodist_lib${component}Exelib_la_SOURCES =
 lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
 lib${component}Exelib_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
-lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
+lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
 """
 compoEXEMakefile=Template(compoEXEMakefile)

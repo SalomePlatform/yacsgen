@@ -12,6 +12,7 @@ public:
   cppcomposGUI();
   void    initialize( CAM_Application* );
   QString engineIOR() const;
+  virtual void  windows( QMap<int, int>& theMap ) const;
 
 public slots:
   bool    deactivateModule( SUIT_Study* );

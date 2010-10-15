@@ -45,20 +45,29 @@ class CPPComponent(Component):
       to define the component class by deriving it (see *inheritedclass* parameter)
    :param inheritedclass: can be used to define a base class for the component. The base class can be defined in external
       source or with the *compodefs* parameter. The value of the *inheritedclass* parameter is the name of the base class.
+   :param idls: can be used to add extra idl CORBA interfaces to the component. This parameter must gives a list of idl file
+      names that are added into the generated module (idl directory) and compiled with the generated idl of the module.
+   :param interfacedefs: can be used to add idl definitions (or includes of idl files) into the generated idl of the module.
+   :param inheritedinterface: can be used to make the component inherit an extra idl interface that has been included through
+      the *idls* and *interfacedefs* parameters. See the cppgui1 example for how to use these last parameters.
+   :param addmethods: is a C++ specific parameter that can be used to redefine a component method (DumpPython for example). This
+      parameter is a string that must contain the definition and implementation code of the method. See the cppgui1 example
+      for how to use it.
 
    For example, the following call defines a standalone component named "mycompo" with one service s1 (it must have been defined before)::
 
       >>> c1 = module_generator.CPPComponent('mycompo', services=[s1,], kind="exe",
                                              exe_path="./launch.sh")
   """
-  def __init__(self, name, services=None, libs="", rlibs="", includes="",
-                     kind="lib", exe_path=None, sources=None, inheritedclass="",
-                     compodefs=""):
+  def __init__(self, name, services=None, libs="", rlibs="", includes="", kind="lib",
+                     exe_path=None, sources=None, inheritedclass="", compodefs="",
+                     idls=None,interfacedefs="",inheritedinterface="",addedmethods=""):
     self.exe_path = exe_path
-    Component.__init__(self, name, services, impl="CPP", libs=libs,
-                             rlibs=rlibs, includes=includes, kind=kind,
-                             sources=sources,inheritedclass=inheritedclass,
-                             compodefs=compodefs)
+    Component.__init__(self, name, services, impl="CPP", libs=libs, rlibs=rlibs,
+                             includes=includes, kind=kind, sources=sources,
+                             inheritedclass=inheritedclass, compodefs=compodefs, idls=idls,
+                             interfacedefs=interfacedefs, inheritedinterface=inheritedinterface,
+                             addedmethods=addedmethods)
 
   def validate(self):
     """ validate component definition parameters"""
@@ -125,6 +134,9 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
       service = "    void %s(" % serv.name
       service = service+gen.makeArgs(serv)+");"
       services.append(service)
+
+    if self.addedmethods:
+      services.append(self.addedmethods)
     servicesdef = "\n".join(services)
 
     inheritedclass=self.inheritedclass

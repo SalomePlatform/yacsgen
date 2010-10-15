@@ -50,6 +50,11 @@ class PYComponent(Component):
       to define the component class by deriving it (see *inheritedclass* parameter)
    :param inheritedclass: can be used to define a base class for the component. The base class can be defined in external
       source or with the *compodefs* parameter. The value of the *inheritedclass* parameter is the name of the base class.
+   :param idls: can be used to add extra idl CORBA interfaces. This parameter must gives a list of idl file names that are
+      added into the generated module (idl directory) and compiled with the generated idl of the module.
+   :param interfacedefs: can be used to add idl definitions (or includes of idl files) into the generated idl of the module.
+   :param inheritedinterface: can be used to make the component inherit an extra idl interface that has been included through
+      the *idls* and *interfacedefs* parameters. See the pygui1 example for how to use these last parameters.
 
    For example, the following call defines a Python component named "mycompo" with one service s1 (it must have been defined before)::
 
@@ -57,13 +62,13 @@ class PYComponent(Component):
                                                        python_path="apath")
 
   """
-  def __init__(self, name, services=None, python_path=None, kind="lib",
-                     sources=None, inheritedclass="", compodefs=""):
+  def __init__(self, name, services=None, kind="lib", sources=None, python_path=None,
+                     compodefs="", inheritedclass="", idls=None, interfacedefs="", inheritedinterface=""):
     """initialise component attributes"""
     self.python_path = python_path or []
-    Component.__init__(self, name, services, impl="PY", kind=kind,
-                             sources=sources, inheritedclass=inheritedclass,
-                             compodefs=compodefs)
+    Component.__init__(self, name, services, impl="PY", kind=kind, sources=sources,
+                             inheritedclass=inheritedclass, compodefs=compodefs,
+                             idls=idls,interfacedefs=interfacedefs,inheritedinterface=inheritedinterface)
 
   def validate(self):
     """validate component attributes"""

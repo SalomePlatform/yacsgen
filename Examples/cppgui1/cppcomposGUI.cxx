@@ -2,7 +2,14 @@
 #include <SUIT_MessageBox.h>
 #include <SUIT_ResourceMgr.h>
 #include <SUIT_Desktop.h>
+#include <SUIT_Study.h>
 #include <SalomeApp_Application.h>
+#include <SALOME_LifeCycleCORBA.hxx>
+
+#include <SALOMEconfig.h>
+#include CORBA_CLIENT_HEADER(cppcompos)
+#include CORBA_CLIENT_HEADER(SALOMEDS)
+#include CORBA_CLIENT_HEADER(SALOMEDS_Attributes)
 
 // QT Includes
 #include <QInputDialog>
@@ -23,11 +30,16 @@ cppcomposGUI::cppcomposGUI() :
 {
 }
 
+static cppcompos_ORB::cppcompos_var engine;
+
 // Module's initialization
 void cppcomposGUI::initialize( CAM_Application* app )
 {
 
   SalomeApp_Module::initialize( app );
+
+  Engines::Component_var comp = dynamic_cast<SalomeApp_Application*>(app)->lcc()->FindOrLoad_Component( "FactoryServer","cppcompos" );
+  engine = cppcompos_ORB::cppcompos::_narrow(comp);
 
   QWidget* aParent = application()->desktop();
   SUIT_ResourceMgr* aResourceMgr = app->resourceMgr();
@@ -48,6 +60,14 @@ void cppcomposGUI::initialize( CAM_Application* app )
   createTool( 902, aToolId );
 }
 
+// Get compatible dockable windows.
+void cppcomposGUI::windows( QMap<int, int>& theMap ) const
+{
+  theMap.clear();
+  theMap.insert( SalomeApp_Application::WT_ObjectBrowser, Qt::LeftDockWidgetArea );
+  theMap.insert( SalomeApp_Application::WT_PyConsole,     Qt::BottomDockWidgetArea );
+}
+
 // Module's engine IOR
 QString cppcomposGUI::engineIOR() const
 {
@@ -61,6 +81,25 @@ bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
 
   setMenuShown( true );
   setToolShown( true );
+
+  SALOME_NamingService *aNamingService = SalomeApp_Application::namingService();
+  CORBA::Object_var aSMObject = aNamingService->Resolve("/myStudyManager");
+  SALOMEDS::StudyManager_var aStudyManager = SALOMEDS::StudyManager::_narrow(aSMObject);
+  SALOMEDS::Study_var aDSStudy = aStudyManager->GetStudyByID(theStudy->id());
+
+  SALOMEDS::SComponent_var aFather = aDSStudy->FindComponent("cppcompos");
+  if (aFather->_is_nil())
+    {
+      SALOMEDS::StudyBuilder_var aStudyBuilder = aDSStudy->NewBuilder();
+      aFather = aStudyBuilder->NewComponent("cppcompos");
+      SALOMEDS::GenericAttribute_var anAttr = aStudyBuilder->FindOrCreateAttribute(aFather, "AttributeName");
+      SALOMEDS::AttributeName_var aName = SALOMEDS::AttributeName::_narrow(anAttr);
+      aName->SetValue("cppcompos");
+      aName->Destroy();
+      aStudyBuilder->DefineComponentInstance(aFather, engine);
+    }
+  CORBA::Boolean valid;
+  engine->DumpPython(aDSStudy,1,valid);
 
   return bOk;
 }
@@ -83,6 +122,9 @@ void cppcomposGUI::OnGetBanner()
 
   if ( ok && !myName.isEmpty()) 
   {
+    ::CORBA::Double c;
+    engine->s1(1.,2.,c);
+    std::cerr << c << std::endl;
     QString banner = "Hello " + myName;
     SUIT_MessageBox::information( getApp()->desktop(), "info", banner, "OK" );
   }
