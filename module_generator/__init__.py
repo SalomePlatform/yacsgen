@@ -28,3 +28,4 @@ from cppcompo import CPPComponent
 from pacocompo import PACOComponent
 from pycompo import PYComponent
 from astcompo import ASTERComponent
+from hxxcompo import HXX2SALOMEComponent

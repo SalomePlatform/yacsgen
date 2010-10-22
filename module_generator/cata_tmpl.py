@@ -31,6 +31,8 @@ idl="""
 #include "DSC_Engines.idl"
 #include "SALOME_Exception.idl"
 #include "SALOME_PACOExtension.idl"
+#include "SALOME_Component.idl"
+#include "SALOME_Comm.idl"
 
 ${idldefs}
 

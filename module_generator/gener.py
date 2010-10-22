@@ -173,6 +173,7 @@ class Service(object):
       by a 2-tuple (port name, data type name). The list of supported basic data types is: "double", "long", "string",
       "dblevec", "stringvec", "intvec", "file" and "pyobj" only for Python services. Depending on the implementation
       language, it is also possible to use some types from SALOME modules (see :ref:`yacstypes`).
+   :param ret: gives the type of the return parameter
    :param instream: gives the list of input datastream ports.
    :param outstream: gives the list of output datastream ports. An input or output datastream port is defined
       by a 3-tuple (port name, data type name, mode name). The list of possible data types is: "CALCIUM_double", "CALCIUM_integer",
@@ -194,11 +195,12 @@ class Service(object):
 
 
   """
-  def __init__(self, name, inport=None, outport=None, instream=None, outstream=None,
+  def __init__(self, name, inport=None, outport=None, ret="void", instream=None, outstream=None,
                      parallel_instream=None, parallel_outstream=None, defs="", body="", impl_type="sequential"):
     self.name = name
     self.inport = inport or []
     self.outport = outport or []
+    self.ret = ret
     self.instream = instream or []
     self.outstream = outstream or []
     self.parallel_instream = parallel_instream or []
@@ -354,7 +356,7 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
     modules = {}
     for compo in module.components:
       for serv in compo.services:
-        for name, typ in serv.inport + serv.outport:
+        for name, typ in serv.inport + serv.outport + [ ("return",serv.ret) ] :
           mod = moduleTypes[typ]
           if mod:
             get_dependent_modules(mod,modules)
@@ -675,6 +677,8 @@ echo "  Qt ..................... : $qt_ok"
         params = []
         for name, typ in serv.outport:
           params.append(cataOutparam.substitute(name=name, type=typ))
+        if serv.ret != "void" :
+          params.append(cataOutparam.substitute(name="return", type=serv.ret))
         outparams = "\n".join(params)
         streams = []
         for name, typ, dep in serv.instream:
@@ -732,14 +736,22 @@ echo "  Qt ..................... : $qt_ok"
             else:
               typ=idlTypes[typ]
             params.append("out %s %s" % (typ, name))
-          service = "    void %s(" % serv.name
+          service = "    %s %s(" % (idlTypes[serv.ret],serv.name)
           service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
           services.append(service)
 
-        inheritedinterface=""
-        if compo.inheritedinterface:
-          inheritedinterface=compo.inheritedinterface+","
-        interfaces.append(interface.substitute(component=compo.name, services="\n".join(services),inheritedinterface=inheritedinterface))
+        from hxxcompo import HXX2SALOMEComponent
+        if isinstance(compo,HXX2SALOMEComponent):
+          from hxx_tmpl import interfaceidlhxx
+          Inherited=""
+          if compo.use_medmem==True:
+              Inherited=", SALOME_MED::MED_Gen_Driver"
+          interfaces.append(interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services)))
+        else:
+          inheritedinterface=""
+          if compo.inheritedinterface:
+            inheritedinterface=compo.inheritedinterface+","
+          interfaces.append(interface.substitute(component=compo.name, services="\n".join(services),inheritedinterface=inheritedinterface))
 
     #build idl includes for SALOME modules
     idldefs=""

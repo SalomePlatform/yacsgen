@@ -23,17 +23,26 @@
 corbaTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
               "string":"const char*", "dblevec":"const %s::dblevec&",
               "stringvec":"const %s::stringvec&", "intvec":"const %s::intvec&",
-              "file":None
+              "file":None, "boolean":"CORBA::Boolean", "void":"void"
              }
 
 corbaOutTypes = {"double":"CORBA::Double&", "long":"CORBA::Long&",
                  "string":"CORBA::String_out", "dblevec":"%s::dblevec_out",
                  "stringvec":"%s::stringvec_out", "intvec":"%s::intvec_out",
-                 "file":None
+                 "file":None, "boolean":"CORBA::Boolean_out", "void":None
                 }
-moduleTypes = {"double":"", "long":"", "string":"", "dblevec":"", "stringvec":"", "intvec":"", "file":"" , "pyobj":"" }
+moduleTypes = {"double":"", "long":"", "string":"", "dblevec":"", "stringvec":"", "intvec":"", "file":"", "pyobj":"", "boolean":"", "void":"" }
 
-idlTypes = {"double":"double", "long":"long", "string":"string", "dblevec":"dblevec", "stringvec":"stringvec", "intvec":"intvec", "file":"" }
+idlTypes = {"double":"double", "long":"long", "string":"string", "dblevec":"dblevec", "stringvec":"stringvec", "intvec":"intvec", 
+            "file":"", "boolean":"boolean", "void":"void" }
+
+corbaRtnTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
+                 "string":"char*", "dblevec":"%s::dblevec*",
+                 "stringvec":"%s::stringvec*", "intvec":"%s::intvec*",
+                 "file":None, "boolean":"CORBA::Boolean", "void":"void"
+                }
+
+
 
 def corba_in_type(typ, module):
   if corbaTypes[typ].count("%s")>0:
@@ -47,10 +56,16 @@ def corba_out_type(typ, module):
   else:
     return corbaOutTypes[typ]
 
+def corba_rtn_type(typ, module):
+  if corbaRtnTypes[typ].count("%s")>0:
+    return corbaRtnTypes[typ] % module
+  else:
+    return corbaRtnTypes[typ]
+
 ValidTypes = corbaTypes.keys()
 PyValidTypes = ValidTypes+["pyobj"]
 
-def add_type(typename, corbaType, corbaOutType, module, idltype):
+def add_type(typename, corbaType, corbaOutType, module, idltype, corbaRtnType):
   """ add a data type YACS from other module than KERNEL to the list of available types
 
        :param typename: YACS data type name
@@ -63,9 +78,12 @@ def add_type(typename, corbaType, corbaOutType, module, idltype):
        :type module: string
        :param idltype: representation for CORBA idl
        :type idltype: string
+       :param corbaRtnType: representation for C++ CORBA return parameter
+       :type corbaRtnType: string
   """
   corbaTypes[typename] = corbaType
   corbaOutTypes[typename] = corbaOutType
+  corbaRtnTypes[typename] = corbaRtnType
   moduleTypes[typename] = module
   idlTypes[typename] = idltype
   ValidTypes.append(typename)
@@ -88,13 +106,16 @@ ValidStreamTypes = calciumTypes.keys()
 ValidParallelStreamTypes = DatastreamParallelTypes.keys()
 ValidDependencies = ("I", "T")
 
-add_type("dataref", "const Engines::dataref&", "Engines::dataref_out", "", "dataref")
-add_type("GEOM_Object", "GEOM::GEOM_Object_ptr", "GEOM::GEOM_Object_out", "GEOM", "GEOM::GEOM_Object")
-add_type("SMESH_Mesh", "SMESH::SMESH_Mesh_ptr", "SMESH::SMESH_Mesh_out", "SMESH", "SMESH::SMESH_Mesh")
-add_type("SMESH_Hypothesis", "SMESH::SMESH_Hypothesis_ptr", "SMESH::SMESH_Hypothesis_out", "SMESH", "SMESH::SMESH_Hypothesis")
-add_type("SALOME_MED/MED", "SALOME_MED::MED_ptr", "SALOME_MED::MED_out", "MED", "SALOME_MED::MED")
-add_type("SALOME_MED/MESH", "SALOME_MED::MESH_ptr", "SALOME_MED::MESH_out", "MED", "SALOME_MED::MESH")
-add_type("SALOME_MED/SUPPORT", "SALOME_MED::SUPPORT_ptr", "SALOME_MED::SUPPORT_out", "MED", "SALOME_MED::SUPPORT")
-add_type("SALOME_MED/FIELD", "SALOME_MED::FIELD_ptr", "SALOME_MED::FIELD_out", "MED", "SALOME_MED::FIELD")
-add_type("SALOME_MED/FIELDDOUBLE", "SALOME_MED::FIELDDOUBLE_ptr", "SALOME_MED::FIELDDOUBLE_out", "MED", "SALOME_MED::FIELDDOUBLE")
-add_type("SALOME_MED/FIELDINT", "SALOME_MED::FIELDINT_ptr", "SALOME_MED::FIELDINT_out", "MED", "SALOME_MED::FIELDINT")
+add_type("dataref", "const Engines::dataref&", "Engines::dataref_out", "", "dataref","Engines::dataref*")
+add_type("GEOM_Object", "GEOM::GEOM_Object_ptr", "GEOM::GEOM_Object_out", "GEOM", "GEOM::GEOM_Object","GEOM::GEOM_Object_ptr")
+add_type("SMESH_Mesh", "SMESH::SMESH_Mesh_ptr", "SMESH::SMESH_Mesh_out", "SMESH", "SMESH::SMESH_Mesh","SMESH::SMESH_Mesh_ptr")
+add_type("SMESH_Hypothesis", "SMESH::SMESH_Hypothesis_ptr", "SMESH::SMESH_Hypothesis_out", "SMESH", "SMESH::SMESH_Hypothesis", "SMESH::SMESH_Hypothesis_ptr")
+add_type("SALOME_MED/MED", "SALOME_MED::MED_ptr", "SALOME_MED::MED_out", "MED", "SALOME_MED::MED", "SALOME_MED::MED_ptr")
+add_type("SALOME_MED/MESH", "SALOME_MED::MESH_ptr", "SALOME_MED::MESH_out", "MED", "SALOME_MED::MESH", "SALOME_MED::MESH_ptr")
+add_type("SALOME_MED/SUPPORT", "SALOME_MED::SUPPORT_ptr", "SALOME_MED::SUPPORT_out", "MED", "SALOME_MED::SUPPORT", "SALOME_MED::SUPPORT_ptr")
+add_type("SALOME_MED/FIELD", "SALOME_MED::FIELD_ptr", "SALOME_MED::FIELD_out", "MED", "SALOME_MED::FIELD", "SALOME_MED::FIELD_ptr")
+add_type("SALOME_MED/FIELDDOUBLE", "SALOME_MED::FIELDDOUBLE_ptr", "SALOME_MED::FIELDDOUBLE_out", "MED", "SALOME_MED::FIELDDOUBLE", "SALOME_MED::FIELDDOUBLE_ptr")
+add_type("SALOME_MED/FIELDINT", "SALOME_MED::FIELDINT_ptr", "SALOME_MED::FIELDINT_out", "MED", "SALOME_MED::FIELDINT", "SALOME_MED::FIELDINT_ptr")
+add_type("SALOME/Matrix", "SALOME::Matrix_ptr", "SALOME::Matrix_out", "", "SALOME::Matrix", "SALOME::Matrix_ptr")
+add_type("SALOME_MED/MEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_ptr", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_out", "MED", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_ptr")
+add_type("SALOME_MED/MEDCouplingUMeshCorbaInterface", "SALOME_MED::MEDCouplingUMeshCorbaInterface_ptr", "SALOME_MED::MEDCouplingUMeshCorbaInterface_out", "MED", "SALOME_MED::MEDCouplingUMeshCorbaInterface", "SALOME_MED::MEDCouplingUMeshCorbaInterface_ptr")

@@ -25,6 +25,7 @@ import os
 from gener import Component, Invalid
 from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
 from cpp_tmpl import exeCPP, compoEXEMakefile, compoMakefile
+from yacstypes import corba_rtn_type
 
 class CPPComponent(Component):
   """
@@ -131,7 +132,7 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
     """
     services = []
     for serv in self.services:
-      service = "    void %s(" % serv.name
+      service = "    %s %s(" % (corba_rtn_type(serv.ret,gen.module.name),serv.name)
       service = service+gen.makeArgs(serv)+");"
       services.append(service)
 
