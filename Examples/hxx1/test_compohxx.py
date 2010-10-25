@@ -12,7 +12,7 @@ import SALOME
 import salome
 salome.salome_init()
 print "Test du composant CALCUL généré généré par hxx2salome"
-import hxxcompos
+import hxxcompos_ORB
 myCalc = salome.lcc.FindOrLoadComponent("FactoryServer", "CALCUL")
 print "10+15 = ",myCalc.add(10,15)
 print "10x15 = ",myCalc.mul(10,15)
@@ -121,9 +121,9 @@ myCoco2 = salome.lcc.FindOrLoadComponent("FactoryServerI2", "ICOCO")
 #
 myCoco1.initialize()
 m=myCoco1.getInputFieldTemplate("TargetField")
-#myCoco1.solve()  to test with 5.1.5
-#f=myCoco1.getOutputField("SourceField")
-#myCoco2.printField(f)
+myCoco1.solve()  #to test with 5.1.5
+f=myCoco1.getOutputField("SourceField")
+myCoco2.printField(f)
 #
 print "##################################"
 print "Fin test hxx2salome/ICOCO/A2"
