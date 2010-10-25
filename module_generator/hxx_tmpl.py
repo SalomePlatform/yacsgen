@@ -109,7 +109,7 @@ ${compodefs}
 class ${component};  // forward declaration
 
 class ${component}_i: ${inheritedclass}
-  public POA_${module}::${component}_Gen,
+  public POA_${module}_ORB::${component}_Gen,
   public Engines_Component_i,
   public SALOMEMultiComm
 {
@@ -171,7 +171,7 @@ dist_lib${component}Engine_la_SOURCES = \
 	${component}_i.cxx
 
 lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
-lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -l${module} $${SALOME_LIBS} $$(FLIBS)
+lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
 
 
 """
