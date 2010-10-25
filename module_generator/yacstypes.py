@@ -46,19 +46,19 @@ corbaRtnTypes = {"double":"CORBA::Double", "long":"CORBA::Long",
 
 def corba_in_type(typ, module):
   if corbaTypes[typ].count("%s")>0:
-    return corbaTypes[typ] % module
+    return corbaTypes[typ] % (module+"_ORB")
   else:
     return corbaTypes[typ]
 
 def corba_out_type(typ, module):
   if corbaOutTypes[typ].count("%s")>0:
-    return corbaOutTypes[typ] % module
+    return corbaOutTypes[typ] % (module+"_ORB")
   else:
     return corbaOutTypes[typ]
 
 def corba_rtn_type(typ, module):
   if corbaRtnTypes[typ].count("%s")>0:
-    return corbaRtnTypes[typ] % module
+    return corbaRtnTypes[typ] % (module+"_ORB")
   else:
     return corbaRtnTypes[typ]
 
