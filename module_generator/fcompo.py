@@ -29,6 +29,27 @@ else:
   f77Types = {"double":"double *", "long":"long *", "string":"const char *"}
 
 class F77Component(CPPComponent):
+  """
+   A :class:`F77Component` instance represents a Fortran SALOME component with services given as a list of :class:`Service`
+   instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (executable or shell script). The default is to build the component as a dynamic library.
+   :param libs: gives all the libraries options to add when linking the generated component (-L...).
+   :param rlibs: gives all the runtime libraries options to add when linking the generated component (-R...).
+   :param sources: gives all the external source files to add in the compilation step (list of paths).
+   :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
+
+   For example, the following call defines a Fortran component named "mycompo" with one service s1 (it must have been defined before).
+   This component is implemented as a dynamic library linked with a user's library "mylib"::
+
+      >>> c1 = module_generator.F77Component('mycompo', services=[s1,],
+                                                       libs="-lmylib -Lmydir")
+
+  """
   def __init__(self, name, services=None, libs="", rlibs="", 
                      kind="lib", exe_path=None, sources=None):
     CPPComponent.__init__(self, name, services, libs=libs, rlibs=rlibs, 

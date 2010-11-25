@@ -22,6 +22,10 @@ include Examples/makefile.inc
 include Examples/*/*.f
 include Examples/*/*.py
 include Examples/*/*.cxx
+include Examples/*/*.h
+include Examples/*/*.png
+include Examples/*/*.ui
+include Examples/*/*.rst
 include Examples/*/coupling.xml
 include Examples/*/Makefile
 include Examples/*/README.txt

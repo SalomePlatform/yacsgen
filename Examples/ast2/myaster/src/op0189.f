@@ -62,9 +62,9 @@ C
       COMMON/YACS/IFL
       include 'calcium.hf'
       real*8 tt,tp,t0,t1,ss,zz
-      real yr
+      real*4 yr
       CHARACTER*8 tch(2)
-      real tcp(2)
+      real*4 tcp(2)
       integer*4 tlo(3)
 
       write(6,*) '--> OP196 '

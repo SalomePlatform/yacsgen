@@ -24,7 +24,7 @@ except:
 
 asterCompo="""
 import sys,traceback,os
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
@@ -48,11 +48,11 @@ except:
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
+class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
@@ -78,12 +78,12 @@ asterCompo=Template(asterCompo)
 asterCEXECompo="""
 import sys,traceback,os
 import string
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
 import linecache
-from E_SUPERV import SUPERV
+${importesuperv}
 
 try:
   import numpy
@@ -97,11 +97,11 @@ ${servicesdef}
 class ExecutionError(Exception):
   '''General exception during execution'''
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
+class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):

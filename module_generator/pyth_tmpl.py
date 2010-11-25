@@ -25,7 +25,7 @@ except:
 pyCompo="""
 import sys,traceback,os
 sys.path=sys.path+[${python_path}]
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
@@ -45,11 +45,11 @@ ${compodefs}
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${inheritedclass} ${module}__POA.${component},dsccalcium.PyDSCComponent):
+class ${component}(${module}_ORB__POA.${component}, ${inheritedclass} dsccalcium.PyDSCComponent):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):

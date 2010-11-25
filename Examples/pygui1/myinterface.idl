@@ -1,0 +1,8 @@
+#include "SALOMEDS.idl"
+#include "SALOME_Exception.idl"
+
+interface Idl_A : SALOMEDS::Driver
+{
+  void createObject(in SALOMEDS::Study theStudy, in string name) raises (SALOME::SALOME_Exception);
+};
+

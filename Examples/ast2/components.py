@@ -29,7 +29,6 @@ execfile("../context.py")
 aster_root=os.path.join(aster_home,aster_version)
 
 fcompodir=os.path.join(os.getcwd(),"fcompo")
-myasterdir=os.path.join(os.getcwd(),"myaster","bibpyt")
 
 install_prefix="./install"
 appli_dir="appli"
