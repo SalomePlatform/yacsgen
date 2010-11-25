@@ -324,7 +324,7 @@ include $(top_srcdir)/adm_local/make_common_starter.am
       defs.append(serv.defs)
       service = cxxService.substitute(component=self.name, service=serv.name,ret=corba_rtn_type(serv.ret,gen.module.name),
                                       parameters=gen.makeArgs(serv),
-				      body=serv.body % {"module":gen.module.name} )
+				      body=serv.body % {"module":gen.module.name+"_ORB"} )
       services.append(service)
     return cxxCompo.substitute(component=self.name, 
 	                       inheritedconstructor=self.inheritedconstructor,
