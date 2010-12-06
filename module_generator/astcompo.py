@@ -176,7 +176,7 @@ class ASTERComponent(Component):
     fil = open(os.path.join(self.aster_dir, "config.txt"))
     config = fil.read()
     fil.close()
-    config = re.sub("profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
 
     path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
@@ -209,7 +209,7 @@ class ASTERComponent(Component):
     fil = open(os.path.join(self.aster_dir, "config.txt"))
     config = fil.read()
     fil.close()
-    config = re.sub("profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
     path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
                       'site-packages','salome','%s_container.py' % self.name)
