@@ -191,6 +191,8 @@ class HXX2SALOMEComponent(Component):
     # Create a list of services, and give it to Component constructor
     services=[]
     from hxx_awk import cpp2yacs_mapping
+    self.use_medmem=False
+    self.use_medcoupling=False
     for serv in list_of_services:
 	# for inports and outports, Service class expects a list of tuples, each tuple containing the name and the yacs type of the port
 	# thus we need to convert c++ types to yacs types  (we use for that the cpp2yacs_mapping table
@@ -206,8 +208,6 @@ class HXX2SALOMEComponent(Component):
             Return=cpp2yacs_mapping[service_definition[serv]["ret"]]
 
 	# find out if component uses medmem types and/or medcoupling types
-	self.use_medmem=False
-	self.use_medcoupling=False
 	for (argname,argtype) in inports + outports + [("return",Return)]:
 	    if moduleTypes[argtype]=="MED":
 		if argtype.count("Coupling")>0:
