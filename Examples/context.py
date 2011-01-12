@@ -18,15 +18,15 @@
 #
 
 import os,sys
-#sys.path.insert(0,"../..")
+sys.path.insert(0,"../..")
 
-KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","/local/cchris/Salome/Install/KERNEL_V5")
-GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","/local/cchris/Salome/Install/GUI_V5")
-YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR","/local/cchris/Salome/Install/YACS_V5")
+KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","/local/cchris/Salome/Install/KERNEL_V6")
+GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","/local/cchris/Salome/Install/GUI_V6")
+YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR","/local/cchris/Salome/Install/YACS_V6")
 
 context={'update':1,
          "makeflags":"",
-         "prerequisites":"/local/cchris/.packages.d/envSalome51main",
+         "prerequisites":"/local/cchris/.packages.d/envSalome6main",
          "kernel":KERNEL_ROOT_DIR,
          "gui":GUI_ROOT_DIR,
         }

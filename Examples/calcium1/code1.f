@@ -263,6 +263,8 @@ C  read
        write(6,*)'info=',info
        call flush(6)
 
+       CALL cpfin(compo,CP_ARRET,info)
+
        c=a+b
        return 
        end

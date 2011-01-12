@@ -18,10 +18,10 @@
 #
 
 import os
-from module_generator import Generator,Module,Service,PYComponent,CPPComponent,F77Component
 
 #import context from ..
 execfile("../context.py")
+from module_generator import Generator,Module,Service,PYComponent,CPPComponent,F77Component
 
 # C++ component
 

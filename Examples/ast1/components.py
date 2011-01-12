@@ -21,10 +21,10 @@
  Example with one Code_Aster component and one fortran component
 """
 import os
-from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
 #import context from ..
 execfile("../context.py")
+from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
 aster_root=os.path.join(aster_home,aster_version)
 

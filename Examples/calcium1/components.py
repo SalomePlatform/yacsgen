@@ -18,10 +18,9 @@
 #
 
 import os
-from module_generator import Generator,Module,Service,PYComponent,CPPComponent,F77Component
-
 #import context from ..
 execfile("../context.py")
+from module_generator import Generator,Module,Service,PYComponent,CPPComponent,F77Component
 
 # C++ component
 
@@ -45,6 +44,10 @@ char mystring3[10];
 rsval[0]=mystring1;
 rsval[1]=mystring2;
 rsval[2]=mystring3;
+
+char instance_name[72];
+info = cp_cd(component,instance_name);
+std::cerr << "instance_name: " << instance_name << std::endl;
 
 val[0]=3.2;
 val[1]=5.2;
@@ -198,6 +201,8 @@ std::cerr << "info: " << info << std::endl;
 info=cp_effi(component,(char*)"aa",3);
 std::cerr << "info: " << info << std::endl;
 
+cp_fin(component,CP_ARRET);
+
 c=2*rval[0];
 std::cerr << "c: " << c << std::endl;
 """
@@ -239,6 +244,7 @@ body="""
 info,name= calcium.cp_cd(component)
 print "name=",name
 print "info=",info
+
 dep=calcium.CP_ITERATION
 
 #double
