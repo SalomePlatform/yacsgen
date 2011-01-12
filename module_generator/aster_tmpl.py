@@ -199,7 +199,7 @@ asterService="""
 
     if j.par_lot == 'NON':
        print "FIN EXECUTION"
-       err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
+       #err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
        #retour sans erreur (il faut pousser les variables de sortie)
        sys.stdout.flush()
        self.endService("${component}.${service}")
@@ -231,7 +231,7 @@ asterService="""
           raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr),"${component}.py",0))
        else:
          #retour sans erreur (il faut pousser les variables de sortie)
-         err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
+         #err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
          sys.stdout.flush()
          self.endService("${component}.${service}")
          return ${rvars}

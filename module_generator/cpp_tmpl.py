@@ -311,19 +311,19 @@ void ${component}_i::${service}(${parameters})
 {
   beginService("${component}_i::${service}");
   Superv_Component_i * component = dynamic_cast<Superv_Component_i*>(this);
-  char       nom_instance[INSTANCE_LEN];
-  int info = cp_cd(component,nom_instance);
+  //char       nom_instance[INSTANCE_LEN];
+  //int info = cp_cd(component,nom_instance);
   try
     {
 //BODY
 ${body}
 //ENDBODY
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
     }
   catch ( const CalciumException & ex)
     {
       std::cerr << ex.what() << std::endl;
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(ex.what());
       es.type=SALOME::INTERNAL_ERROR;
@@ -331,7 +331,7 @@ ${body}
     }
   catch ( const SALOME_Exception & ex)
     {
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(ex.what());
       es.type=SALOME::INTERNAL_ERROR;
@@ -339,7 +339,7 @@ ${body}
     }
   catch ( const SALOME::SALOME_Exception & ex)
     {
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       throw;
     }
   catch (...)
@@ -348,7 +348,7 @@ ${body}
 #if ${exe}
       _exit(-1);
 #endif
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(" unknown exception");
       es.type=SALOME::INTERNAL_ERROR;
