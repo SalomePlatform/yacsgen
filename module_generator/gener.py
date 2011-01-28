@@ -601,7 +601,7 @@ echo "  Qt ..................... : $qt_ok"
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
-      salomeapp=pysalomeapp.substitute(module=self.module.name)
+      salomeapp=pysalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
       d["SalomeApp.xml"]=salomeapp
 
     return d
@@ -630,7 +630,7 @@ echo "  Qt ..................... : $qt_ok"
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
-      salomeapp=cppsalomeapp.substitute(module=self.module.name)
+      salomeapp=cppsalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
       d["SalomeApp.xml"]=salomeapp
 
     return d

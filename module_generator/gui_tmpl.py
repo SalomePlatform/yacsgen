@@ -22,7 +22,7 @@ pysalomeapp="""
     <parameter name="library" value="SalomePyQtGUI"/>
   </section>
   <section name="resources">
-    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${module}"/>
+    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
   </section>
 </document>
 """
@@ -58,7 +58,7 @@ cppsalomeapp="""
     <parameter name="icon" value="${module}.png"/>
   </section>
   <section name="resources">
-    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${module}"/>
+    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
   </section>
 </document>
 """
