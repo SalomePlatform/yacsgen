@@ -65,7 +65,7 @@ def corba_rtn_type(typ, module):
 ValidTypes = corbaTypes.keys()
 PyValidTypes = ValidTypes+["pyobj"]
 
-def add_type(typename, corbaType, corbaOutType, module, idltype, corbaRtnType):
+def add_type(typename, corbaType=None, corbaOutType=None, module="", idltype=None, corbaRtnType=None):
   """ add a data type YACS from other module than KERNEL to the list of available types
 
        :param typename: YACS data type name
@@ -81,11 +81,11 @@ def add_type(typename, corbaType, corbaOutType, module, idltype, corbaRtnType):
        :param corbaRtnType: representation for C++ CORBA return parameter
        :type corbaRtnType: string
   """
-  corbaTypes[typename] = corbaType
-  corbaOutTypes[typename] = corbaOutType
-  corbaRtnTypes[typename] = corbaRtnType
+  corbaTypes[typename] = corbaType or "const "+typename.replace("/","::")+"&"
+  corbaOutTypes[typename] = corbaOutType or typename.replace("/","::")+"_out"
+  corbaRtnTypes[typename] = corbaRtnType or typename.replace("/","::")+"*"
   moduleTypes[typename] = module
-  idlTypes[typename] = idltype
+  idlTypes[typename] = idltype or typename.replace("/","::")
   ValidTypes.append(typename)
   PyValidTypes.append(typename)
 
@@ -106,10 +106,24 @@ ValidStreamTypes = calciumTypes.keys()
 ValidParallelStreamTypes = DatastreamParallelTypes.keys()
 ValidDependencies = ("I", "T")
 
+#Add KERNEL YACS types : YACS name, c++ corba arg in, c++ corba arg out,defining module, repr corba idl, c++ corba return
 add_type("dataref", "const Engines::dataref&", "Engines::dataref_out", "", "dataref","Engines::dataref*")
+add_type("SALOME_TYPES/Parameter")
+add_type("SALOME_TYPES/ParameterList", "const SALOME_TYPES::ParameterList&", "SALOME_TYPES::ParameterList_out", "", "SALOME_TYPES::ParameterList","SALOME_TYPES::ParameterList*")
+add_type("SALOME_TYPES/Value", "const SALOME_TYPES::Value&", "SALOME_TYPES::Value_out", "", "SALOME_TYPES::Value","SALOME_TYPES::Value*")
+add_type("SALOME_TYPES/VarList", "const SALOME_TYPES::VarList&", "SALOME_TYPES::VarList_out", "", "SALOME_TYPES::VarList","SALOME_TYPES::VarList*")
+add_type("SALOME_TYPES/ValueList", "const SALOME_TYPES::ValueList&", "SALOME_TYPES::ValueList_out", "", "SALOME_TYPES::ValueList","SALOME_TYPES::ValueList*")
+add_type("SALOME_TYPES/ParametricInput", "const SALOME_TYPES::ParametricInput&", "SALOME_TYPES::ParametricInput_out", "", "SALOME_TYPES::ParametricInput","SALOME_TYPES::ParametricInput*")
+add_type("SALOME_TYPES/ParametricOutput", "const SALOME_TYPES::ParametricOutput&", "SALOME_TYPES::ParametricOutput_out", "", "SALOME_TYPES::ParametricOutput","SALOME_TYPES::ParametricOutput*")
+
+#Add GEOM YACS types
 add_type("GEOM_Object", "GEOM::GEOM_Object_ptr", "GEOM::GEOM_Object_out", "GEOM", "GEOM::GEOM_Object","GEOM::GEOM_Object_ptr")
+
+#Add SMESH YACS types
 add_type("SMESH_Mesh", "SMESH::SMESH_Mesh_ptr", "SMESH::SMESH_Mesh_out", "SMESH", "SMESH::SMESH_Mesh","SMESH::SMESH_Mesh_ptr")
 add_type("SMESH_Hypothesis", "SMESH::SMESH_Hypothesis_ptr", "SMESH::SMESH_Hypothesis_out", "SMESH", "SMESH::SMESH_Hypothesis", "SMESH::SMESH_Hypothesis_ptr")
+
+#Add MED YACS types
 add_type("SALOME_MED/MED", "SALOME_MED::MED_ptr", "SALOME_MED::MED_out", "MED", "SALOME_MED::MED", "SALOME_MED::MED_ptr")
 add_type("SALOME_MED/MESH", "SALOME_MED::MESH_ptr", "SALOME_MED::MESH_out", "MED", "SALOME_MED::MESH", "SALOME_MED::MESH_ptr")
 add_type("SALOME_MED/SUPPORT", "SALOME_MED::SUPPORT_ptr", "SALOME_MED::SUPPORT_out", "MED", "SALOME_MED::SUPPORT", "SALOME_MED::SUPPORT_ptr")

@@ -22,6 +22,20 @@
 #######################################################################
 salome_modules={}
 
+def add_module(module,idldefs="",makefiledefs="",configdefs=""):
+  """ add a module configuration for other module than KERNEL
+
+       :param module: module name (GEOM, SMESH, VISU, ...)
+       :type module: string
+       :param idldefs:  definition instructions to add to idl files when using this module
+       :type idldefs: string
+       :param makefiledefs:  definition instructions to add to Makefile files when using this module
+       :type makefiledefs: string
+       :param configdefs:  instructions to add to configure file when using this module
+       :type configdefs: string
+  """
+  salome_modules[module]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
+
 #module GEOM
 idldefs="""
 #include "GEOM_Gen.idl"
@@ -44,8 +58,7 @@ else
   AC_MSG_ERROR([Cannot find module GEOM. Have you set GEOM_ROOT_DIR ?],1)
 fi
 """
-
-salome_modules["GEOM"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
+add_module("GEOM",idldefs,makefiledefs,configdefs)
 
 #module MED
 idldefs="""

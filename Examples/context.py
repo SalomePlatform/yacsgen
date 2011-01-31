@@ -23,12 +23,14 @@ sys.path.insert(0,"../..")
 KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","/local/cchris/Salome/Install/KERNEL_V6")
 GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","/local/cchris/Salome/Install/GUI_V6")
 YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR","/local/cchris/Salome/Install/YACS_V6")
+GEOM_ROOT_DIR=os.getenv("GEOM_ROOT_DIR","/local/cchris/Salome/Install/GEOM_V6")
 
 context={'update':1,
          "makeflags":"",
          "prerequisites":"/local/cchris/.packages.d/envSalome6main",
          "kernel":KERNEL_ROOT_DIR,
          "gui":GUI_ROOT_DIR,
+         "geom":GEOM_ROOT_DIR,
         }
 
 

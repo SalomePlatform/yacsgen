@@ -1,0 +1,364 @@
+<?xml version='1.0' encoding='iso-8859-1' ?>
+<proc name="proc">
+   <property name="DefaultStudyID" value="1"/>
+   <objref name="CALCIUM_double" id="IDL:Ports/Calcium_Ports/Calcium_Double_Port:1.0"/>
+   <type name="string" kind="string"/>
+   <struct name="Engines/dataref">
+      <member name="ref" type="string"/>
+   </struct>
+   <struct name="SALOME_TYPES/Parameter">
+      <member name="name" type="string"/>
+      <member name="value" type="string"/>
+   </struct>
+   <sequence name="SALOME_TYPES/ParameterList" content="SALOME_TYPES/Parameter"/>
+   <sequence name="SALOME_TYPES/VarList" content="string"/>
+   <type name="double" kind="double"/>
+   <sequence name="Value1D" content="double"/>
+   <sequence name="SALOME_TYPES/Value" content="Value1D"/>
+   <sequence name="SALOME_TYPES/ValueList" content="SALOME_TYPES/Value"/>
+   <struct name="SALOME_TYPES/ParametricInput">
+      <member name="inputVarList" type="SALOME_TYPES/VarList"/>
+      <member name="outputVarList" type="SALOME_TYPES/VarList"/>
+      <member name="inputValues" type="SALOME_TYPES/ValueList"/>
+      <member name="specificParameters" type="SALOME_TYPES/ParameterList"/>
+   </struct>
+   <type name="int" kind="int"/>
+   <struct name="SALOME_TYPES/ParametricOutput">
+      <member name="outputValues" type="SALOME_TYPES/ValueList"/>
+      <member name="specificOutputInfos" type="SALOME_TYPES/ParameterList"/>
+      <member name="returnCode" type="int"/>
+      <member name="errorMessage" type="string"/>
+   </struct>
+   <type name="bool" kind="bool"/>
+   <sequence name="boolvec" content="bool"/>
+   <sequence name="dblevec" content="double"/>
+   <objref name="file" id="file"/>
+   <sequence name="intvec" content="int"/>
+   <objref name="pyobj" id="python:obj:1.0"/>
+   <sequence name="stringvec" content="string"/>
+   <container name="A">
+   </container>
+   <container name="B">
+   </container>
+   <container name="DefaultContainer">
+      <property name="container_name" value="FactoryServer"/>
+      <property name="name" value="localhost"/>
+   </container>
+   <service name="s10">
+      <component>compo1</component>
+      <load container="A"/>
+      <method>s1</method>
+      <inport name="a" type="SALOME_TYPES/Parameter"/>
+      <inport name="b" type="SALOME_TYPES/ParameterList"/>
+      <inport name="c" type="SALOME_TYPES/Value"/>
+      <inport name="d" type="SALOME_TYPES/VarList"/>
+      <inport name="e" type="SALOME_TYPES/ValueList"/>
+      <inport name="f" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="g" type="SALOME_TYPES/ParametricOutput"/>
+      <outport name="aa" type="SALOME_TYPES/Parameter"/>
+      <outport name="ab" type="SALOME_TYPES/ParameterList"/>
+      <outport name="ac" type="SALOME_TYPES/Value"/>
+      <outport name="ad" type="SALOME_TYPES/VarList"/>
+      <outport name="ae" type="SALOME_TYPES/ValueList"/>
+      <outport name="af" type="SALOME_TYPES/ParametricInput"/>
+      <outport name="ag" type="SALOME_TYPES/ParametricOutput"/>
+   </service>
+   <inline name="PyScript1">
+      <script><code><![CDATA[
+import SALOME_TYPES
+o2={"name":"x","value":"36."}
+#o2=SALOME_TYPES.Parameter("x","36.")
+#o3=[SALOME_TYPES.Parameter("x","36.")]
+o3=[{"name":"x","value":"36."}]
+o4=[[1,2,3]]
+o5=["toto","titi"]
+o6=[[[1,2,3]]]
+o7={"inputVarList":o5,"outputVarList":o5,
+"inputValues":o6,"specificParameters":o3}
+o8={"outputValues":o6,
+    "specificOutputInfos":o3,
+    "returnCode":1,
+    "errorMessage":"error"}
+]]></code></script>
+      <outport name="o2" type="SALOME_TYPES/Parameter"/>
+      <outport name="o3" type="SALOME_TYPES/ParameterList"/>
+      <outport name="o4" type="SALOME_TYPES/Value"/>
+      <outport name="o5" type="SALOME_TYPES/VarList"/>
+      <outport name="o6" type="SALOME_TYPES/ValueList"/>
+      <outport name="o7" type="SALOME_TYPES/ParametricInput"/>
+      <outport name="o8" type="SALOME_TYPES/ParametricOutput"/>
+   </inline>
+   <inline name="PyScript0">
+      <script><code><![CDATA[print i1
+print i2
+print i3
+print i4
+print i5
+print i6
+print i7
+]]></code></script>
+      <inport name="i1" type="SALOME_TYPES/Parameter"/>
+      <inport name="i2" type="SALOME_TYPES/ParameterList"/>
+      <inport name="i3" type="SALOME_TYPES/Value"/>
+      <inport name="i5" type="SALOME_TYPES/VarList"/>
+      <inport name="i4" type="SALOME_TYPES/ValueList"/>
+      <inport name="i6" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="i7" type="SALOME_TYPES/ParametricOutput"/>
+   </inline>
+   <service name="s11">
+      <component>compo2</component>
+      <load container="B"/>
+      <method>s1</method>
+      <inport name="a" type="SALOME_TYPES/Parameter"/>
+      <inport name="b" type="SALOME_TYPES/ParameterList"/>
+      <inport name="c" type="SALOME_TYPES/Value"/>
+      <inport name="d" type="SALOME_TYPES/VarList"/>
+      <inport name="e" type="SALOME_TYPES/ValueList"/>
+      <inport name="f" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="g" type="SALOME_TYPES/ParametricOutput"/>
+      <outport name="aa" type="SALOME_TYPES/Parameter"/>
+      <outport name="ab" type="SALOME_TYPES/ParameterList"/>
+      <outport name="ac" type="SALOME_TYPES/Value"/>
+      <outport name="ad" type="SALOME_TYPES/VarList"/>
+      <outport name="ae" type="SALOME_TYPES/ValueList"/>
+      <outport name="af" type="SALOME_TYPES/ParametricInput"/>
+      <outport name="ag" type="SALOME_TYPES/ParametricOutput"/>
+   </service>
+   <service name="s12">
+      <component>compo1</component>
+      <load container="A"/>
+      <method>s1</method>
+      <inport name="a" type="SALOME_TYPES/Parameter"/>
+      <inport name="b" type="SALOME_TYPES/ParameterList"/>
+      <inport name="c" type="SALOME_TYPES/Value"/>
+      <inport name="d" type="SALOME_TYPES/VarList"/>
+      <inport name="e" type="SALOME_TYPES/ValueList"/>
+      <inport name="f" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="g" type="SALOME_TYPES/ParametricOutput"/>
+      <outport name="aa" type="SALOME_TYPES/Parameter"/>
+      <outport name="ab" type="SALOME_TYPES/ParameterList"/>
+      <outport name="ac" type="SALOME_TYPES/Value"/>
+      <outport name="ad" type="SALOME_TYPES/VarList"/>
+      <outport name="ae" type="SALOME_TYPES/ValueList"/>
+      <outport name="af" type="SALOME_TYPES/ParametricInput"/>
+      <outport name="ag" type="SALOME_TYPES/ParametricOutput"/>
+   </service>
+   <inline name="PyScript00">
+      <script><code><![CDATA[print i1
+print i2
+print i3
+print i4
+print i5
+print i6
+print i7
+]]></code></script>
+      <inport name="i1" type="SALOME_TYPES/Parameter"/>
+      <inport name="i2" type="SALOME_TYPES/ParameterList"/>
+      <inport name="i3" type="SALOME_TYPES/Value"/>
+      <inport name="i5" type="SALOME_TYPES/VarList"/>
+      <inport name="i4" type="SALOME_TYPES/ValueList"/>
+      <inport name="i6" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="i7" type="SALOME_TYPES/ParametricOutput"/>
+   </inline>
+   <service name="s13">
+      <component>compo2</component>
+      <load container="A"/>
+      <method>s1</method>
+      <inport name="a" type="SALOME_TYPES/Parameter"/>
+      <inport name="b" type="SALOME_TYPES/ParameterList"/>
+      <inport name="c" type="SALOME_TYPES/Value"/>
+      <inport name="d" type="SALOME_TYPES/VarList"/>
+      <inport name="e" type="SALOME_TYPES/ValueList"/>
+      <inport name="f" type="SALOME_TYPES/ParametricInput"/>
+      <inport name="g" type="SALOME_TYPES/ParametricOutput"/>
+      <outport name="aa" type="SALOME_TYPES/Parameter"/>
+      <outport name="ab" type="SALOME_TYPES/ParameterList"/>
+      <outport name="ac" type="SALOME_TYPES/Value"/>
+      <outport name="ad" type="SALOME_TYPES/VarList"/>
+      <outport name="ae" type="SALOME_TYPES/ValueList"/>
+      <outport name="af" type="SALOME_TYPES/ParametricInput"/>
+      <outport name="ag" type="SALOME_TYPES/ParametricOutput"/>
+   </service>
+   <control> <fromnode>s10</fromnode> <tonode>s13</tonode> </control>
+   <control> <fromnode>s10</fromnode> <tonode>PyScript0</tonode> </control>
+   <control> <fromnode>PyScript1</fromnode> <tonode>s10</tonode> </control>
+   <control> <fromnode>PyScript1</fromnode> <tonode>s11</tonode> </control>
+   <control> <fromnode>s11</fromnode> <tonode>PyScript00</tonode> </control>
+   <control> <fromnode>s11</fromnode> <tonode>s12</tonode> </control>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>aa</fromport>
+      <tonode>s13</tonode> <toport>a</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>aa</fromport>
+      <tonode>PyScript0</tonode> <toport>i1</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ab</fromport>
+      <tonode>PyScript0</tonode> <toport>i2</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ab</fromport>
+      <tonode>s13</tonode> <toport>b</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ac</fromport>
+      <tonode>s13</tonode> <toport>c</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ac</fromport>
+      <tonode>PyScript0</tonode> <toport>i3</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ad</fromport>
+      <tonode>s13</tonode> <toport>d</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ad</fromport>
+      <tonode>PyScript0</tonode> <toport>i5</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ae</fromport>
+      <tonode>PyScript0</tonode> <toport>i4</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ae</fromport>
+      <tonode>s13</tonode> <toport>e</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>af</fromport>
+      <tonode>s13</tonode> <toport>f</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>af</fromport>
+      <tonode>PyScript0</tonode> <toport>i6</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ag</fromport>
+      <tonode>s13</tonode> <toport>g</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s10</fromnode> <fromport>ag</fromport>
+      <tonode>PyScript0</tonode> <toport>i7</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o2</fromport>
+      <tonode>s11</tonode> <toport>a</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o2</fromport>
+      <tonode>s10</tonode> <toport>a</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o3</fromport>
+      <tonode>s11</tonode> <toport>b</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o3</fromport>
+      <tonode>s10</tonode> <toport>b</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o4</fromport>
+      <tonode>s11</tonode> <toport>c</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o4</fromport>
+      <tonode>s10</tonode> <toport>c</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o5</fromport>
+      <tonode>s10</tonode> <toport>d</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o5</fromport>
+      <tonode>s11</tonode> <toport>d</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o6</fromport>
+      <tonode>s11</tonode> <toport>e</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o6</fromport>
+      <tonode>s10</tonode> <toport>e</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o7</fromport>
+      <tonode>s10</tonode> <toport>f</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o7</fromport>
+      <tonode>s11</tonode> <toport>f</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o8</fromport>
+      <tonode>s11</tonode> <toport>g</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>PyScript1</fromnode> <fromport>o8</fromport>
+      <tonode>s10</tonode> <toport>g</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>aa</fromport>
+      <tonode>s12</tonode> <toport>a</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>aa</fromport>
+      <tonode>PyScript00</tonode> <toport>i1</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ab</fromport>
+      <tonode>PyScript00</tonode> <toport>i2</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ab</fromport>
+      <tonode>s12</tonode> <toport>b</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ac</fromport>
+      <tonode>s12</tonode> <toport>c</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ac</fromport>
+      <tonode>PyScript00</tonode> <toport>i3</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ad</fromport>
+      <tonode>s12</tonode> <toport>d</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ad</fromport>
+      <tonode>PyScript00</tonode> <toport>i5</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ae</fromport>
+      <tonode>s12</tonode> <toport>e</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ae</fromport>
+      <tonode>PyScript00</tonode> <toport>i4</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>af</fromport>
+      <tonode>s12</tonode> <toport>f</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>af</fromport>
+      <tonode>PyScript00</tonode> <toport>i6</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ag</fromport>
+      <tonode>s12</tonode> <toport>g</toport>
+   </datalink>
+   <datalink control="false">
+      <fromnode>s11</fromnode> <fromport>ag</fromport>
+      <tonode>PyScript00</tonode> <toport>i7</toport>
+   </datalink>
+   <presentation name="s13" x="389.75" y="517.25" width="158" height="225" expanded="1" expx="389.75" expy="517.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="PyScript1" x="1.75" y="396.25" width="158" height="225" expanded="1" expx="1.75" expy="396.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="PyScript0" x="389.75" y="759.25" width="158" height="225" expanded="1" expx="389.75" expy="759.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="s10" x="195.75" y="517.25" width="158" height="225" expanded="1" expx="195.75" expy="517.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="s11" x="195.75" y="275.25" width="158" height="225" expanded="1" expx="195.75" expy="275.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="PyScript00" x="389.75" y="33.25" width="158" height="225" expanded="1" expx="389.75" expy="33.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="s12" x="389.75" y="275.25" width="158" height="225" expanded="1" expx="389.75" expy="275.25" expWidth="158" expHeight="225" shownState="0"/>
+   <presentation name="__ROOT__" x="0" y="0" width="551.75" height="988.25" expanded="1" expx="0" expy="0" expWidth="551.75" expHeight="988.25" shownState="0"/>
+</proc>

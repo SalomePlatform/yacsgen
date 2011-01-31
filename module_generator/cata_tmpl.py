@@ -33,6 +33,7 @@ idl="""
 #include "SALOME_PACOExtension.idl"
 #include "SALOME_Component.idl"
 #include "SALOME_Comm.idl"
+#include "SALOME_Parametric.idl"
 
 ${idldefs}
 
