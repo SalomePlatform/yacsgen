@@ -886,11 +886,17 @@ echo "  Qt ..................... : $qt_ok"
             for cata in lcata:
               catadir, catafile = os.path.split(cata)
               name = catafile[:-11]
-              modules_dict[name] = '  <module name="%s" path="%s"/>' % (name, path)
+              if name == "GUI":
+                modules_dict[name] = '  <module name="%s" gui="no" path="%s"/>' % (name, path)
+              else:
+                modules_dict[name] = '  <module name="%s" path="%s"/>' % (name, path)
           else:
-            modules_dict[module] = '  <module name="%s" path="%s"/>' % (module, path)
+            if module == "GUI":
+              modules_dict[module] = '  <module name="%s" gui="no" path="%s"/>' % (module, path)
+            else:
+              modules_dict[module] = '  <module name="%s" path="%s"/>' % (module, path)
 
-    modules_dict["KERNEL"] = '  <module name="KERNEL" path="%s"/>' % self.kernel
+    modules_dict["KERNEL"] = '  <module name="KERNEL" gui="no" path="%s"/>' % self.kernel
 
     #keep only the modules which names are in restrict if given
     modules = []
@@ -904,10 +910,17 @@ echo "  Qt ..................... : $qt_ok"
     #add the alternate modules if given
     if altmodules:
       for module, path in altmodules.items():
-        modules.append('  <module name="%s" path="%s"/>' % (module, path))
+        if module == "GUI":
+          modules.append('  <module name="%s" gui="no" path="%s"/>' % (module, path))
+        else:
+          modules.append('  <module name="%s" path="%s"/>' % (module, path))
 
     #add the generated module
-    modules.append('  <module name="%s" path="%s"/>' % (self.module.name, os.path.abspath(self.module.prefix)))
+    if self.gui:
+      modules.append('  <module name="%s" path="%s"/>' % (self.module.name, os.path.abspath(self.module.prefix)))
+    else:
+      modules.append('  <module name="%s" gui="no" path="%s"/>' % (self.module.name, os.path.abspath(self.module.prefix)))
+
 
     #try to find a prerequisites file
     prerequisites = self.context.get("prerequisites")
