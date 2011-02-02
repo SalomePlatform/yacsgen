@@ -113,6 +113,13 @@ ae= new SALOME_TYPES::ValueList;
 af= new SALOME_TYPES::ParametricInput;
 ag= new SALOME_TYPES::ParametricOutput;
 """
+
+s2body="""
+std::cerr << "service s2 C++ component" << std::endl;
+aa=GEOM::GEOM_Object::_duplicate(a);
+a->Register();
+"""
+
 c1=CPPComponent("compo1",services=[
           Service("s1",inport=[("a","SALOME_TYPES/Parameter"),("b","SALOME_TYPES/ParameterList"),("c","SALOME_TYPES/Value"),
                                ("d","SALOME_TYPES/VarList"),("e","SALOME_TYPES/ValueList"),("f","SALOME_TYPES/ParametricInput"),
@@ -126,8 +133,8 @@ c1=CPPComponent("compo1",services=[
                                ],
                        defs=defs,body=body,
                  ),
-          Service("s2",inport=[("a","GEOM_Object"),],outport=[("aa","GEOM_Object"),],body="aa=GEOM::GEOM_Object::_duplicate(a);",),
-          ],
+          Service("s2",inport=[("a","GEOM_Object"),],outport=[("aa","GEOM_Object"),],body=s2body,),
+                                  ],
          )
 
 pydefs="""import SALOME_TYPES"""
@@ -143,6 +150,13 @@ af=SALOME_TYPES.ParametricInput(inputVarList=ad,outputVarList=ad, inputValues=[[
 ag=SALOME_TYPES.ParametricOutput(outputValues=[[[1,2,3]]], specificOutputInfos=[], returnCode=1, errorMessage="error")
 print aa,ab,ac,ad,ae,af,ag
 """
+
+s2pybody="""
+print "service s2 python component"
+aa=a
+a.Register()
+"""
+
 c2=PYComponent("compo2",services=[
           Service("s1",inport=[("a","SALOME_TYPES/Parameter"),("b","SALOME_TYPES/ParameterList"),("c","SALOME_TYPES/Value"),
                                ("d","SALOME_TYPES/VarList"),("e","SALOME_TYPES/ValueList"),("f","SALOME_TYPES/ParametricInput"),
@@ -156,6 +170,7 @@ c2=PYComponent("compo2",services=[
                                ],
                        body=pybody,defs=pydefs,
                  ),
+          Service("s2",inport=[("a","GEOM_Object"),],outport=[("aa","GEOM_Object"),],body=s2pybody,),
                                  ],
               )
 
