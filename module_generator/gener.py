@@ -48,7 +48,7 @@ from yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in
 from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
 from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
 from gui_tmpl import pyguimakefile, pysalomeapp, cppguimakefile, cppsalomeapp
-from doc_tmpl import docmakefile, docconf
+from doc_tmpl import docmakefile, docconf, docsalomeapp
 
 def makedirs(namedir):
   """Create a new directory named namedir. If a directory already exists copy it to namedir.bak"""
@@ -117,8 +117,6 @@ class Module(object):
       compo.validate()
     if self.gui and self.layout != "multidir":
       raise Invalid("A module with GUI can not be generated if layout is not multidir")
-    if self.doc and not self.gui:
-      warnings.warn("The documentation will be generated but it will not appear as an help doc, if your module has no GUI.")
 
 class Component(object):
   def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
@@ -555,13 +553,26 @@ echo "  Qt ..................... : $qt_ok"
       for doc in glob.glob(docs):
         name = os.path.basename(doc)
         shutil.copyfile(doc, os.path.join(rep, name))
+
     d={}
+
+    others=""
+    if not self.module.gui:
+       #without gui but with doc: create a small SalomeApp.xml in doc directory
+       if not os.path.exists(os.path.join(namedir, "doc", "SalomeApp.xml")):
+         #create a minimal SalomeApp.xml
+         salomeapp=docsalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
+         d["SalomeApp.xml"]=salomeapp
+       others="SalomeApp.xml"
+
     if not os.path.exists(os.path.join(namedir, "doc", "Makefile.am")):
       #create a minimal makefile.am
-      d["Makefile.am"]=docmakefile
+      d["Makefile.am"]=docmakefile.substitute(others=others)
+
     if not os.path.exists(os.path.join(namedir, "doc", "conf.py")):
       #create a minimal conf.py
       d["conf.py"]=docconf.substitute(module=self.module.name)
+
     self.makeFiles(d,os.path.join(namedir,"doc"))
 
   def makeGui(self,namedir):
@@ -583,6 +594,7 @@ echo "  Qt ..................... : $qt_ok"
       return self.makePyGUI(namedir)
     if iscpp:
       return self.makeCPPGUI(namedir)
+    raise Invalid("Module GUI must be in python or C++ but it is none of them")
 
   def makePyGUI(self,namedir):
     d={}

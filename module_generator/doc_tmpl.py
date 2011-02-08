@@ -5,38 +5,40 @@ except:
   from compat import Template,set
 
 docmakefile="""
-include $(top_srcdir)/adm_local/make_common_starter.am
+include $$(top_srcdir)/adm_local/make_common_starter.am
 
 salomedoc_DATA=html/index.html
+salomeres_DATA = ${others}
 
 html/index.html:
 	make htm
 
 SPHINXOPTS      =
-SOURCEDIR       = $(srcdir)
+SOURCEDIR       = $$(srcdir)
 SPHINXBUILD     = sphinx-build
 PAPEROPT_a4     = -D latex_paper_size=a4
-ALLSPHINXOPTS   = -d doctrees $(PAPEROPT_a4) $(SPHINXOPTS) $(SOURCEDIR)
+ALLSPHINXOPTS   = -d doctrees $$(PAPEROPT_a4) $$(SPHINXOPTS) $$(SOURCEDIR)
 
 htm:
 	mkdir -p html doctrees
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) html
+	$$(SPHINXBUILD) -b html $$(ALLSPHINXOPTS) html
 	@echo
 	@echo "Build finished. The HTML pages are in html."
 
 install-data-local:
-	$(INSTALL) -d $(DESTDIR)$(salomedocdir)
-	cp -rf html/* $(DESTDIR)$(salomedocdir) ;
+	$$(INSTALL) -d $$(DESTDIR)$$(salomedocdir)
+	cp -rf html/* $$(DESTDIR)$$(salomedocdir) ;
 
 uninstall-local:
-	chmod -R +w $(DESTDIR)$(salomedocdir)
-	rm -rf $(DESTDIR)$(salomedocdir)/*
+	chmod -R +w $$(DESTDIR)$$(salomedocdir)
+	rm -rf $$(DESTDIR)$$(salomedocdir)/*
 
 clean-local:
 	-rm -rf html latex doctrees
 	if test -d "html"; then rm -rf html ; fi
 
 """
+docmakefile=Template(docmakefile)
 
 docconf="""# -*- coding: utf-8 -*-
 #
@@ -257,3 +259,16 @@ man_pages = [
 """
 
 docconf=Template(docconf)
+
+docsalomeapp="""
+<document>
+  <section name="${module}">
+    <parameter name="name" value="${module}"/>
+  </section>
+  <section name="resources">
+    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
+  </section>
+</document>
+"""
+docsalomeapp=Template(docsalomeapp)
+
