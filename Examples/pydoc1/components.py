@@ -17,25 +17,39 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import os,sys
-sys.path.insert(0,"../..")
+import os
 
-SALOME_ROOT=os.path.expanduser("~/Salome/Install")
-SALOME_PREREQ=os.path.expanduser("~/.packages.d/envSalome6main")
+#import context from ..
+execfile("../context.py")
 
-KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR",os.path.join(SALOME_ROOT,"KERNEL_V6"))
-GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR",os.path.join(SALOME_ROOT,"GUI_V6"))
-YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR",os.path.join(SALOME_ROOT,"YACS_V6"))
-GEOM_ROOT_DIR=os.getenv("GEOM_ROOT_DIR",os.path.join(SALOME_ROOT,"GEOM_V6"))
+from module_generator import *
 
-context={'update':1,
-         "makeflags":"",
-         "prerequisites":SALOME_PREREQ,
-         "kernel":KERNEL_ROOT_DIR,
-         "gui":GUI_ROOT_DIR,
-         "geom":GEOM_ROOT_DIR,
-        }
+defs="""
+"""
+
+body="""
+      c=a+b
+      d=a-b
+"""
+
+c1=PYComponent("pycompos",services=[
+          Service("s1",inport=[("a","double"),("b","double")],
+                       outport=[("c","double"),("d","double")],
+                       defs=defs,body=body,
+                 ),
+         ],
+         )
+
+modul=Module("pycompos",components=[c1],prefix="./install",
+              doc=["*.rst","*.png",],
+            )
+
+g=Generator(modul,context)
+g.generate()
+g.bootstrap()
+g.configure()
+g.make()
+g.install()
+g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR})
 
 
-aster_home=os.path.expanduser("~/Aster/V10.1/aster")
-aster_version="STA10.1"

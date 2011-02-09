@@ -17,11 +17,9 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-KERNEL_ROOT_DIR=/local/cchris/Salome/Install/KERNEL_V6
+KERNEL_ROOT_DIR=$(HOME)/Salome/Install/KERNEL_V6
 
-ASTER_ROOT=/local/cchris/Aster/V10.1/aster
+ASTER_ROOT=$(HOME)/Aster/V10.1/aster
 ASTER_VERSION=STA10.1
-#ASTER_ROOT=/local/cchris/Aster/V10/Install
-#ASTER_VERSION=STA10.0
 
 FC=gfortran
