@@ -68,7 +68,7 @@ char* ${component}_i::ComponentDataType()
       return CORBA::string_dup("${component}");
 }
 
-Engines::Component_ptr ${component}_i::GetComponentInstance()
+Engines::EngineComponent_ptr ${component}_i::GetComponentInstance()
 {
       return ${component}_Gen::_this();
 }
@@ -125,7 +125,7 @@ public:
 ${servicesdef}
 
 // (re)defined methods of Driver
-    virtual Engines::Component_ptr GetComponentInstance();
+    virtual Engines::EngineComponent_ptr GetComponentInstance();
     char* ComponentDataType();
 
 private:
@@ -178,7 +178,7 @@ lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${
 
 #, SALOME_MED::MED_Gen_Driver, SALOME::MultiCommClass
 interfaceidlhxx="""
-  interface ${component}_Gen:Engines::Component,SALOME::MultiCommClass ${inherited}
+  interface ${component}_Gen:Engines::EngineComponent,SALOME::MultiCommClass ${inherited}
   {
 ${services}
   };

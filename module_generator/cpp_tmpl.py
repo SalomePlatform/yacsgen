@@ -236,7 +236,7 @@ extern "C"
         ${component}_i * myEngine = new ${component}_i(orb, poa, container, instanceName.c_str(), "${component}");
         pman->activate();
         obj=myEngine->POA_${module}_ORB::${component}::_this();
-        Engines::Component_var component = Engines::Component::_narrow(obj);
+        Engines::EngineComponent_var component = Engines::EngineComponent::_narrow(obj);
         string component_registerName = containerName + "/" + instanceName;
         salomens->Register(component,component_registerName.c_str());
         orb->run();
@@ -415,4 +415,3 @@ lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
 """
 compoEXEMakefile=Template(compoEXEMakefile)
-

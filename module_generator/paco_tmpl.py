@@ -162,12 +162,12 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
   InterfaceParallel_impl(orb,ior, rank),
   Engines::Superv_Component_serv(orb, ior, rank),
   Engines::DSC_serv(orb, ior, rank), 
-  Engines::Component_serv(orb,ior, rank), 
+  Engines::EngineComponent_serv(orb,ior, rank), 
   Engines::Parallel_Component_serv(orb,ior, rank), 
   Engines::Parallel_DSC_base_serv(orb, ior, rank),
   Engines::Superv_Component_base_serv(orb, ior, rank),
   Engines::DSC_base_serv(orb, ior, rank), 
-  Engines::Component_base_serv(orb,ior, rank), 
+  Engines::EngineComponent_base_serv(orb,ior, rank), 
   Engines::Parallel_Component_base_serv(orb,ior, rank) 
 
 {

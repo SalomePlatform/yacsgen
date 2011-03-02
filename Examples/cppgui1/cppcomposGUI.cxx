@@ -38,7 +38,7 @@ void cppcomposGUI::initialize( CAM_Application* app )
 
   SalomeApp_Module::initialize( app );
 
-  Engines::Component_var comp = dynamic_cast<SalomeApp_Application*>(app)->lcc()->FindOrLoad_Component( "FactoryServer","cppcompos" );
+  Engines::EngineComponent_var comp = dynamic_cast<SalomeApp_Application*>(app)->lcc()->FindOrLoad_Component( "FactoryServer","cppcompos" );
   engine = cppcompos_ORB::cppcompos::_narrow(comp);
 
   QWidget* aParent = application()->desktop();
