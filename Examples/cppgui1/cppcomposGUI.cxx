@@ -95,7 +95,7 @@ bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
       SALOMEDS::GenericAttribute_var anAttr = aStudyBuilder->FindOrCreateAttribute(aFather, "AttributeName");
       SALOMEDS::AttributeName_var aName = SALOMEDS::AttributeName::_narrow(anAttr);
       aName->SetValue("cppcompos");
-      aName->Destroy();
+      aName->UnRegister();
       aStudyBuilder->DefineComponentInstance(aFather, engine);
     }
   CORBA::Boolean valid;
