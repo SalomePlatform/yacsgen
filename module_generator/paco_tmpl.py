@@ -267,6 +267,17 @@ ${body}
       es.type=SALOME::INTERNAL_ERROR;
       throw SALOME::SALOME_Exception(es);
     }
+  catch ( const SALOME::SALOME_Exception & ex)
+    {
+      throw;
+    }
+  catch ( const std::exception& ex)
+    {
+      SALOME::ExceptionStruct es;
+      es.text=CORBA::string_dup(ex.what());
+      es.type=SALOME::INTERNAL_ERROR;
+      throw SALOME::SALOME_Exception(es);
+    }
   catch (...)
     {
       std::cerr << "unknown exception" << std::endl;

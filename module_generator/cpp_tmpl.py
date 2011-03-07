@@ -342,6 +342,14 @@ ${body}
       //cp_fin(component,CP_ARRET);
       throw;
     }
+  catch ( const std::exception& ex)
+    {
+      //std::cerr << typeid(ex).name() << std::endl;
+      SALOME::ExceptionStruct es;
+      es.text=CORBA::string_dup(ex.what());
+      es.type=SALOME::INTERNAL_ERROR;
+      throw SALOME::SALOME_Exception(es);
+    }
   catch (...)
     {
       std::cerr << "unknown exception" << std::endl;
