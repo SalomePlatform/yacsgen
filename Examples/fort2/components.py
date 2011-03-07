@@ -29,13 +29,13 @@ c1=F77Component("fcode1", services=[Service("serv1",inport=[("a","double"),("b",
                          outport=[("c","double")],
                          outstream=[("PARAM","CALCIUM_double","I")],), ],
                kind="exe",
-               exe_path=os.path.join(cwd,"prog1"),
+               exe_path=os.path.join(cwd,"prog1.sh"),
                )
 c2=F77Component("fcode2", services=[Service("serv1",inport=[("a","double"),("b","double")],
                          outport=[("c","double")],
                          instream=[("PARAM","CALCIUM_double","I")],), ],
                kind="exe",
-               exe_path=os.path.join(cwd,"prog2"),
+               exe_path=os.path.join(cwd,"prog2.sh"),
                )
 
 g=Generator(Module("fcompos",components=[c1,c2],prefix="./install"),context)
