@@ -11,7 +11,7 @@
 import SALOME
 import salome
 salome.salome_init()
-print "Test du composant CALCUL généré généré par hxx2salome"
+print "Test du composant CALCUL genere par hxx2salome"
 import hxxcompos_ORB
 myCalc = salome.lcc.FindOrLoadComponent("FactoryServer", "CALCUL")
 print "10+15 = ",myCalc.add(10,15)

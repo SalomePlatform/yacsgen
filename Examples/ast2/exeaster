@@ -18,12 +18,14 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
+ROOT=/local/cchris/Salome/YACSGEN/V6/YACSGEN/Examples/ast2
+
 cat > temp.comm << END
 END
 
 cat > temp.export << END
 P actions make_etude
-P version STA10.1
+P version STA10.3
 P nomjob salome
 P ncpus 1
 A memjeveux 4.000000
@@ -38,14 +40,16 @@ P mode batch
 
 P soumbtc oui
 P consbtc oui
-F conf /local/cchris/Salome/YACSGEN/V5/YACSGEN/Examples/ast2/install/share/salome/resources/astmod/caster_config.txt D 0
+F conf $ROOT/install/share/salome/resources/astmod/caster_config.txt D 0
 F comm $PWD/temp.comm D 1
-F exec /local/cchris/Salome/YACSGEN/V5/YACSGEN/Examples/ast2/myaster/aster.exe D 0
-R cmde /local/cchris/Salome/YACSGEN/V5/YACSGEN/Examples/ast2/myaster/commande D 0
+F exec $ROOT/myaster/aster.exe D 0
+R cmde $ROOT/myaster/commande D 0
 F mess $PWD/messages R 6
 F resu $PWD/resu R 8
 F erre $PWD/erre R 9
 END
 
-/local/cchris/Aster/V10.1/aster/ASTK/ASTK_SERV/bin/as_run temp.export
+/local/cchris/Aster/V10.3/aster/bin/as_run temp.export
 
+sleep 5
+echo "Fin du script"

@@ -42,4 +42,4 @@ R capy ${PWD}/catalo D 0
 R cmde ${PWD}/commande DR 0
 END
 
-$1/ASTK/ASTK_SERV/bin/as_run  make-exe
+$1/bin/as_run  make-exe

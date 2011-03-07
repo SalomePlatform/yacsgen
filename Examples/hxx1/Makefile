@@ -17,25 +17,5 @@
 #  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-import os,sys
-sys.path.insert(0,"../..")
-
-SALOME_ROOT=os.path.expanduser("~/Salome/Install")
-SALOME_PREREQ=os.path.expanduser("~/.packages.d/envSalome6main")
-
-KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR",os.path.join(SALOME_ROOT,"KERNEL_V6"))
-GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR",os.path.join(SALOME_ROOT,"GUI_V6"))
-YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR",os.path.join(SALOME_ROOT,"YACS_V6"))
-GEOM_ROOT_DIR=os.getenv("GEOM_ROOT_DIR",os.path.join(SALOME_ROOT,"GEOM_V6"))
-
-context={'update':1,
-         "makeflags":"",
-         "prerequisites":SALOME_PREREQ,
-         "kernel":KERNEL_ROOT_DIR,
-         "gui":GUI_ROOT_DIR,
-         "geom":GEOM_ROOT_DIR,
-        }
-
-
-aster_home=os.path.expanduser("~/Aster/V10.3/aster")
-aster_version="STA10.3"
+clean:
+	rm -rf *.o *.so hxxcompos_SRC hxxcompos_SRC.bak appli appli.bak install install.bak traceExec_proc COMPONENTCPP_INSTALL COMPONENTCPP_SRC COMPONENTCPP_BUILD parse_result parse_type_result
