@@ -28,7 +28,8 @@ cxxCompo="""
 #include <unistd.h>
 
 #include <Calcium.hxx>
-#include <calcium.h>
+#include <CalciumException.hxx>
+${CalciumInterface}
 #include <signal.h>
 #include <SALOME_NamingService.hxx>
 #include <Utils_SALOME_Exception.hxx>
@@ -124,6 +125,8 @@ static void unexpectedHandler(void)
 //DEFS
 ${servicesdef}
 //ENDDEF
+
+#include <calcium.h>
 
 extern "C" void cp_exit(int err);
 

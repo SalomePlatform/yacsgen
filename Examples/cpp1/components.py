@@ -49,6 +49,7 @@ c1=CPPComponent("compo1",services=[
                  ),
           ],
          includes="-I/usr/include",
+         calciumextendedinterface=1,
          )
 
 

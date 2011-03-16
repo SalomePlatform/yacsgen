@@ -71,7 +71,6 @@ AC_PROG_LIBTOOL
 AC_PROG_CC
 AC_PROG_CXX
 CHECK_F77
-CHECK_BOOST
 CHECK_OMNIORB
 CHECK_PACO
 CHECK_MPI
@@ -96,7 +95,6 @@ echo "  Threads ................ : $$threads_ok"
 echo "  OmniOrb (CORBA) ........ : $$omniORB_ok"
 echo "  OmniOrbpy (CORBA) ...... : $$omniORBpy_ok"
 echo "  Python ................. : $$python_ok"
-echo "  Boost  ................. : $$boost_ok"
 echo "  SALOME KERNEL .......... : $$Kernel_ok"
 echo "  PaCO++ ................. : $$PaCO_ok"
 echo "  MPI .................... : $$mpi_ok"
@@ -144,38 +142,39 @@ fi
 
 makecommon="""
 # Standard directory for installation
-salomeincludedir   = $(includedir)/salome
-libdir             = $(prefix)/lib/salome
-bindir             = $(prefix)/bin/salome
-salomescriptdir    = $(bindir)
-salomepythondir    = $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/salome
+salomeincludedir   = $$(includedir)/salome
+libdir             = $$(prefix)/lib/salome
+bindir             = $$(prefix)/bin/salome
+salomescriptdir    = $$(bindir)
+salomepythondir    = $$(prefix)/lib/python$$(PYTHON_VERSION)/site-packages/salome
 
 # Directory for installing idl files
-salomeidldir       = $(prefix)/idl/salome
+salomeidldir       = $$(prefix)/idl/salome
 
 # Directory for installing resource files
-salomeresdir       = $(prefix)/share/salome/resources/${MODULE_NAME}
+salomeresdir       = $$(prefix)/share/salome/resources/$${MODULE_NAME}
 
 # Directories for installing admin files
-admlocaldir       = $(prefix)/adm_local
-admlocalunixdir     = $(admlocaldir)/unix
-admlocalm4dir        = $(admlocaldir)/unix/config_files
+admlocaldir       = $$(prefix)/adm_local
+admlocalunixdir     = $$(admlocaldir)/unix
+admlocalm4dir        = $$(admlocaldir)/unix/config_files
 
 # Shared modules installation directory
-sharedpkgpythondir =$(pkgpythondir)/shared_modules
+sharedpkgpythondir =$$(pkgpythondir)/shared_modules
 
 # Documentation directory
-salomedocdir             = $(prefix)/share/doc/salome/gui/${MODULE_NAME}
+salomedocdir             = $$(prefix)/share/doc/salome/gui/$${MODULE_NAME}
 
-IDL_INCLUDES = -I$(KERNEL_ROOT_DIR)/idl/salome
-KERNEL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
-KERNEL_INCLUDES= -I$(KERNEL_ROOT_DIR)/include/salome $(OMNIORB_INCLUDES) $(BOOST_CPPFLAGS)
+IDL_INCLUDES = -I$$(KERNEL_ROOT_DIR)/idl/salome
+KERNEL_LIBS= -L$$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
+KERNEL_INCLUDES= -I$$(KERNEL_ROOT_DIR)/include/salome $$(OMNIORB_INCLUDES) ${other_includes}
 
-SALOME_LIBS= ${KERNEL_LIBS}
-SALOME_IDL_LIBS= -L$(KERNEL_ROOT_DIR)/lib/salome -lSalomeIDLKernel
-SALOME_INCLUDES= ${KERNEL_INCLUDES}
+SALOME_LIBS= $${KERNEL_LIBS}
+SALOME_IDL_LIBS= -L$$(KERNEL_ROOT_DIR)/lib/salome -lSalomeIDLKernel
+SALOME_INCLUDES= $${KERNEL_INCLUDES}
 
 """
+makecommon=Template(makecommon)
 
 resMakefile="""
 include $$(top_srcdir)/adm_local/make_common_starter.am

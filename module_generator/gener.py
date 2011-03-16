@@ -398,8 +398,15 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
     #for catalog files
     catalogfile = "%sCatalog.xml" % module.name
 
+    need_boost=0
+    for compo in module.components:
+      if hasattr(compo,"calciumextendedinterface") and compo.calciumextendedinterface:
+        need_boost=1
+        break
+
     #add makefile definitions to make_common_starter.am
-    common_starter = makecommon
+    other_includes=""
+    common_starter = makecommon.substitute(other_includes=other_includes)
     for mod in self.used_modules:
       common_starter = common_starter + salome_modules[mod]["makefiledefs"] + '\n'
 
@@ -434,6 +441,12 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
     other_check=""
     other_summary=""
     other_require=""
+
+    if need_boost:
+      other_check=other_check+"""CHECK_BOOST
+"""
+      other_summary=other_summary+"""echo "  Boost  ................. : $boost_ok"
+"""
 
     if module.gui:
       other_check=other_check + """CHECK_SALOME_GUI
@@ -528,11 +541,12 @@ echo "  Qt ..................... : $qt_ok"
           for fidl in glob.glob(idl):
             shutil.copyfile(fidl, os.path.join(namedir, "idl", os.path.basename(fidl)))
 
-    for m4file in ("check_Kernel.m4", "check_omniorb.m4",
-                   "ac_linker_options.m4", "ac_cxx_option.m4",
-                   "python.m4", "enable_pthreads.m4", "check_f77.m4",
-                   "acx_pthread.m4", "check_boost.m4", "check_paco++.m4",
-                   "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4"):
+    checks= ("check_Kernel.m4", "check_omniorb.m4", "ac_linker_options.m4", "ac_cxx_option.m4",
+             "python.m4", "enable_pthreads.m4", "check_f77.m4", "acx_pthread.m4", "check_paco++.m4",
+             "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4")
+    if need_boost:
+      checks=checks+("check_boost.m4",)
+    for m4file in checks:
       shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file),
                       os.path.join(namedir, "adm_local", m4file))
 

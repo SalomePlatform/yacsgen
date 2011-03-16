@@ -54,6 +54,8 @@ class CPPComponent(Component):
    :param addmethods: is a C++ specific parameter that can be used to redefine a component method (DumpPython for example). This
       parameter is a string that must contain the definition and implementation code of the method. See the cppgui1 example
       for how to use it.
+   :param calciumextendedinterface: if you want to use the Calcium extended interface for C++ as defined by the header CalciumInterface.hxx
+      set this parameter to 1. By default its value is 0 so to not use extended interface. The extended interface requires boost as a dependency.
 
    For example, the following call defines a standalone component named "mycompo" with one service s1 (it must have been defined before)::
 
@@ -62,8 +64,10 @@ class CPPComponent(Component):
   """
   def __init__(self, name, services=None, libs="", rlibs="", includes="", kind="lib",
                      exe_path=None, sources=None, inheritedclass="", compodefs="",
-                     idls=None,interfacedefs="",inheritedinterface="",addedmethods=""):
+                     idls=None,interfacedefs="",inheritedinterface="",addedmethods="",
+                     calciumextendedinterface=0):
     self.exe_path = exe_path
+    self.calciumextendedinterface=calciumextendedinterface
     Component.__init__(self, name, services, impl="CPP", libs=libs, rlibs=rlibs,
                              includes=includes, kind=kind, sources=sources,
                              inheritedclass=inheritedclass, compodefs=compodefs, idls=idls,
@@ -172,9 +176,15 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
                                     instream=instream, outstream=outstream)
       services.append(service)
       inits.append(init)
+
+    CalciumInterface=""
+    if self.calciumextendedinterface:
+      CalciumInterface="#include <CalciumInterface.hxx>"
+
     return cxxCompo.substitute(component=self.name, module=gen.module.name,
                                exe=exe, exe_path=self.exe_path,
                                servicesdef="\n".join(defs),
                                servicesimpl="\n".join(services),
-                               initservice='\n'.join(inits))
+                               initservice='\n'.join(inits),
+                               CalciumInterface=CalciumInterface)
 
