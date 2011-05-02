@@ -73,7 +73,7 @@ xml="""\
 
 <PaCO_Interface_description>
   <Module>
-    <Name>${module}</Name>
+    <Name>${module}_ORB</Name>
 ${interfaces}
   </Module>
 </PaCO_Interface_description>
