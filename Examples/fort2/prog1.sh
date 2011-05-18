@@ -1,5 +1,7 @@
 #!/bin/bash
-/local/cchris/Salome/YACSGEN/V6/YACSGEN/Examples/fort2/prog1
+
+script_path=$(dirname $(readlink -f $0))
+$script_path/prog1
 
 echo "End of shell"
 
