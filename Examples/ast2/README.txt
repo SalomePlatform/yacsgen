@@ -28,6 +28,7 @@ Build the fcompo executable, under the SALOME application environment::
 Build the Code_Aster executable ::
 
   cd myaster
+  modify the config.txt for your SALOME Installation
   make
 
 Modify the exeaster script that drives the ASTER execution (change the files path)

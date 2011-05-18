@@ -21,7 +21,8 @@ include ../../makefile.inc
 
 all:prog
 prog:compo.o
-	$(FC) -o prog compo.o -L../install/lib/salome -lcfortExelib
+	$(FC) -o prog compo.o -L../install/lib/salome -lcfortExelib -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC
+
 compo.o:compo.f
 	$(FC) -c compo.f -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
 
