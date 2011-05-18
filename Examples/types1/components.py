@@ -60,26 +60,45 @@ defs="""
 body="""
 //inputs
 //Parameter
+std::cerr << "Parameter:" << std::endl;
 std::cerr << "a: " << a.name << "=" << a.value << std::endl;
+std::cerr << "" << std::endl;
 
 //ParameterList
+std::cerr << "ParameterList:" << std::endl;
 for(CORBA::ULong i = 0;i<b.length();i++)
   std::cerr << "b["<<i<<"]:"<<b[i].name <<"="<<b[i].value << std::endl;
+std::cerr << "" << std::endl;
 
-//Value
+//Variable
+std::cerr << "Variable:" << std::endl;
 for(CORBA::ULong i = 0;i<c.length();i++)
-  for(CORBA::ULong j = 0;j<c[i].length();j++)
-    std::cerr << "c["<<i<<"]["<< j<< "]="<<c[i][j] << std::endl;
+  std::cerr << "c["<<i<<"]="<<c[i] << std::endl;
+std::cerr << "" << std::endl;
 
-//VarList
+//VariableSequence
+std::cerr << "VariableSequence:" << std::endl;
 for(CORBA::ULong i = 0;i<d.length();i++)
-  std::cerr << "d["<<i<<"]="<<d[i] << std::endl;
+  for(CORBA::ULong j = 0;j<d[i].length();j++)
+    std::cerr << "d["<<i<<"]["<< j<< "]="<<d[i][j] << std::endl;
+std::cerr << "" << std::endl;
 
-//ValueList
-for(CORBA::ULong i = 0;i<e.length();i++)
-  for(CORBA::ULong j = 0;j<e[i].length();j++)
-    for(CORBA::ULong k = 0;k<e[i][j].length();k++)
-      std::cerr << "e["<<i<<"]["<< j<< "]["<<k<<"]="<<e[i][j][k] << std::endl;
+//StateSequence
+std::cerr << "StateSequence:" << std::endl;
+for(CORBA::ULong i = 0;i<d2.length();i++)
+  for(CORBA::ULong j = 0;j<d2[i].length();j++)
+    for(CORBA::ULong k = 0;k<d2[i][j].length();k++)
+      std::cerr << "d2["<<i<<"]["<< j<< "]["<<k<<"]="<<d2[i][j][k] << std::endl;
+std::cerr << "" << std::endl;
+
+//TimeSequence
+std::cerr << "TimeSequence:" << std::endl;
+for(CORBA::ULong i = 0;i<d3.length();i++)
+  for(CORBA::ULong j = 0;j<d3[i].length();j++)
+    for(CORBA::ULong k = 0;k<d3[i][j].length();k++)
+      for(CORBA::ULong l = 0;l<d3[i][j][k].length();l++)
+      std::cerr << "d3["<<i<<"]["<< j<< "]["<<k<<"]["<<l<<"]="<<d3[i][j][k][l] << std::endl;
+std::cerr << "" << std::endl;
 
 //ParametricInput
 for(CORBA::ULong i = 0;i<f.inputVarList.length();i++)
@@ -89,7 +108,8 @@ for(CORBA::ULong i = 0;i<f.outputVarList.length();i++)
 for(CORBA::ULong i = 0;i<f.inputValues.length();i++)
   for(CORBA::ULong j = 0;j<f.inputValues[i].length();j++)
     for(CORBA::ULong k = 0;k<f.inputValues[i][j].length();k++)
-      std::cerr << "f.inputValues["<<i<<"]["<< j<< "]["<<k<<"]="<<f.inputValues[i][j][k] << std::endl;
+      for(CORBA::ULong l = 0;l<f.inputValues[i][j][k].length();l++)
+      std::cerr << "f.inputValues["<<i<<"]["<< j<< "]["<<k<<"]["<<l<<"]="<<f.inputValues[i][j][k][l] << std::endl;
 for(CORBA::ULong i = 0;i<f.specificParameters.length();i++)
   std::cerr << "f.specificParameters["<<i<<"]:"<<f.specificParameters[i].name <<"="<<f.specificParameters[i].value << std::endl;
 
@@ -97,7 +117,8 @@ for(CORBA::ULong i = 0;i<f.specificParameters.length();i++)
 for(CORBA::ULong i = 0;i<g.outputValues.length();i++)
   for(CORBA::ULong j = 0;j<g.outputValues[i].length();j++)
     for(CORBA::ULong k = 0;k<g.outputValues[i][j].length();k++)
-      std::cerr << "g.outputValues["<<i<<"]["<< j<< "]["<<k<<"]="<<g.outputValues[i][j][k] << std::endl;
+      for(CORBA::ULong l = 0;l<g.outputValues[i][j][k].length();l++)
+      std::cerr << "g.outputValues["<<i<<"]["<< j<< "]["<<k<<"]["<<l<<"]="<<g.outputValues[i][j][k][l] << std::endl;
 
 //outputs
 //Parameter
@@ -107,9 +128,11 @@ aa->value=CORBA::string_dup(a.value);
 std::cerr << "aa: " << aa->name << "=" << aa->value << std::endl;
 //ParameterList
 ab=new SALOME_TYPES::ParameterList;
-ac= new SALOME_TYPES::Value;
-ad= new SALOME_TYPES::VarList;
-ae= new SALOME_TYPES::ValueList;
+ac= new SALOME_TYPES::Variable;
+ad= new SALOME_TYPES::VariableSequence;
+ad2= new SALOME_TYPES::StateSequence;
+ad3= new SALOME_TYPES::TimeSequence;
+ae= new SALOME_TYPES::VarList;
 af= new SALOME_TYPES::ParametricInput;
 ag= new SALOME_TYPES::ParametricOutput;
 """
@@ -121,14 +144,24 @@ a->Register();
 """
 
 c1=CPPComponent("compo1",services=[
-          Service("s1",inport=[("a","SALOME_TYPES/Parameter"),("b","SALOME_TYPES/ParameterList"),("c","SALOME_TYPES/Value"),
-                               ("d","SALOME_TYPES/VarList"),("e","SALOME_TYPES/ValueList"),("f","SALOME_TYPES/ParametricInput"),
+          Service("s1",inport=[("a","SALOME_TYPES/Parameter"),
+                               ("b","SALOME_TYPES/ParameterList"),
+                               ("c","SALOME_TYPES/Variable"),
+                               ("d","SALOME_TYPES/VariableSequence"),
+                               ("d2","SALOME_TYPES/StateSequence"),
+                               ("d3","SALOME_TYPES/TimeSequence"),
+                               ("e","SALOME_TYPES/VarList"),
+                               ("f","SALOME_TYPES/ParametricInput"),
                                ("g","SALOME_TYPES/ParametricOutput"),
                               ],
                        outport=[("aa","SALOME_TYPES/Parameter"),
                                 ("ab","SALOME_TYPES/ParameterList"),
-                                ("ac","SALOME_TYPES/Value"),
-                                ("ad","SALOME_TYPES/VarList"),("ae","SALOME_TYPES/ValueList"),("af","SALOME_TYPES/ParametricInput"),
+                                ("ac","SALOME_TYPES/Variable"),
+                                ("ad","SALOME_TYPES/VariableSequence"),
+                                ("ad2","SALOME_TYPES/StateSequence"),
+                                ("ad3","SALOME_TYPES/TimeSequence"),
+                                ("ae","SALOME_TYPES/VarList"),
+                                ("af","SALOME_TYPES/ParametricInput"),
                                 ("ag","SALOME_TYPES/ParametricOutput"),
                                ],
                        defs=defs,body=body,
@@ -140,15 +173,17 @@ c1=CPPComponent("compo1",services=[
 pydefs="""import SALOME_TYPES"""
 
 pybody="""
-print a,b,c,d,e,f,g
+print a,b,c,d,d2,d3,e,f,g
 aa=SALOME_TYPES.Parameter(name="a",value="45.")
 ab=[]
-ac=[[1,2,3]]
-ad=["aaa","bbb"]
-ae=[[[1,2,3]]]
-af=SALOME_TYPES.ParametricInput(inputVarList=ad,outputVarList=ad, inputValues=[[[1,2,3]]],specificParameters=[])
-ag=SALOME_TYPES.ParametricOutput(outputValues=[[[1,2,3]]], specificOutputInfos=[], returnCode=1, errorMessage="error")
-print aa,ab,ac,ad,ae,af,ag
+ac=[1,2,3]
+ad=[[1,2,3]]
+ad2=[[[1,2,3]]]
+ad3=[[[[1,2,3]]]]
+ae=["aaa","bbb"]
+af=SALOME_TYPES.ParametricInput(inputVarList=ae,outputVarList=ae, inputValues=[[[[1,2,3]]]],specificParameters=[])
+ag=SALOME_TYPES.ParametricOutput(outputValues=[[[[1,2,3]]]], specificOutputInfos=[], returnCode=1, errorMessage="error")
+print aa,ab,ac,ad,ad2,ad3,ae,af,ag
 """
 
 s2pybody="""
@@ -158,14 +193,24 @@ a.Register()
 """
 
 c2=PYComponent("compo2",services=[
-          Service("s1",inport=[("a","SALOME_TYPES/Parameter"),("b","SALOME_TYPES/ParameterList"),("c","SALOME_TYPES/Value"),
-                               ("d","SALOME_TYPES/VarList"),("e","SALOME_TYPES/ValueList"),("f","SALOME_TYPES/ParametricInput"),
+          Service("s1",inport=[("a","SALOME_TYPES/Parameter"),
+                               ("b","SALOME_TYPES/ParameterList"),
+                               ("c","SALOME_TYPES/Variable"),
+                               ("d","SALOME_TYPES/VariableSequence"),
+                               ("d2","SALOME_TYPES/StateSequence"),
+                               ("d3","SALOME_TYPES/TimeSequence"),
+                               ("e","SALOME_TYPES/VarList"),
+                               ("f","SALOME_TYPES/ParametricInput"),
                                ("g","SALOME_TYPES/ParametricOutput"),
                               ],
                        outport=[("aa","SALOME_TYPES/Parameter"),
                                 ("ab","SALOME_TYPES/ParameterList"),
-                                ("ac","SALOME_TYPES/Value"),
-                                ("ad","SALOME_TYPES/VarList"),("ae","SALOME_TYPES/ValueList"),("af","SALOME_TYPES/ParametricInput"),
+                                ("ac","SALOME_TYPES/Variable"),
+                                ("ad","SALOME_TYPES/VariableSequence"),
+                                ("ad2","SALOME_TYPES/StateSequence"),
+                                ("ad3","SALOME_TYPES/TimeSequence"),
+                                ("ae","SALOME_TYPES/VarList"),
+                                ("af","SALOME_TYPES/ParametricInput"),
                                 ("ag","SALOME_TYPES/ParametricOutput"),
                                ],
                        body=pybody,defs=pydefs,
