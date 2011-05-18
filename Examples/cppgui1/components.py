@@ -60,6 +60,7 @@ compomethods=r"""
 
   Engines::TMPFile* DumpPython(CORBA::Object_ptr theStudy,
                                CORBA::Boolean isPublished,
+                               CORBA::Boolean isMultiFile,
                                CORBA::Boolean& isValidScript)
   {
     std::cerr << "je suis dans le dump:" << __LINE__ << std::endl;

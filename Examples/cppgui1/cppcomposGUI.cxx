@@ -99,7 +99,7 @@ bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
       aStudyBuilder->DefineComponentInstance(aFather, engine);
     }
   CORBA::Boolean valid;
-  engine->DumpPython(aDSStudy,1,valid);
+  engine->DumpPython(aDSStudy,1,0,valid);
 
   return bOk;
 }
