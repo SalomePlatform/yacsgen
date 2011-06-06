@@ -1,20 +1,20 @@
-#  Copyright (C) 2009-2010  EDF R&D
+# Copyright (C) 2009-2011  EDF R&D
 #
-#  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Lesser General Public
-#  License as published by the Free Software Foundation; either
-#  version 2.1 of the License.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
 #
-#  This library is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#  Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public
-#  License along with this library; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
 ###########################################################
@@ -110,9 +110,11 @@ ValidDependencies = ("I", "T")
 add_type("dataref", "const Engines::dataref&", "Engines::dataref_out", "", "dataref","Engines::dataref*")
 add_type("SALOME_TYPES/Parameter")
 add_type("SALOME_TYPES/ParameterList", "const SALOME_TYPES::ParameterList&", "SALOME_TYPES::ParameterList_out", "", "SALOME_TYPES::ParameterList","SALOME_TYPES::ParameterList*")
-add_type("SALOME_TYPES/Value", "const SALOME_TYPES::Value&", "SALOME_TYPES::Value_out", "", "SALOME_TYPES::Value","SALOME_TYPES::Value*")
 add_type("SALOME_TYPES/VarList", "const SALOME_TYPES::VarList&", "SALOME_TYPES::VarList_out", "", "SALOME_TYPES::VarList","SALOME_TYPES::VarList*")
-add_type("SALOME_TYPES/ValueList", "const SALOME_TYPES::ValueList&", "SALOME_TYPES::ValueList_out", "", "SALOME_TYPES::ValueList","SALOME_TYPES::ValueList*")
+add_type("SALOME_TYPES/Variable", "const SALOME_TYPES::Variable&", "SALOME_TYPES::Variable_out", "", "SALOME_TYPES::Variable","SALOME_TYPES::Variable*")
+add_type("SALOME_TYPES/VariableSequence", "const SALOME_TYPES::VariableSequence&", "SALOME_TYPES::VariableSequence_out", "", "SALOME_TYPES::VariableSequence","SALOME_TYPES::VariableSequence*")
+add_type("SALOME_TYPES/StateSequence", "const SALOME_TYPES::StateSequence&", "SALOME_TYPES::StateSequence_out", "", "SALOME_TYPES::StateSequence","SALOME_TYPES::StateSequence*")
+add_type("SALOME_TYPES/TimeSequence", "const SALOME_TYPES::TimeSequence&", "SALOME_TYPES::TimeSequence_out", "", "SALOME_TYPES::TimeSequence","SALOME_TYPES::TimeSequence*")
 add_type("SALOME_TYPES/ParametricInput", "const SALOME_TYPES::ParametricInput&", "SALOME_TYPES::ParametricInput_out", "", "SALOME_TYPES::ParametricInput","SALOME_TYPES::ParametricInput*")
 add_type("SALOME_TYPES/ParametricOutput", "const SALOME_TYPES::ParametricOutput&", "SALOME_TYPES::ParametricOutput_out", "", "SALOME_TYPES::ParametricOutput","SALOME_TYPES::ParametricOutput*")
 

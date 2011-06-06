@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 *-
-#  Copyright (C) 2009-2010  EDF R&D
+# Copyright (C) 2009-2011  EDF R&D
 #
-#  This library is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU Lesser General Public
-#  License as published by the Free Software Foundation; either
-#  version 2.1 of the License.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
 #
-#  This library is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#  Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
 #
-#  You should have received a copy of the GNU Lesser General Public
-#  License along with this library; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
-#  See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
 #  Author : Andre RIBES (EDF R&D)
@@ -29,7 +29,7 @@ except:
 compoMakefile="""
 include $$(top_srcdir)/adm_local/make_common_starter.am
 
-BUILT_SOURCES = SALOME_Exception.hxx SALOME_GenericObj.hxx SALOMEDS.hxx SALOME_PyNode.hxx
+BUILT_SOURCES = SALOME_Exception.hxx SALOME_GenericObj.hxx SALOMEDS.hxx SALOME_PyNode.hxx SALOME_Comm.hxx SALOME_Parametric.hxx
 
 %.hxx : @KERNEL_ROOT_DIR@/idl/salome/%.idl
 \t$$(OMNIORB_IDL) -bcxx $$(IDLCXXFLAGS) $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) -I@KERNEL_ROOT_DIR@/idl/salome -Wbh=.hxx -Wbs=.cxx $$<
@@ -40,14 +40,14 @@ lib_LTLIBRARIES = lib${component}Engine.la
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
 lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl $$(SALOME_INCLUDES) $$(PACO_INCLUDES) $$(MPI_INCLUDES) ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS) $$(SALOME_LIBS)
+lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -lSalomeIDL${module} @KERNEL_ROOT_DIR@/lib/salome/libSalomeParallelDSCContainer.la @PACOPATH@/lib/libPaCO_direct_comScheduling.la $$(FLIBS) ${libs} $$(PACO_LIBS) $$(SALOME_LIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
 salomeinclude_HEADERS = ${component}.hxx
 """
 compoMakefile=Template(compoMakefile)
 
 paco_sources = """\
-$$(top_builddir)/idl/${module}PaCO_${module}_${component}_client.cxx $$(top_builddir)/idl/${module}PaCO_${module}_${component}_server.cxx $$(top_builddir)/idl/${module}PaCO.cxx $$(top_builddir)/idl/${module}.cxx
+$$(top_builddir)/idl/${module}PaCO_${module}_ORB_${component}_client.cxx $$(top_builddir)/idl/${module}PaCO_${module}_ORB_${component}_server.cxx $$(top_builddir)/idl/${module}PaCO.cxx $$(top_builddir)/idl/${module}.cxx
 """
 paco_sources = Template(paco_sources)
 
@@ -55,7 +55,7 @@ hxxCompo="""
 #ifndef _${component}_HXX_
 #define _${component}_HXX_
 
-#include "${module}PaCO_${module}_${component}_server.hxx"
+#include "${module}PaCO_${module}_ORB_${component}_server.hxx"
 #include "ParallelDSC_i.hxx"
 #include "Param_Double_Port_uses_i.hxx"
 #include "Param_Double_Port_provides_i.hxx"
@@ -67,7 +67,7 @@ hxxCompo="""
 #include <paco_dummy.h>
 
 class ${component}_i:
-  public virtual ${module}::${component}_serv,
+  public virtual ${module}_ORB::${component}_serv,
   public virtual Engines_ParallelDSC_i
 {
   public:
@@ -154,8 +154,8 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                                PortableServer::ObjectId * contId, 
                                const char *instanceName, 
                                const char *interfaceName) :
-  ${module}::${component}_serv(orb, ior, rank),
-  ${module}::${component}_base_serv(orb, ior, rank),
+  ${module}_ORB::${component}_serv(orb, ior, rank),
+  ${module}_ORB::${component}_base_serv(orb, ior, rank),
   Engines_ParallelDSC_i(orb, ior, rank, poa, contId, instanceName, interfaceName),
   Engines_Parallel_Component_i(orb, ior, rank, poa, contId, instanceName, interfaceName),
   Engines::Parallel_DSC_serv(orb, ior, rank),
@@ -338,7 +338,7 @@ extern "C"
     paco_fabrique_manager* pfm = paco_getFabriqueManager();
     pfm->register_com("proxy_dummy", new paco_dummy_fabrique());
     pfm->register_thread("proxy_thread", new paco_omni_fabrique());
-    ${module}::${component}_proxy_impl * proxy = new ${module}::${component}_proxy_impl(CORBA::ORB::_duplicate(orb),
+    ${module}_ORB::${component}_proxy_impl * proxy = new ${module}_ORB::${component}_proxy_impl(CORBA::ORB::_duplicate(orb),
                                                                                         fab_thread);
     PortableServer::ObjectId * id = poa->activate_object(proxy);
     proxy->_remove_ref();
@@ -397,7 +397,7 @@ extern "C"
     paco_fabrique_manager* pfm = paco_getFabriqueManager();
     pfm->register_com("proxy_dummy", new paco_dummy_fabrique());
     pfm->register_thread("proxy_thread", new paco_omni_fabrique());
-    ${module}::${component}_proxy_impl * proxy = new ${module}::${component}_proxy_impl(CORBA::ORB::_duplicate(orb),
+    ${module}_ORB::${component}_proxy_impl * proxy = new ${module}_ORB::${component}_proxy_impl(CORBA::ORB::_duplicate(orb),
                                                                                         fab_thread);
     PortableServer::ObjectId * id = poa->activate_object(proxy);
     proxy->_remove_ref();
