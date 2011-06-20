@@ -110,8 +110,7 @@ class ${component};  // forward declaration
 
 class ${component}_i: ${inheritedclass}
   public POA_${module}_ORB::${component}_Gen,
-  public Engines_Component_i,
-  public SALOMEMultiComm
+  public Engines_Component_i
 {
 
 public:
@@ -178,7 +177,7 @@ lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${
 
 #, SALOME_MED::MED_Gen_Driver, SALOME::MultiCommClass
 interfaceidlhxx="""
-  interface ${component}_Gen:Engines::Component,SALOME::MultiCommClass ${inherited}
+  interface ${component}_Gen: ${inherited}
   {
 ${services}
   };

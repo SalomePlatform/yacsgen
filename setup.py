@@ -19,7 +19,8 @@
 
 from distutils.core import setup
 setup(name='YACSGEN',
-      version='5.1.5',
+      version='5.1.6',
       author='C. Caremoli',
       packages=['module_generator'],
+      scripts=['script/hxx2salome.py',]
      )

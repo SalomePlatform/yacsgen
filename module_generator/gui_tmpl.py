@@ -22,7 +22,7 @@ pysalomeapp="""
     <parameter name="library" value="SalomePyQtGUI"/>
   </section>
   <section name="resources">
-    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${module}"/>
+    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
   </section>
 </document>
 """
@@ -48,6 +48,9 @@ salomeres_DATA =SalomeApp.xml ${other_sources}
 ui_%.h: %.ui
 	$$(UIC) -o $$@ $$<
 
+# translation (*.qm) files generation (lrelease)
+%.qm: %.ts
+	$$(LRELEASE) $$< -qm $$@
 """
 cppguimakefile=Template(cppguimakefile)
 
@@ -58,7 +61,7 @@ cppsalomeapp="""
     <parameter name="icon" value="${module}.png"/>
   </section>
   <section name="resources">
-    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${module}"/>
+    <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
   </section>
 </document>
 """
