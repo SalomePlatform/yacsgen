@@ -19,7 +19,7 @@
 
 from distutils.core import setup
 setup(name='YACSGEN',
-      version='6.3.0',
+      version='6.3.1',
       author='C. Caremoli',
       packages=['module_generator'],
      )
