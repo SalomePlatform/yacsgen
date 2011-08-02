@@ -433,7 +433,7 @@ hxxgui_message_fr="""
         <name>@default</name>
         <message>
             <source>TLT_MY_NEW_ITEM</source>
-            <translation>Un article de menu propre à ${component_name}</translation>
+            <translation>Un article de menu propre a ${component_name}</translation>
         </message>
         <message>
             <source>MEN_MY_NEW_ITEM</source>
