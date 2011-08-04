@@ -369,6 +369,8 @@ BEGIN {
   idl_arg_type["const std::vector<int>&"]="in SALOME::vectorOfLong"
   idl_arg_type["std::vector<int>*&"]="out SALOME::vectorOfLong"
   idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble*"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble&"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_arg_type["ParaMEDMEM::MEDCouplingFieldDouble*&"]="out SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
 #
 #
 # mapping for returned types
