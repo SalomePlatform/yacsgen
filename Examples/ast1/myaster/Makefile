@@ -19,8 +19,6 @@
 
 include ../../makefile.inc
 
-MED2HOME=/local/cchris/pkg/med235/install
-
 ASTER_INSTALL=$(ASTER_ROOT)/$(ASTER_VERSION)
 ASTER_PUB=$(ASTER_ROOT)/public
 ASTER_OUTILS=$(ASTER_ROOT)/outils
