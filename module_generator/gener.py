@@ -160,6 +160,9 @@ class Component(object):
   def getMakefileItems(self,gen):
     return {}
 
+  def setPrerequisites(self, prerequisites_file):
+    self.prerequisites = prerequisites_file
+
 class Service(object):
   """
    A :class:`Service` instance represents a component service with dataflow and datastream ports.
@@ -311,6 +314,8 @@ class Generator(object):
     self.aster = ""
     if self.module.gui and not self.gui:
       raise Invalid("To generate a module with GUI, you need to set the 'gui' parameter in the context dictionnary")
+    for component in self.module.components:
+      component.setPrerequisites(self.context.get("prerequisites"))
 
   def generate(self):
     """Generate a SALOME source module"""
