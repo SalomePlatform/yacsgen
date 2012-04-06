@@ -52,6 +52,8 @@ cpp2idl_mapping["MEDMEM::FIELD<int>*&"]="out SALOME_MED::FIELDINT"
 cpp2idl_mapping["const std::vector<int>&"]="in %(module)s::intvec"
 cpp2idl_mapping["std::vector<int>*&"]="out %(module)s::intvec"
 cpp2idl_mapping["const ParaMEDMEM::MEDCouplingFieldDouble*"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+cpp2idl_mapping["const ParaMEDMEM::MEDCouplingFieldDouble&"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+cpp2idl_mapping["ParaMEDMEM::MEDCouplingFieldDouble*&"]="out SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
 
 # ['stringvec', 'string', 'double', 'long', 'dblevec', 'file', 'intvec', 'dataref', 'GEOM_Object', 'SMESH_Mesh', 'SMESH_Hypothesis', 'SALOME_MED/MED', 'SALOME_MED/MESH', 'SALOME_MED/SUPPORT', 'SALOME_MED/FIELD', 'SALOME_MED/FIELDDOUBLE', 'SALOME_MED/FIELDINT']
 cpp2yacs_mapping={}
@@ -367,6 +369,8 @@ BEGIN {
   idl_arg_type["const std::vector<int>&"]="in SALOME::vectorOfLong"
   idl_arg_type["std::vector<int>*&"]="out SALOME::vectorOfLong"
   idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble*"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble&"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_arg_type["ParaMEDMEM::MEDCouplingFieldDouble*&"]="out SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
 #
 #
 # mapping for returned types

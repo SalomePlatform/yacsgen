@@ -20,15 +20,30 @@
 import os
 from module_generator import Generator,Module,Service
 from module_generator import CPPComponent,PYComponent,HXX2SALOMEComponent
+class Invalid(Exception):
+    pass
 
 kernel_root_dir=os.environ["KERNEL_ROOT_DIR"]
 gui_root_dir=os.environ["GUI_ROOT_DIR"]
 yacs_root_dir=os.environ["YACS_ROOT_DIR"]
 med_root_dir=os.environ["MED_ROOT_DIR"]
 geom_root_dir=os.environ["GEOM_ROOT_DIR"]
+prereq_file=os.path.join(kernel_root_dir,"..","env_products.sh")
+if not os.path.exists(prereq_file):
+    prereq_file=os.path.join(kernel_root_dir,"..","..","env_products.sh")
+if not os.path.exists(prereq_file):
+    raise Invalid("prerequisite file env_products.sh not found. please replace it manually in component.py")
 
 #import context from ..
-execfile("../context.py")
+context={'update':1,
+         "makeflags":"",
+         "prerequisites":prereq_file,
+         "kernel":kernel_root_dir,
+         "gui":gui_root_dir,
+         "geom":geom_root_dir,
+         "med":med_root_dir,
+         "yacs":yacs_root_dir,
+        }
 
 cwd=os.getcwd()
 cpppath=os.path.join(cwd,"COMPONENTCPP_INSTALL")

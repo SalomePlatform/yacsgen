@@ -132,6 +132,7 @@ add_type("SALOME_MED/SUPPORT", "SALOME_MED::SUPPORT_ptr", "SALOME_MED::SUPPORT_o
 add_type("SALOME_MED/FIELD", "SALOME_MED::FIELD_ptr", "SALOME_MED::FIELD_out", "MED", "SALOME_MED::FIELD", "SALOME_MED::FIELD_ptr")
 add_type("SALOME_MED/FIELDDOUBLE", "SALOME_MED::FIELDDOUBLE_ptr", "SALOME_MED::FIELDDOUBLE_out", "MED", "SALOME_MED::FIELDDOUBLE", "SALOME_MED::FIELDDOUBLE_ptr")
 add_type("SALOME_MED/FIELDINT", "SALOME_MED::FIELDINT_ptr", "SALOME_MED::FIELDINT_out", "MED", "SALOME_MED::FIELDINT", "SALOME_MED::FIELDINT_ptr")
-add_type("SALOME/Matrix", "SALOME::Matrix_ptr", "SALOME::Matrix_out", "", "SALOME::Matrix", "SALOME::Matrix_ptr")
+add_type("SALOME/Matrix", "SALOME::Matrix_ptr", "SALOME::Matrix_out", "MED", "SALOME::Matrix", "SALOME::Matrix_ptr")
 add_type("SALOME_MED/MEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_ptr", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_out", "MED", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MEDCouplingFieldDoubleCorbaInterface_ptr")
+add_type("SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface_ptr", "SALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface_out", "MED", "SALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface", "SALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface_ptr")
 add_type("SALOME_MED/MEDCouplingUMeshCorbaInterface", "SALOME_MED::MEDCouplingUMeshCorbaInterface_ptr", "SALOME_MED::MEDCouplingUMeshCorbaInterface_out", "MED", "SALOME_MED::MEDCouplingUMeshCorbaInterface", "SALOME_MED::MEDCouplingUMeshCorbaInterface_ptr")

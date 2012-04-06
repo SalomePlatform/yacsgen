@@ -404,6 +404,8 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
     catalogfile = "%sCatalog.xml" % module.name
 
     need_boost=0
+    if module.gui:
+        need_boost=1
     for compo in module.components:
       if hasattr(compo,"calciumextendedinterface") and compo.calciumextendedinterface:
         need_boost=1
@@ -652,6 +654,8 @@ echo "  Qt ..................... : $qt_ok"
             sources.append(os.path.basename(src)[:-2]+"_moc.cxx")
           elif src[-3:]==".ui":
             ui_files.append("ui_"+os.path.basename(src)[:-3]+".h")
+          elif src[-3:]==".ts":
+            other.append(os.path.basename(src)[:-3]+".qm")
           else:
             other.append(os.path.basename(src))
 
@@ -732,6 +736,7 @@ echo "  Qt ..................... : $qt_ok"
     """generate module IDL file source (CORBA interface)"""
     from pacocompo import PACOComponent
     interfaces = []
+    idldefs=""
     for compo in self.module.components:
       if isinstance(compo, PACOComponent):
         services = []
@@ -772,11 +777,18 @@ echo "  Qt ..................... : $qt_ok"
           services.append(service)
 
         from hxxcompo import HXX2SALOMEComponent
-        if isinstance(compo,HXX2SALOMEComponent):
+        from hxxparacompo import HXX2SALOMEParaComponent
+        if isinstance(compo,HXX2SALOMEComponent) or isinstance(compo,HXX2SALOMEParaComponent):
           from hxx_tmpl import interfaceidlhxx
           Inherited=""
-          if compo.use_medmem==True:
-              Inherited=", SALOME_MED::MED_Gen_Driver"
+          if isinstance(compo,HXX2SALOMEParaComponent):
+              Inherited="SALOME_MED::ParaMEDMEMComponent"
+              idldefs="""#include "ParaMEDMEMComponent.idl"\n"""
+          else:
+              if compo.use_medmem==True:
+                  Inherited="Engines::EngineComponent,SALOME::MultiCommClass,SALOME_MED::MED_Gen_Driver"
+              else:
+                  Inherited="Engines::EngineComponent"
           interfaces.append(interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services)))
         else:
           inheritedinterface=""
@@ -785,7 +797,6 @@ echo "  Qt ..................... : $qt_ok"
           interfaces.append(interface.substitute(component=compo.name, services="\n".join(services),inheritedinterface=inheritedinterface))
 
     #build idl includes for SALOME modules
-    idldefs=""
     for mod in self.used_modules:
       idldefs = idldefs + salome_modules[mod]["idldefs"]
 

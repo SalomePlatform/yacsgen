@@ -29,5 +29,6 @@ from pacocompo import PACOComponent
 from pycompo import PYComponent
 from astcompo import ASTERComponent
 from hxxcompo import HXX2SALOMEComponent
+from hxxparacompo import HXX2SALOMEParaComponent
 from yacstypes import add_type
 from salomemodules import add_module

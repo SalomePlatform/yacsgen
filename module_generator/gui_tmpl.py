@@ -54,7 +54,7 @@ BUILT_SOURCES=${uisources}
 
 lib_LTLIBRARIES= lib${module}.la
 lib${module}_la_SOURCES = ${sources}
-lib${module}_la_CPPFLAGS = $$(SALOME_INCLUDES) $$(GUI_CXXFLAGS) $$(QT_INCLUDES) -I$$(top_builddir)/idl
+lib${module}_la_CPPFLAGS = $$(SALOME_INCLUDES) $$(GUI_CXXFLAGS) $$(BOOST_CPPFLAGS) $$(QT_INCLUDES) -I$$(top_builddir)/idl
 lib${module}_la_LIBADD   = -L$$(top_builddir)/idl -lSalomeIDL${module}
 
 salomeres_DATA =SalomeApp.xml ${other_sources}
@@ -67,6 +67,9 @@ salomeres_DATA =SalomeApp.xml ${other_sources}
 ui_%.h: %.ui
 	$$(UIC) -o $$@ $$<
 
+# translation (*.qm) files generation (lrelease)
+%.qm: %.ts
+	$$(LRELEASE) $$< -qm $$@
 """
 cppguimakefile=Template(cppguimakefile)
 

@@ -22,4 +22,5 @@ setup(name='YACSGEN',
       version='6.4.0',
       author='C. Caremoli',
       packages=['module_generator'],
+      scripts=['script/hxx2salome.py',]
      )
