@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2011  EDF R&D
+# Copyright (C) 2009-2012  EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,43 +15,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
-#
-# Configuration file
-# $Id$
-# $Name$
-#
-# Fields are separated by a " | " (the space is significative)
-#
-# Keywords :
-#  ENV_SH     : environment script (absolute filename or relative to current directory)
-#  LIB        : archiver
-#  BIBL       : librairies linked with Code_Aster (with options -L/-l eventually)
-#  PYTHON     : Python binary
-#  LINK       : linker command
-#  OPTL       : linker options
-#  CC         : C compiler command
-#  DEFS       : pre-processor #define commands separated by space or comma
-#               they will be added to all compilation options OPTx_x
-#  OPTC_D     : C compiler options using DEBUG mode
-#  OPTC_O     : C compiler options using NODEBUG mode
-#  INCL       : C include flags
-#  F77        : Fortran compiler command
-#  OPTF_D     : Fortran compiler options using DEBUG mode
-#  OPTF_O     : Fortran compiler options using NODEBUG mode
-#  INCLF      : Fortran include flags
-#  F90        : Fortran 90 compiler command
-#  OPTF90_D   : Fortran 90 compiler options using DEBUG mode
-#  OPTF90_O   : Fortran 90 compiler options using NODEBUG mode
-#  INCLF90    : Fortran 90 include flags
-#  G77_AGLA   : used only for configuration management of EDF version
-#  SUPERV     : Code_Aster Python packages
-#  REPPY      : name of 'bibpyt' in the temporary execution directory
-#  ARGPYT     : main python module
-#  ARGEXE     : arguments passed to Code_Aster executable
-#  REPOUT     : tools directory
-#  MAKE_SURCH_OFFI/MAKE_CAPY_OFFI : Python modules to compiling elements catalogs
-#  CRP / CRS  : tools to check source files and programming rules
-#  ID_PERF    : a label to identify a group of machines (use by TEST_TEMPS command)
 #
 ID_PERF        | id      | -     | claui2c6
 #
