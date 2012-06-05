@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2011  EDF R&D
+# Copyright (C) 2009-2012  EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@
 
 from distutils.core import setup
 setup(name='YACSGEN',
-      version='6.4.0',
+      version='6.5.0',
       author='C. Caremoli',
       packages=['module_generator'],
       scripts=['script/hxx2salome.py',]
