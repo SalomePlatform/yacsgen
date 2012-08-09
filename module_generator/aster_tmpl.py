@@ -1,26 +1,30 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
 
 try:
  from string import Template
 except:
  from compat import Template,set
 
-astercompoMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}.py
-
-"""
-astercompoMakefile=Template(astercompoMakefile)
-astercexeMakefile=astercompoMakefile
-
-asterexeMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}_module.py
-# These files are executable scripts
-dist_salomescript_SCRIPTS= ${component}.exe
-"""
-asterexeMakefile=Template(asterexeMakefile)
-
 asterCompo="""
 import sys,traceback,os
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
@@ -44,15 +48,14 @@ except:
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
+class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
     self.argv=[${argv}]
     #modif pour aster 9.0
@@ -75,12 +78,12 @@ asterCompo=Template(asterCompo)
 asterCEXECompo="""
 import sys,traceback,os
 import string
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
 import linecache
-from E_SUPERV import SUPERV
+${importesuperv}
 
 try:
   import numpy
@@ -91,15 +94,17 @@ except:
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
+class ExecutionError(Exception):
+  '''General exception during execution'''
+
+class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUPERV):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     self.init=0
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
 
@@ -107,12 +112,24 @@ class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent,SUPERV)
 ${initservice}
     return False
 
+  def interpstring(self,text,args):
+    try:
+      self.jdc.g_context.update(args)
+      CONTEXT.set_current_step(self.jdc)
+      linecache.cache['<string>']=0,None,string.split(text,'\\n'),'<string>'
+      exec text in self.jdc.const_context,self.jdc.g_context
+      CONTEXT.unset_current_step()
+    except EOFError:
+      CONTEXT.unset_current_step()
+    except:
+      CONTEXT.unset_current_step()
+      raise
+
 ${servicesimpl}
 """
 
 asterEXECompo=asterCEXECompo+"""
   def destroy(self):
-     dsccalcium.PyDSCComponent.destroy(self)
      self._orb.shutdown(0)
 """
 
@@ -121,7 +138,6 @@ asterEXECompo=Template(asterEXECompo)
 
 asterService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
     self.jdc=Cata.cata.JdC(procedure=jdc,cata=Cata.cata,nom="Salome",context_ini=${dvars})
     j=self.jdc
@@ -180,12 +196,11 @@ asterService="""
        print ">> JDC.py : FIN RAPPORT"
        sys.stdout.flush()
        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr), "${component}.py",0))
-       
+
     if j.par_lot == 'NON':
        print "FIN EXECUTION"
-       err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
+       #err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
        #retour sans erreur (il faut pousser les variables de sortie)
-       print "End of ${component}.${service}"
        sys.stdout.flush()
        self.endService("${component}.${service}")
        return ${rvars}
@@ -216,8 +231,7 @@ asterService="""
           raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr),"${component}.py",0))
        else:
          #retour sans erreur (il faut pousser les variables de sortie)
-         err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
-         print "End of ${component}.${service}"
+         #err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
          sys.stdout.flush()
          self.endService("${component}.${service}")
          return ${rvars}
@@ -232,29 +246,35 @@ asterService=Template(asterService)
 
 asterCEXEService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
-    if not self.init:
-      self.init=1
-      ier=self.main()
-    j=self.jdc
-    self.jdc.g_context.update(${dvars})
     try:
-      CONTEXT.set_current_step(self.jdc)
-      linecache.cache['<string>']=0,0,string.split(jdc,'\\n'),'<string>'
-      exec jdc in self.jdc.g_context
-      CONTEXT.unset_current_step()
+      args=${dvars}
+      if not args.has_key("jdc"):
+        fcomm=open("jdc",'r')
+        jdc=fcomm.read()
+        fcomm.close()
+        #args["jdc"]=jdc
+      if not self.init:
+        self.init=1
+        fcomm=open("fort.1",'w')
+        fcomm.write(jdc)
+        fcomm.close()
+        ier=self.main(args)
+        if ier != 0:
+          raise ExecutionError("Error in initial execution")
+      else:
+        self.interpstring(jdc,args)
+
       self.endService("${component}.${service}")
-    except EOFError:
-      self.endService("${component}.${service}")
+      j=self.jdc
+      return ${rvars}
     except:
-      sys.stdout.flush()
       exc_typ,exc_val,exc_fr=sys.exc_info()
       l=traceback.format_exception(exc_typ,exc_val,exc_fr)
       self.endService("${component}.${service}")
-      CONTEXT.unset_current_step()
+      sys.stdout.flush()
+      sys.stderr.flush()
       raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,"".join(l),"${component}.py",0))
-    return ${rvars}
 """
 asterCEXEService=Template(asterCEXEService)
 asterEXEService=asterCEXEService
@@ -339,14 +359,7 @@ cexe="""#!/bin/sh
 
 export SALOME_CONTAINERNAME=$$1
 
-cp ${export} temp.export
-cat >> temp.export << END
-F mess $$PWD/messages R 6
-F resu $$PWD/resu R 8
-F erre $$PWD/erre R 9
-END
-
-${asrun} temp.export
+${compoexe}
 """
 cexe=Template(cexe)
 
@@ -356,14 +369,7 @@ export SALOME_CONTAINER=$$1
 export SALOME_CONTAINERNAME=$$2
 export SALOME_INSTANCE=$$3
 
-cp ${export} temp.export
-cat >> temp.export << END
-F mess $$PWD/messages R 6
-F resu $$PWD/resu R 8
-F erre $$PWD/erre R 9
-END
-
-${asrun} temp.export
+${compoexe}
 """
 exeaster=Template(exeaster)
 

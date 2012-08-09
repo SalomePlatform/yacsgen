@@ -1,3 +1,4 @@
+DEBUT(PAR_LOT="NON")
 print a,b,c
 YACS_INIT(COMPO=component)
 
@@ -6,3 +7,4 @@ LECTURE_FORCE()
 
 d=36.5
 
+FIN()

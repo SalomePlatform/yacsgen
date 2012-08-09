@@ -1,14 +1,15 @@
 A Code_Aster component dynamically loadable
 ===============================================
 
-To build this example, modify the files components.py, fcompo/Makefile, myaster/Makefile
+To build this example, modify the files ../context.py, ../makefile.inc, fcompo/Makefile, myaster/Makefile
 to take into account your configuration.
 
 1- your prerequisite file 
 2- your KERNEL_ROOT_DIR
 3- your Code_Aster installation
+4- your FORTRAN compiler
 
-Then set the environment (including PYTHONPATH for YACGEN, ../.. from here and execute components.py ::
+Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here)::
 
   source <your prerequisite file>
 
@@ -26,8 +27,8 @@ process components.py ::
 
   python components.py
 
-You should get a SALOME module in source form (pycompos_SRC), its installation (install) and
-a SALOME application (appli) composed of modules KERNEL, GUI, YACS and pycompos.
+You should get a SALOME module in source form (astmod_SRC), its installation (install) and
+a SALOME application (appli) composed of modules KERNEL, GUI, YACS and the new module astmod.
 
 To run a coupling:
 

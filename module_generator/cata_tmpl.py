@@ -1,3 +1,22 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -11,12 +30,19 @@ idl="""
 
 #include "DSC_Engines.idl"
 #include "SALOME_Exception.idl"
+#include "SALOME_PACOExtension.idl"
+#include "SALOME_Component.idl"
+#include "SALOME_Comm.idl"
+#include "SALOME_Parametric.idl"
 
-module ${module}
+${idldefs}
+
+module ${module}_ORB
 {
 typedef sequence<string> stringvec;
 typedef sequence<double> dblevec;
 typedef sequence<long> intvec;
+typedef Engines::dataref dataref;
 
 ${interfaces}
 };
@@ -26,47 +52,95 @@ ${interfaces}
 idl=Template(idl)
 
 interface="""
-  interface ${component}:Engines::Superv_Component
+  interface ${component}:${inheritedinterface} Engines::Superv_Component
   {
 ${services}
   };
 """
 interface=Template(interface)
 
+parallel_interface="""
+interface ${component} : Engines::Parallel_DSC
+  {
+${services}
+  };
+"""
+parallel_interface=Template(parallel_interface)
+
+xml="""\
+<?xml version="1.0"?>
+<!-- YACSGEN -->
+
+<PaCO_Interface_description>
+  <Module>
+    <Name>${module}_ORB</Name>
+${interfaces}
+  </Module>
+</PaCO_Interface_description>
+"""
+xml = Template(xml)
+
+xml_interface="""\
+    <Interface>
+      <Name>${component}</Name>
+${xml_services}
+    </Interface>"""
+xml_interface = Template(xml_interface)
+
+xml_service = """\
+      <Method>
+        <Name>${service_name}</Name>
+        <Type>distributed</Type>
+      </Method>"""
+xml_service = Template(xml_service)
+
 idlMakefile="""
 include $$(top_srcdir)/adm_local/make_common_starter.am
 
-BUILT_SOURCES = ${module}SK.cc
-IDL_FILES=${module}.idl
+BUILT_SOURCES = ${module}SK.cc ${PACO_BUILT_SOURCES} ${other_sks}
+IDL_FILES=${module}.idl ${other_idls}
 
-lib_LTLIBRARIES = lib${module}.la
-salomeidl_DATA = $$(IDL_FILES)
-salomepython_DATA = ${module}_idl.py
-lib${module}_la_SOURCES      =
-nodist_lib${module}_la_SOURCES = ${module}SK.cc
-nodist_salomeinclude_HEADERS= ${module}.hh
-lib${module}_la_CXXFLAGS     = -I.  $$(KERNEL_INCLUDES)
-lib${module}_la_LIBADD     = $$(KERNEL_LIBS)
+lib_LTLIBRARIES = libSalomeIDL${module}.la
+salomeidl_DATA = $$(IDL_FILES) ${PACO_salomeidl_DATA}
+libSalomeIDL${module}_la_SOURCES      =
+nodist_libSalomeIDL${module}_la_SOURCES = ${module}SK.cc ${other_sks}
+nodist_salomeinclude_HEADERS= ${module}.hh ${PACO_SALOMEINCLUDE_HEADERS}
+libSalomeIDL${module}_la_CXXFLAGS     = -I.  $$(SALOME_INCLUDES)
+libSalomeIDL${module}_la_LIBADD     = $$(SALOME_IDL_LIBS)
 ##########################################################
 %SK.cc %.hh : %.idl
-\t$$(OMNIORB_IDL) -bcxx $$(IDLCXXFLAGS) $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) $$<
+\t$$(OMNIORB_IDL) -bcxx $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) $$<
 %_idl.py : %.idl
-\t$$(OMNIORB_IDL) -bpython $$(IDL_INCLUDES) $$<
+\t$$(OMNIORB_IDL) $$(OMNIORB_IDLPYFLAGS) $$(IDL_INCLUDES) ${PACO_INCLUDES} $$<
+%PaCO.hxx %PaCO.cxx : %.idl %.xml
+\t$$(OMNIORB_IDL) -I@KERNEL_ROOT_DIR@/idl/salome -p@PACOPATH@/lib/python -bpaco -Wb$$(top_srcdir)/idl/$$*.xml,$$(srcdir):@PACOPATH@/idl:@KERNEL_ROOT_DIR@/idl/salome $$(top_srcdir)/idl/$$*.idl
 
-CLEANFILES = *.hh *SK.cc *.py
+CLEANFILES = *.hh *SK.cc *.py *.hxx *.cxx
 
-clean-local:
-\trm -rf ${module} ${module}__POA
+EXTRA_DIST = $$(IDL_FILES)
 
-install-data-local:
-\t$${mkinstalldirs} $$(DESTDIR)$$(salomepythondir)
-\tcp -R ${module} ${module}__POA $$(DESTDIR)$$(salomepythondir)
+install-data-local: $$(IDL_FILES)
+\t$$(INSTALL) -d  $$(DESTDIR)$$(salomepythondir)
+\tls $$^ | while read file; do \\
+\t$$(OMNIORB_IDL) $$(OMNIORB_IDLPYFLAGS) $$(IDL_INCLUDES) -C$$(DESTDIR)$$(salomepythondir) $$$$file ; \\
+\tdone
 
 uninstall-local:
-\trm -rf $$(DESTDIR)$$(salomepythondir)/${module}
-\trm -rf $$(DESTDIR)$$(salomepythondir)/${module}__POA
+\trm -rf $$(DESTDIR)$$(salomepythondir)/*
+
 """
 idlMakefile=Template(idlMakefile)
+
+# PACO Part
+idlMakefilePaCO_BUILT_SOURCES = "${module}PaCO.cxx "
+idlMakefilePaCO_nodist_salomeinclude_HEADERS = "${module}PaCO.hxx "
+idlMakefilePaCO_BUILT_SOURCES = Template(idlMakefilePaCO_BUILT_SOURCES)
+idlMakefilePaCO_nodist_salomeinclude_HEADERS = Template(idlMakefilePaCO_nodist_salomeinclude_HEADERS)
+idlMakefilePACO_INCLUDES = "-I@PACOPATH@/idl"
+idlMakefilePACO_salomepython_DATA = "${module}PaCO_idl.py"
+idlMakefilePACO_salomepython_DATA = Template(idlMakefilePACO_salomepython_DATA)
+idlMakefilePACO_salomeidl_DATA = "${module}PaCO.idl"
+idlMakefilePACO_salomeidl_DATA = Template(idlMakefilePACO_salomeidl_DATA)
 
 #SALOME catalog
 
@@ -83,6 +157,7 @@ catalog="""<?xml version='1.0' encoding='us-ascii' ?>
 <!-- Commonly used types  -->
 <type-list>
   <objref name="pyobj" id="python:obj:1.0"/>
+  <objref name="file" id="file"/>
 </type-list>
 
 <!-- Component list -->
@@ -161,3 +236,14 @@ cataOutStream="""                       <outParameter>
                        </outParameter>"""
 cataOutStream=Template(cataOutStream)
 
+cataInParallelStream="""                       <inParameter>
+                          <inParameter-name>${name}</inParameter-name>
+                          <inParameter-type>${type}</inParameter-type>
+                       </inParameter>"""
+cataInParallelStream=Template(cataInParallelStream)
+
+cataOutParallelStream="""                       <outParameter>
+                          <outParameter-name>${name}</outParameter-name>
+                          <outParameter-type>${type}</outParameter-type>
+                       </outParameter>"""
+cataOutParallelStream=Template(cataOutParallelStream)

@@ -1,12 +1,32 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """
  Example with one Code_Aster component and one fortran component
 """
 import os
+
+#import context from ..
+execfile("../context.py")
 from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
-context={'update':1,"prerequisites":"/local/cchris/.packages.d/envSalome50",
-          "kernel":"/local/chris/SALOME2/RELEASES/Install/KERNEL_V5"}
-aster_root="/local/chris/ASTER/instals/NEW9"
+aster_root=os.path.join(aster_home,aster_version)
 
 libfcompodir=os.path.join(os.getcwd(),"fcompo")
 myasterdir=os.path.join(os.getcwd(),"myaster","bibpyt")
@@ -26,9 +46,9 @@ c1=ASTERComponent("caster",services=[
          ],
          aster_dir=aster_root,
          python_path=[myasterdir],
-         argv=["-memjeveux","4",'-rep_outils','/local/chris/ASTER/instals/outils'],
+         argv=["-memjeveux","4",'-rep_outils',os.path.join(aster_home,'outils')],
          )
-          
+
 c2=F77Component("cfort",services=[
           Service("s1",inport=[("a","double"),("b","long"),("c","string")],
                        outport=[("d","double"),("e","long"),("f","string")],
@@ -49,4 +69,4 @@ g.bootstrap()
 g.configure()
 g.make()
 g.install()
-g.make_appli(appli_dir,restrict=["KERNEL","GUI","YACS"])
+g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR})

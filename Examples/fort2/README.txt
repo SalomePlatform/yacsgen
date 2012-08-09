@@ -1,13 +1,14 @@
 A Fortran standalone component
 =================================
 
-To build this example, modify the components.py and Makefile files
+To build this example, modify the ../context.py, ../makefile.inc and Makefile files
 to take into account your configuration.
 
 1- your prerequisite file 
 2- your KERNEL_ROOT_DIR
+3- your FORTRAN compiler
 
-Then set the environment (including PYTHONPATH for YACGEN, ../.. from here)::
+Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here)::
 
   source <your prerequisite file>
 
@@ -16,11 +17,11 @@ and process components.py ::
   python components.py
 
 You should get a SALOME module in source form (fcompos_SRC), its installation (install) and
-a SALOME application (appli) composed of modules KERNEL, GUI, YACS and fcompos.
+a SALOME application (appli) composed of modules KERNEL, GUI, YACS and the new module fcompos.
 
-Build the code1 et code2 executables ::
+Build the code1 et code2 executables under the SALOME application environment::
 
-  make
+  ./appli/runSession make
 
 To run a coupling:
 

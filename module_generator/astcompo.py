@@ -1,129 +1,229 @@
-import re, os
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
+"""
+  This module defines the ASTERComponent class for ASTER component generation
+  An ASTER component comes in 3 flavors :
+   - implemented as a dynamic library (kind='lib')
+   - implemented as a standalone component (kind='exe')
+   - implemented as a specific container (kind='cexe')
+"""
+import re, os, sys
 
 from gener import Component, Invalid, makedirs
 
 from pyth_tmpl import pyinitEXEService, pyinitCEXEService, pyinitService
+import aster_tmpl
 from aster_tmpl import asterCEXEService, asterEXEService
 from aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
-from aster_tmpl import asterexeMakefile, astercexeMakefile, astercompoMakefile
 from aster_tmpl import comm, make_etude, cexe, exeaster
 from aster_tmpl import container, component
 
 class ASTERComponent(Component):
+  """
+   A :class:`ASTERComponent` instance represents an ASTER SALOME component (special component for Code_Aster that is a mix of
+   Fortran and Python code) with services given as a list of :class:`Service` instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (executable or shell script). The default is to build the component as a dynamic library.
+   :param libs: gives all the libraries options to add when linking the generated component (-L...).
+   :param rlibs: gives all the runtime libraries options to add when linking the generated component (-R...).
+   :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
+   :param aster_dir: gives the Code_Aster installation directory.
+   :param python_path: If it is given (as a list of paths), all the paths are added to the python path (sys.path).
+   :param argv: is a list of strings that gives the command line parameters for Code_Aster. This parameter is only useful when
+      kind is "lib".
+
+   For example, the following call defines a Code_Aster component named "mycompo" with one service s1 (it must have been defined before).
+   This standalone component takes some command line arguments::
+
+      >>> c1 = module_generator.ASTERComponent('mycompo', services=[s1,], kind="exe",
+                                                          exe_path="launch.sh",
+                                                          argv=["-memjeveux","4"])
+  """
   def __init__(self, name, services=None, libs="", rlibs="", aster_dir="", 
-                     python_path=None, argv=None, kind="lib", exe_path=None,
-                     asrun=None, export_extras=""):
+                     python_path=None, argv=None, kind="lib", exe_path=None):
+    """initialise component attributes"""
     self.aster_dir = aster_dir
     self.python_path = python_path or []
     self.argv = argv or []
     self.exe_path = exe_path
-    self.asrun = asrun
-    self.export_extras = export_extras
     Component.__init__(self, name, services, impl="ASTER", libs=libs, 
                              rlibs=rlibs, kind=kind)
 
   def validate(self):
+    """validate the component definition"""
     Component.validate(self)
     if not self.aster_dir:
       raise Invalid("aster_dir must be defined for component %s" % self.name)
 
     kinds = ("lib", "cexe", "exe")
     if self.kind not in kinds:
-      raise Invalid("kind must be one of %s" % kinds)
+      raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
     if self.kind == "lib" and not self.python_path:
       raise Invalid("python_path must be defined for component %s" % self.name)
     if self.kind == "cexe" :
       if not self.exe_path:
         raise Invalid("exe_path must be defined for component %s" % self.name)
-      if not self.asrun:
-        raise Invalid("asrun must be defined for component %s" % self.name)
-      if not os.path.exists(self.asrun):
-        raise Invalid("asrun does not exist for component %s" % self.name)
     if self.kind == "exe" :
       if not self.exe_path:
         raise Invalid("exe_path must be defined for component %s" % self.name)
-      if not self.asrun:
-        raise Invalid("asrun must be defined for component %s" % self.name)
-      if not os.path.exists(self.asrun):
-        raise Invalid("asrun does not exist for component %s" % self.name)
 
+    #Si un port de nom jdc n'est pas defini dans la liste des inports du service,
+    #on en ajoute un de type string en premiere position
     for serv in self.services:
-      #on ajoute un inport string de nom jdc en premier dans la liste des ports de chaque service
-      serv.inport.insert(0, ("jdc", "string"))
+      found=False
+      for port_name,port_type in serv.inport:
+        if port_name == "jdc":
+          found=True
+          break
+      if not found:
+        serv.inport.insert(0, ("jdc", "string"))
 
   def makeCompo(self, gen):
+    """drive the generation of SALOME module files and code files
+       depending on the choosen component kind
+    """
     filename = "%s.py" % self.name
     #on suppose que les composants ASTER sont homogenes (utilisent meme install)
     gen.aster = self.aster_dir
+
+    #get ASTER version
+    f = os.path.join(self.aster_dir, "bibpyt", 'Accas', 'properties.py')
+    self.version=(0,0,0)
+    if os.path.isfile(f):
+      mydict = {}
+      execfile(f, mydict)
+      v,r,p = mydict['version'].split('.')
+      self.version=(int(v),int(r),int(p))
+
     if self.kind == "lib":
-      return {"Makefile.am":astercompoMakefile.substitute(module=gen.module.name, 
-                                                          component=self.name),
-             filename:self.makeaster(gen)}
+      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+              filename:self.makeaster(gen)}
     elif self.kind == "cexe":
-      #creation de l'installation aster dans exe_path
-      self.makecexepath(gen)
-      return {"Makefile.am":astercexeMakefile.substitute(module=gen.module.name, 
-                                                         component=self.name),
-             filename:self.makecexeaster(gen)}
+      fdict=self.makecexepath(gen)
+      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+           self.name+".exe":cexe.substitute(compoexe=self.exe_path),
+           filename:self.makecexeaster(gen)
+         }
+      d.update(fdict)
+      return d
     elif self.kind == "exe":
-      #creation de l'installation aster dans exe_path
-      self.makeexepath(gen)
-      return {"Makefile.am":asterexeMakefile.substitute(module=gen.module.name, 
-                                                        component=self.name),
-               self.name+".exe":exeaster.substitute(export=os.path.join(self.exe_path, "make_etude.export"), asrun=self.asrun),
-               self.name+"_module.py":self.makeexeaster(gen)}
+      fdict=self.makeexepath(gen)
+      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+           self.name+".exe":exeaster.substitute(compoexe=self.exe_path),
+           self.name+"_module.py":self.makeexeaster(gen)
+         }
+      d.update(fdict)
+      return d
+
+  def getMakefileItems(self,gen):
+    makefileItems={"header":"include $(top_srcdir)/adm_local/make_common_starter.am"}
+    if self.kind == "lib":
+      makefileItems["salomepython_PYTHON"]=[self.name+".py"]
+    elif self.kind == "exe":
+      makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py"]
+      if self.version < (10,1,2):
+        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
+      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
+      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+    elif self.kind == "cexe":
+      makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py"]
+      if self.version < (10,1,2):
+        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
+      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
+      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+    return makefileItems
+
 
   def makeexepath(self, gen):
-    makedirs(self.exe_path)
-    #patch to E_SUPERV.py
-    fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-    esuperv = fil.read()
-    esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-    fil.close()
-    #utilisation d'un programme principal python different
+    """standalone component: generate files for calculation code"""
+
+    fdict={}
+
+    if self.version < (10,1,2):
+      #patch to E_SUPERV.py
+      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+      esuperv = fil.read()
+      fil.close()
+      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+      fdict["E_SUPERV.py"]=esuperv
+
+    #use a specific main program (modification of config.txt file)
     fil = open(os.path.join(self.aster_dir, "config.txt"))
     config = fil.read()
-    config = re.sub("Execution\/E_SUPERV.py", os.path.join(self.exe_path, "aster_component.py"), config)
     fil.close()
+    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
 
-    gen.makeFiles({
-                   "aster_component.py":component.substitute(component=self.name),
-                   "make_etude.export":make_etude.substitute(config=os.path.join(self.exe_path, "config.txt"),
-                                                             comm=os.path.join(self.exe_path, self.name+".comm"),
-                                                             extras=self.export_extras),
-                   self.name+".comm":comm,
-                   "config.txt":config,
-                   "profile.sh":os.path.join(self.aster_dir, "profile.sh"),
-                   "E_SUPERV.py":esuperv,
-                  }, self.exe_path)
+    path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+                      'site-packages','salome','%s_component.py'%self.name)
+    config = re.sub("Execution\/E_SUPERV.py", path, config)
+    config += "ENV_SH         | env      | -    | " + self.prerequisites + "\n"
+
+    fdict["%s_config.txt" % self.name] = config
+    fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
+
+    return fdict
 
   def makecexepath(self, gen):
-    makedirs(self.exe_path)
-    #patch to E_SUPERV.py
-    fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-    esuperv = fil.read()
-    esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-    fil.close()
-    #utilisation d'un programme principal python different
+    """specific container: generate files"""
+
+    fdict={}
+
+    if self.version < (10,1,2):
+      #patch to E_SUPERV.py
+      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+      esuperv = fil.read()
+      fil.close()
+      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+      fdict["E_SUPERV.py"]=esuperv
+
+    #use a specific main program
     fil = open(os.path.join(self.aster_dir, "config.txt"))
     config = fil.read()
-    config = re.sub("Execution\/E_SUPERV.py", os.path.join(self.exe_path, "aster_container.py"), config)
     fil.close()
-    gen.makeFiles({self.name+".exe":cexe.substitute(export=os.path.join(self.exe_path, "make_etude.export"),
-                                                    asrun=self.asrun),
-                   "aster_container.py":container,
-                   "make_etude.export":make_etude.substitute(config=os.path.join(self.exe_path, "config.txt"),
-                                                             comm=os.path.join(self.exe_path, self.name+".comm"),
-                                                             extras=self.export_extras),
-                   self.name+".comm":comm,
-                   "config.txt":config,
-                   "profile.sh":os.path.join(self.aster_dir, "profile.sh"),
-                   "E_SUPERV.py":esuperv,
-                  }, self.exe_path)
-    #make exe executable
-    os.chmod(os.path.join(self.exe_path, self.name+".exe"), 0777)
+    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+    path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+                      'site-packages','salome','%s_container.py' % self.name)
+    config = re.sub("Execution\/E_SUPERV.py", path, config)
+    config += "ENV_SH         | env      | -    | " + self.prerequisites + "\n"
+
+    fdict["%s_container.py" % self.name] = container
+    fdict["%s_config.txt" % self.name] = config
+
+    return fdict
 
   def makeexeaster(self, gen):
+    """standalone component: generate SALOME component source"""
     services = []
     inits = []
     defs = []
@@ -132,6 +232,7 @@ class ASTERComponent(Component):
       params = []
       datas = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           datas.append('"%s":cPickle.loads(%s)' % (name, name))
@@ -145,6 +246,7 @@ class ASTERComponent(Component):
       params = []
       datas = []
       for name, typ in serv.outport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           datas.append('cPickle.dumps(j.g_context["%s"],-1)'%name)
@@ -153,11 +255,11 @@ class ASTERComponent(Component):
       outparams = ",".join(params)
       rvars = ",".join(datas)
 
-      service = asterEXEService.substitute(component=self.name, 
-                                           service=serv.name, 
+      service = asterEXEService.substitute(component=self.name,
+                                           service=serv.name,
                                            inparams=inparams,
-                                           outparams=outparams, 
-                                           body=serv.body, 
+                                           outparams=outparams,
+                                           body=serv.body,
                                            dvars=dvars, rvars=rvars)
       streams = []
       for name, typ, dep in serv.instream:
@@ -172,13 +274,24 @@ class ASTERComponent(Component):
                                          instream=instream, outstream=outstream)
       services.append(service)
       inits.append(init)
+
+    if self.version < (10,1,2):
+      importesuperv="from E_SUPERV import SUPERV"
+    else:
+      importesuperv="""sys.path=["%s"]+sys.path
+from Execution.E_SUPERV import SUPERV
+""" % os.path.join(self.aster_dir, "bibpyt")
+
     return asterEXECompo.substitute(component=self.name, module=gen.module.name,
-                                    servicesdef="\n".join(defs), 
-                                    servicesimpl="\n".join(services), 
+                                    servicesdef="\n".join(defs),
+                                    servicesimpl="\n".join(services),
                                     initservice='\n'.join(inits),
-                                    aster_dir=self.aster_dir)
+                                    aster_dir=self.aster_dir,
+                                    importesuperv=importesuperv,
+                                    )
 
   def makecexeaster(self, gen):
+    """specific container: generate SALOME component source"""
     services = []
     inits = []
     defs = []
@@ -187,6 +300,7 @@ class ASTERComponent(Component):
       params = []
       datas = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           datas.append('"%s":cPickle.loads(%s)' % (name, name))
@@ -208,11 +322,11 @@ class ASTERComponent(Component):
       outparams = ",".join(params)
       rvars = ",".join(datas)
 
-      service = asterCEXEService.substitute(component=self.name, 
-                                            service=serv.name, 
+      service = asterCEXEService.substitute(component=self.name,
+                                            service=serv.name,
                                             inparams=inparams,
-                                            outparams=outparams, 
-                                            body=serv.body, 
+                                            outparams=outparams,
+                                            body=serv.body,
                                             dvars=dvars, rvars=rvars)
       streams = []
       for name, typ, dep in serv.instream:
@@ -229,19 +343,31 @@ class ASTERComponent(Component):
                                           outstream=outstream)
       services.append(service)
       inits.append(init)
+
+    if self.version < (10,1,2):
+      importesuperv="from E_SUPERV import SUPERV"
+    else:
+      importesuperv="""sys.path=["%s"] +sys.path
+from Execution.E_SUPERV import SUPERV
+""" % os.path.join(self.aster_dir, "bibpyt")
+
     return asterCEXECompo.substitute(component=self.name, 
                                      module=gen.module.name,
                                      servicesdef="\n".join(defs), 
                                      servicesimpl="\n".join(services), 
                                      initservice='\n'.join(inits),
-                                     aster_dir=self.aster_dir)
+                                     aster_dir=self.aster_dir,
+                                     importesuperv=importesuperv,
+                                     )
+
   def getImpl(self):
     if self.kind == "cexe":
-      return "CEXE", os.path.join(self.exe_path, self.name+".exe")
+      return "CEXE", self.name+".exe"
     else:
       return "SO", ""
 
   def makeaster(self, gen):
+    """library component: generate SALOME component source"""
     services = []
     inits = []
     defs = []
@@ -250,6 +376,7 @@ class ASTERComponent(Component):
       params = []
       datas = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           datas.append('"%s":cPickle.loads(%s)' % (name, name))

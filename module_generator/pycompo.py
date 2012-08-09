@@ -1,40 +1,108 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 """
   Module that defines PYComponent for SALOME components implemented in Python
 """
+import os
 from gener import Component, Invalid
 from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo
-from pyth_tmpl import pycompoEXEMakefile, pycompoMakefile
+import textwrap
+from string import split,rstrip,join
+
+def indent(text, prefix='    '):
+  """Indent text by prepending a given prefix to each line."""
+  if not text: return ''
+  lines = split(text, '\n')
+  lines = map(lambda line, prefix=prefix: prefix + line, lines)
+  if lines: lines[-1] = rstrip(lines[-1])
+  return join(lines, '\n')
 
 class PYComponent(Component):
-  def __init__(self, name, services=None, python_path=None, kind="lib",
-                     sources=None):
+  """
+   A :class:`PYComponent` instance represents a Python SALOME component with services given as a list of :class:`Service`
+   instances with the parameter *services*.
+
+   :param name: gives the name of the component.
+   :type name: str
+   :param services: the list of services (:class:`Service`) of the component.
+   :param kind: If it is given and has the value "exe", the component will be built as a standalone
+      component (python executable). The default is to build the component as a python module.
+   :param sources: gives all the external Python source files to add in the component directory (list of paths).
+   :param python_path: If it is given (as a list of paths), all the paths are added to the python path (sys.path).
+   :param compodefs: can be used to add extra definition code in the component for example when using a base class
+      to define the component class by deriving it (see *inheritedclass* parameter)
+   :param inheritedclass: can be used to define a base class for the component. The base class can be defined in external
+      source or with the *compodefs* parameter. The value of the *inheritedclass* parameter is the name of the base class.
+   :param idls: can be used to add extra idl CORBA interfaces. This parameter must gives a list of idl file names that are
+      added into the generated module (idl directory) and compiled with the generated idl of the module.
+   :param interfacedefs: can be used to add idl definitions (or includes of idl files) into the generated idl of the module.
+   :param inheritedinterface: can be used to make the component inherit an extra idl interface that has been included through
+      the *idls* and *interfacedefs* parameters. See the pygui1 example for how to use these last parameters.
+
+   For example, the following call defines a Python component named "mycompo" with one service s1 (it must have been defined before)::
+
+      >>> c1 = module_generator.PYComponent('mycompo', services=[s1,],
+                                                       python_path="apath")
+
+  """
+  def __init__(self, name, services=None, kind="lib", sources=None, python_path=None,
+                     compodefs="", inheritedclass="", idls=None, interfacedefs="", inheritedinterface=""):
+    """initialise component attributes"""
     self.python_path = python_path or []
-    Component.__init__(self, name, services, impl="PY", kind=kind,
-                             sources=sources)
+    Component.__init__(self, name, services, impl="PY", kind=kind, sources=sources,
+                             inheritedclass=inheritedclass, compodefs=compodefs,
+                             idls=idls,interfacedefs=interfacedefs,inheritedinterface=inheritedinterface)
 
   def validate(self):
+    """validate component attributes"""
     Component.validate(self)
     kinds = ("lib","exe")
     if self.kind not in kinds:
-      raise Invalid("kind must be one of %s" % kinds)
+      raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
 
   def makeCompo(self, gen):
+    """generate component sources as a dictionary containing
+       file names (key) and file content (values)
+    """
     pyfile = "%s.py" % self.name
-    sources = " ".join(self.sources)
+    sources = " ".join(map(os.path.basename,self.sources))
     if self.kind == "lib":
-      return {"Makefile.am":pycompoMakefile.substitute(module=gen.module.name, 
-                                                       component=self.name,
-                                                       sources=sources), 
+      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
               pyfile:self.makepy(gen)
              }
     if self.kind == "exe":
-      return {"Makefile.am":pycompoEXEMakefile.substitute(module=gen.module.name, 
-                                                          component=self.name,
-                                                          sources=sources), 
+      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
               self.name+".exe":self.makepyexe(gen),
              }
 
+  def getMakefileItems(self,gen):
+    makefileItems={"header":"include $(top_srcdir)/adm_local/make_common_starter.am"}
+    if self.kind == "lib":
+      makefileItems["salomepython_PYTHON"]=[self.name+".py"]+self.sources
+    if self.kind == "exe":
+      makefileItems["salomepython_PYTHON"]=self.sources
+      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
+    return makefileItems
+
   def makepy(self, gen):
+    """generate standard SALOME component source (python module)"""
     services = []
     inits = []
     defs = []
@@ -43,6 +111,7 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
@@ -52,13 +121,18 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.outport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
+      #dedent and indent the body
+      body=textwrap.dedent(serv.body)
+      body=indent(body,' '*6)
+
       service = pyService.substitute(component=self.name, service=serv.name, inparams=inparams,
-                                     outparams=outparams, body=serv.body, 
+                                     outparams=outparams, body= body,
                                      convertinparams=convertinparams,
                                      convertoutparams=convertoutparams)
       streams = []
@@ -76,12 +150,23 @@ class PYComponent(Component):
       inits.append(init)
 
     python_path = ",".join([repr(p) for p in self.python_path])
+
+    inheritedclass=self.inheritedclass
+    callconstructor=""
+    if self.inheritedclass:
+      inheritedclass= self.inheritedclass + ","
+      callconstructor="""
+    if hasattr(%s,"__init__"):
+      %s.__init__(self)""" % (self.inheritedclass,self.inheritedclass)
+
     return pyCompo.substitute(component=self.name, module=gen.module.name,
-                              servicesdef="\n".join(defs), servicesimpl="\n".join(services), 
+                              servicesdef="\n".join(defs), servicesimpl="\n".join(services),
                               initservice='\n'.join(inits),
-                              python_path=python_path)
+                              python_path=python_path,inheritedclass=inheritedclass,
+                              compodefs=self.compodefs, callconstructor=callconstructor)
 
   def makepyexe(self, gen):
+    """generate standalone component source (python executable)"""
     services = []
     inits = []
     defs = []
@@ -90,6 +175,7 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.inport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
@@ -99,14 +185,18 @@ class PYComponent(Component):
       params = []
       pyparams = []
       for name, typ in serv.outport:
+        if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
           pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
-      service = pyService.substitute(component=self.name, service=serv.name, 
-                                     inparams=inparams, outparams=outparams, 
-                                     body=serv.body, 
+      #dedent and indent the body
+      body=textwrap.dedent(serv.body)
+      body=indent(body,' '*6)
+      service = pyService.substitute(component=self.name, service=serv.name,
+                                     inparams=inparams, outparams=outparams,
+                                     body=body,
                                      convertinparams=convertinparams,
                                      convertoutparams=convertoutparams,
                                     )
@@ -125,11 +215,19 @@ class PYComponent(Component):
       inits.append(init)
 
     python_path = ",".join([repr(p) for p in self.python_path])
+
+    inheritedclass=self.inheritedclass
+    callconstructor=""
+    if self.inheritedclass:
+      inheritedclass= self.inheritedclass + ","
+      callconstructor="""
+    if hasattr(%s,"__init__"):
+      %s.__init__(self)""" % (self.inheritedclass,self.inheritedclass)
+
     return pyCompoEXE.substitute(component=self.name, module=gen.module.name,
-                                 servicesdef="\n".join(defs), 
+                                 servicesdef="\n".join(defs),
                                  servicesimpl="\n".join(services),
-                                 initservice='\n'.join(inits), 
-                                 python_path=python_path)
-
-
+                                 initservice='\n'.join(inits),
+                                 python_path=python_path,inheritedclass=inheritedclass,
+                                 compodefs=self.compodefs, callconstructor=callconstructor)
 

@@ -1,3 +1,22 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -9,10 +28,13 @@ cxxCompo="""
 #include <unistd.h>
 
 #include <Calcium.hxx>
-#include <calcium.h>
+#include <CalciumException.hxx>
+${CalciumInterface}
 #include <signal.h>
 #include <SALOME_NamingService.hxx>
 #include <Utils_SALOME_Exception.hxx>
+#include <pthread.h>
+#include <execinfo.h>
 
 typedef void (*sighandler_t)(int);
 sighandler_t setsig(int sig, sighandler_t handler)
@@ -28,6 +50,20 @@ sighandler_t setsig(int sig, sighandler_t handler)
 
 static void AttachDebugger()
 {
+  void *array[20];
+  size_t size=20;
+  char **strings;
+  size_t i;
+  std::string _what;
+  size = backtrace (array, size);
+  strings = backtrace_symbols (array, size);
+  for (i = 0; i < size; i++)
+     _what=_what+strings[i]+ '\\n';
+  free (strings);
+
+  std::cerr << pthread_self() << std::endl;
+  std::cerr << _what << std::endl;
+
   if(getenv ("DEBUGGER"))
     {
       std::stringstream exec;
@@ -90,14 +126,16 @@ static void unexpectedHandler(void)
 ${servicesdef}
 //ENDDEF
 
+#include <calcium.h>
+
 extern "C" void cp_exit(int err);
 
-extern "C" void F_FUNC(cpexit,CPEXIT)(int err)
+extern "C" void F_FUNC(cpexit,CPEXIT)(int *err)
 {
-  if(err==-1)
+  if(*err==-1)
     _exit(-1);
   else
-    cp_exit(err);
+    cp_exit(*err);
 }
 
 using namespace std;
@@ -113,7 +151,6 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, contId, instanceName, interfaceName)
 {
-  std::cerr << "create component" << std::endl;
 #if ${exe}
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
@@ -146,10 +183,12 @@ ${component}_i::~${component}_i()
 
 void ${component}_i::destroy()
 {
-  Engines_Component_i::destroy();
 #if ${exe}
+  _remove_ref();
   if(!CORBA::is_nil(_orb))
     _orb->shutdown(0);
+#else
+  Engines_Component_i::destroy();
 #endif
 }
 
@@ -199,8 +238,8 @@ extern "C"
         Engines::Container_var container = Engines::Container::_narrow(obj);
         ${component}_i * myEngine = new ${component}_i(orb, poa, container, instanceName.c_str(), "${component}");
         pman->activate();
-        obj=myEngine->_this();
-        Engines::Component_var component = Engines::Component::_narrow(obj);
+        obj=myEngine->POA_${module}_ORB::${component}::_this();
+        Engines::EngineComponent_var component = Engines::EngineComponent::_narrow(obj);
         string component_registerName = containerName + "/" + instanceName;
         salomens->Register(component,component_registerName.c_str());
         orb->run();
@@ -232,12 +271,16 @@ hxxCompo="""
 #ifndef _${component}_HXX_
 #define _${component}_HXX_
 
+#include <SALOME_Component.hh>
 #include "Superv_Component_i.hxx"
 #include "${module}.hh"
 
-class ${component}_i:
-  public virtual POA_${module}::${component},
-  public virtual Superv_Component_i
+//COMPODEFS
+${compodefs}
+//ENDDEF
+
+class ${component}_i: public virtual POA_${module}_ORB::${component},
+                      ${inheritedclass} public virtual Superv_Component_i
 {
   public:
     ${component}_i(CORBA::ORB_ptr orb, PortableServer::POA_ptr poa,
@@ -269,22 +312,21 @@ hxxCompo=Template(hxxCompo)
 cxxService="""
 void ${component}_i::${service}(${parameters})
 {
-  std::cerr << "${component}_i::${service}" << std::endl;
   beginService("${component}_i::${service}");
   Superv_Component_i * component = dynamic_cast<Superv_Component_i*>(this);
-  char       nom_instance[INSTANCE_LEN];
-  int info = cp_cd(component,nom_instance);
+  //char       nom_instance[INSTANCE_LEN];
+  //int info = cp_cd(component,nom_instance);
   try
     {
 //BODY
 ${body}
 //ENDBODY
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
     }
   catch ( const CalciumException & ex)
     {
       std::cerr << ex.what() << std::endl;
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(ex.what());
       es.type=SALOME::INTERNAL_ERROR;
@@ -292,7 +334,7 @@ ${body}
     }
   catch ( const SALOME_Exception & ex)
     {
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(ex.what());
       es.type=SALOME::INTERNAL_ERROR;
@@ -300,8 +342,16 @@ ${body}
     }
   catch ( const SALOME::SALOME_Exception & ex)
     {
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       throw;
+    }
+  catch ( const std::exception& ex)
+    {
+      //std::cerr << typeid(ex).name() << std::endl;
+      SALOME::ExceptionStruct es;
+      es.text=CORBA::string_dup(ex.what());
+      es.type=SALOME::INTERNAL_ERROR;
+      throw SALOME::SALOME_Exception(es);
     }
   catch (...)
     {
@@ -309,14 +359,13 @@ ${body}
 #if ${exe}
       _exit(-1);
 #endif
-      cp_fin(component,CP_ARRET);
+      //cp_fin(component,CP_ARRET);
       SALOME::ExceptionStruct es;
       es.text=CORBA::string_dup(" unknown exception");
       es.type=SALOME::INTERNAL_ERROR;
       throw SALOME::SALOME_Exception(es);
     }
   endService("${component}_i::${service}");
-  std::cerr << "end of ${component}_i::${service}" << std::endl;
 }
 
 """
@@ -359,36 +408,21 @@ exeCPP=Template(exeCPP)
 # Makefile
 
 compoMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
-
-lib_LTLIBRARIES = lib${component}Engine.la
 lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
 nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Engine_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Engine_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Engine_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Engine_la_LDFLAGS = ${rlibs}
-salomeinclude_HEADERS = ${component}.hxx
 """
 compoMakefile=Template(compoMakefile)
 
 compoEXEMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-AM_CFLAGS=$$(KERNEL_INCLUDES) -fexceptions
-
-lib_LTLIBRARIES = lib${component}Exelib.la
 lib${component}Exelib_la_SOURCES      = ${component}.cxx
 nodist_lib${component}Exelib_la_SOURCES =
-lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(KERNEL_INCLUDES) ${includes}
-lib${component}Exelib_la_FFLAGS = $$(KERNEL_INCLUDES) -fexceptions ${includes}
-lib${component}Exelib_la_LIBADD   = -L$$(top_builddir)/idl -l${module} $$(FLIBS) ${libs}
+lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
+lib${component}Exelib_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
+lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
 lib${component}Exelib_la_LDFLAGS = ${rlibs}
-salomeinclude_HEADERS = ${component}.hxx
-# These files are executable scripts
-dist_salomescript_SCRIPTS= ${component}.exe
 """
 compoEXEMakefile=Template(compoEXEMakefile)
-

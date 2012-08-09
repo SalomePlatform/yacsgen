@@ -1,3 +1,22 @@
+# Copyright (C) 2009-2012  EDF R&D
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#
+# See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+#
+
 try:
   from string import Template
 except:
@@ -6,10 +25,11 @@ except:
 pyCompo="""
 import sys,traceback,os
 sys.path=sys.path+[${python_path}]
-import ${module}__POA
+import ${module}_ORB__POA
 import calcium
 import dsccalcium
 import SALOME
+import Engines
 import cPickle
 
 try:
@@ -17,20 +37,24 @@ try:
 except:
   numpy=None
 
+#COMPODEFS
+${compodefs}
+#ENDDEF
+
 #DEFS
 ${servicesdef}
 #ENDDEF
 
-class ${component}(${module}__POA.${component},dsccalcium.PyDSCComponent):
+class ${component}(${module}_ORB__POA.${component}, ${inheritedclass} dsccalcium.PyDSCComponent):
   '''
      To be identified as a SALOME component this Python class
      must have the same name as the component, inherit omniorb
-     class ${module}__POA.${component} and DSC class dsccalcium.PyDSCComponent
+     class ${module}_ORB__POA.${component} and DSC class dsccalcium.PyDSCComponent
      that implements DSC API.
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
-    print "${component}.__init__: ", containerName, ';', instanceName,interfaceName
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
+${callconstructor}
 
   def init_service(self,service):
 ${initservice}
@@ -42,7 +66,6 @@ ${servicesimpl}
 pyCompoEXE="""#!/usr/bin/env python
 """+pyCompo+"""
   def destroy(self):
-     dsccalcium.PyDSCComponent.destroy(self)
      self._orb.shutdown(0)
 
 if __name__ == '__main__':
@@ -80,7 +103,6 @@ pyCompoEXE=Template(pyCompoEXE)
 
 pyService="""
   def ${service}(self,${inparams}):
-    print "${component}.${service}"
     self.beginService("${component}.${service}")
     component=self.proxy
     returns=None
@@ -89,7 +111,6 @@ ${convertinparams}
 #BODY
 ${body}
 #ENDBODY
-      print "End of ${component}.${service}"
       sys.stdout.flush()
       self.endService("${component}.${service}")
 ${convertoutparams}
@@ -110,17 +131,4 @@ ${outstream}
 pyinitService=Template(pyinitService)
 pyinitCEXEService=pyinitService
 pyinitEXEService=pyinitService
-
-#Makefile
-
-pycompoMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${component}.py ${sources}
-"""
-pycompoMakefile=Template(pycompoMakefile)
-
-pycompoEXEMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-salomepython_PYTHON = ${sources}
-dist_salomescript_SCRIPTS= ${component}.exe
-"""
-pycompoEXEMakefile=Template(pycompoEXEMakefile)
 
