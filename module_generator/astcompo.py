@@ -182,7 +182,6 @@ class ASTERComponent(Component):
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
                       'site-packages','salome','%s_component.py'%self.name)
     config = re.sub("Execution\/E_SUPERV.py", path, config)
-    config += "ENV_SH         | env      | -    | " + self.prerequisites + "\n"
 
     fdict["%s_config.txt" % self.name] = config
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
@@ -215,7 +214,6 @@ class ASTERComponent(Component):
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
                       'site-packages','salome','%s_container.py' % self.name)
     config = re.sub("Execution\/E_SUPERV.py", path, config)
-    config += "ENV_SH         | env      | -    | " + self.prerequisites + "\n"
 
     fdict["%s_container.py" % self.name] = container
     fdict["%s_config.txt" % self.name] = config
