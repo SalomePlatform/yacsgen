@@ -44,8 +44,7 @@ extern "C" {
 
 // Constructor
 cppcomposGUI::cppcomposGUI() :
-  SalomeApp_Module( "cppcompos" ), // default name
-  LightApp_Module( "cppcompos" )
+  SalomeApp_Module( "cppcompos" ) // default name
 {
 }
 

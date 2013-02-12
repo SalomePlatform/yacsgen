@@ -40,8 +40,7 @@ using namespace std;
 
 // Constructor
 ${component_name}GUI::${component_name}GUI() :
-  SalomeApp_Module( COMPONENT_NAME ), // Module name
-  LightApp_Module( COMPONENT_NAME )  
+  SalomeApp_Module( COMPONENT_NAME ) // Module name
 {
   // Initializations
   default_bool = false;
