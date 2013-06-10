@@ -54,6 +54,7 @@ cpp2idl_mapping["std::vector<int>*&"]="out %(module)s::intvec"
 cpp2idl_mapping["const ParaMEDMEM::MEDCouplingFieldDouble*"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
 cpp2idl_mapping["const ParaMEDMEM::MEDCouplingFieldDouble&"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
 cpp2idl_mapping["ParaMEDMEM::MEDCouplingFieldDouble*&"]="out SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+cpp2idl_mapping["const ParaMEDMEM::MEDCouplingUMesh*"]="in SALOME_MED::MEDCouplingUMeshCorbaInterface"
 
 # ['stringvec', 'string', 'double', 'long', 'dblevec', 'file', 'intvec', 'dataref', 'GEOM_Object', 'SMESH_Mesh', 'SMESH_Hypothesis', 'SALOME_MED/MED', 'SALOME_MED/MESH', 'SALOME_MED/SUPPORT', 'SALOME_MED/FIELD', 'SALOME_MED/FIELDDOUBLE', 'SALOME_MED/FIELDINT']
 cpp2yacs_mapping={}
@@ -112,6 +113,7 @@ cpp2yacs_mapping["std::vector<std::vector<double> >*"]="SALOME/Matrix"
 cpp2yacs_mapping["std::vector<std::string>"]="stringvec"
 cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
 cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingFieldDouble&"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
+cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingUMesh*"]="SALOME_MED/MEDCouplingUMeshCorbaInterface"
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*&"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingUMesh*"]="SALOME_MED/MEDCouplingUMeshCorbaInterface"
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
@@ -159,6 +161,7 @@ cpp_impl_a["const ParaMEDMEM::MEDCouplingFieldDouble*"]="\tParaMEDMEM::MEDCoupli
 cpp_impl_a["const ParaMEDMEM::MEDCouplingFieldDouble&"]="\tParaMEDMEM::MEDCouplingFieldDouble* __%(arg)s=ParaMEDMEM::MEDCouplingFieldDoubleClient::New(%(arg)s);\n"\
                          "\tParaMEDMEM::MEDCouplingFieldDouble& _%(arg)s=*__%(arg)s;\n"
 cpp_impl_a["ParaMEDMEM::MEDCouplingFieldDouble*&"]="\tParaMEDMEM::MEDCouplingFieldDouble* _%(arg)s;\n"
+cpp_impl_a["const ParaMEDMEM::MEDCouplingUMesh*"]="\tParaMEDMEM::MEDCouplingUMesh* _%(arg)s=ParaMEDMEM::MEDCouplingUMeshClient::New(%(arg)s);\n"
 
 
 # table for c++ code generation : returned value processing
@@ -244,7 +247,7 @@ cpp_impl_c["const MEDMEM::MESH*"]="\t_%(arg)s->removeReference();\n"
 cpp_impl_c["const MEDMEM::SUPPORT&"]="\t_%(arg)s->removeReference();\n"
 cpp_impl_c["const MEDMEM::SUPPORT*"]="\t_%(arg)s->removeReference();\n"
 cpp_impl_c["const ParaMEDMEM::MEDCouplingFieldDouble*"]="\t_%(arg)s->decrRef();\n"
-cpp_impl_c["const ParaMEDMEM::MEDCouplingFieldDouble*"]="\t_%(arg)s->decrRef();\n"
+cpp_impl_c["const ParaMEDMEM::MEDCouplingUMesh*"]="\t_%(arg)s->decrRef();\n"
 cpp_impl_c["const ParaMEDMEM::MEDCouplingFieldDouble&"]="\t__%(arg)s->decrRef();\n"
 cpp_impl_c["ParaMEDMEM::MEDCouplingFieldDouble*&"]="""\tParaMEDMEM::MEDCouplingFieldDoubleServant * %(arg)s_out=new ParaMEDMEM::MEDCouplingFieldDoubleServant(_%(arg)s);
 \t_%(arg)s->decrRef();
@@ -371,6 +374,7 @@ BEGIN {
   idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble*"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
   idl_arg_type["const ParaMEDMEM::MEDCouplingFieldDouble&"]="in SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
   idl_arg_type["ParaMEDMEM::MEDCouplingFieldDouble*&"]="out SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_arg_type["const ParaMEDMEM::MEDCouplingUMesh*"]="in SALOME_MED::MEDCouplingUMeshCorbaInterface"
 #
 #
 # mapping for returned types

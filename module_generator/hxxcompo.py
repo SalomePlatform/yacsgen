@@ -103,7 +103,9 @@ class HXX2SALOMEComponent(Component):
         "awk -v class_name=%s -f %s" % (class_name, p3n) ]
     cmd2 = ' | '.join(cmd2)
 
-    os.system(cmd2)
+    #os.system(cmd2)
+    import subprocess, sys
+    subprocess.call(cmd2, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
     os.remove(p01n)
     os.remove(p1n)
     os.remove(p2n)
