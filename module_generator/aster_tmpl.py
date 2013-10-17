@@ -76,8 +76,15 @@ ${servicesimpl}
 asterCompo=Template(asterCompo)
 
 asterCEXECompo="""
+# Par rapport a la version precedente
+# Chaque service est complete par l'appel initial a Complement
+# Cette methode rajoute a l'appel du premier service de l'instance un prefixe au fichier de commande
+# Ce prefixe est fourni dans le fichier fort.99 via as_run et exeaster
+# Le fichier est lu a la creation du module
+# Interet: introduire DEBUT() dans ce prefixe pour ne plus avoir a s'en preoccuper (ex: boucle for each)
 import sys,traceback,os
 import string
+import cPickle
 import ${module}_ORB__POA
 import calcium
 import dsccalcium
@@ -106,12 +113,32 @@ class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUP
   '''
   def __init__ ( self, orb, poa, contID, containerName, instanceName, interfaceName ):
     self.init=0
+    if os.path.isfile('fort.99'):
+      prefixFile = file("fort.99","r")
+      self.prefixJdc = prefixFile.read()
+      prefixFile.close()
+    else:
+      self.prefixJdc = ""
     dsccalcium.PyDSCComponent.__init__(self, orb, poa,contID,containerName,instanceName,interfaceName)
 
   def init_service(self,service):
 ${initservice}
     return False
 
+  def insertPrefix(self,jdc):
+    if not self.init:
+      jdc = self.prefixJdc + jdc
+    return jdc
+
+  def insertPrePost(self,jdc,prepost):
+    if prepost <> "":
+      exec(prepost)
+      try:
+        jdc = os.linesep + pre + os.linesep + jdc + os.linesep + post + os.linesep
+      except NameError:
+        pass
+    return jdc
+    
   def interpstring(self,text,args):
     try:
       self.jdc.g_context.update(args)
@@ -254,6 +281,9 @@ asterCEXEService="""
         jdc=fcomm.read()
         fcomm.close()
         #args["jdc"]=jdc
+      prepost = '''${body}'''
+      jdc = self.insertPrePost(jdc,prepost)
+      jdc = self.insertPrefix(jdc)
       if not self.init:
         self.init=1
         fcomm=open("fort.1",'w')
