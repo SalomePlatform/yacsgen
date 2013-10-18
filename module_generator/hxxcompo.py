@@ -324,7 +324,6 @@ class HXX2SALOMEComponent(Component):
     if self.use_medcoupling:
         Compodefs+="""
 #include CORBA_CLIENT_HEADER(MEDCouplingCorbaServant)
-#include CORBA_CLIENT_HEADER(MED_Gen)
 #include "MEDCouplingFieldDoubleServant.hxx"
 #include "MEDCouplingUMeshServant.hxx"
 #include "MEDCouplingFieldDouble.hxx"

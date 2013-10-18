@@ -62,8 +62,6 @@ add_module("GEOM",idldefs,makefiledefs,configdefs)
 
 #module MED
 idldefs="""
-#include "MED_Gen.idl"
-#include "MED.idl"
 #include "MEDCouplingCorbaServant.idl"
 """
 makefiledefs="""
@@ -71,7 +69,7 @@ makefiledefs="""
 MED_IDL_INCLUDES = -I$(MED_ROOT_DIR)/idl/salome
 MED_INCLUDES= -I${MED2HOME}/include -I${MED_ROOT_DIR}/include/salome -DH5_USE_16_API -I${HDF5HOME}/include
 MED_IDL_LIBS= -L$(MED_ROOT_DIR)/lib/salome -lSalomeIDLMED
-MED_LIBS= -L${MED2HOME}/lib -lmed -L${HDF5HOME}/lib -lhdf5 -L${MED_ROOT_DIR}/lib/salome -lSalomeIDLMED -lMEDClientcmodule -lmedcouplingcorba -lmedcouplingclient 
+MED_LIBS= -L${MED2HOME}/lib -lmed -L${HDF5HOME}/lib -lhdf5 -L${MED_ROOT_DIR}/lib/salome -lSalomeIDLMED -lmedcouplingcorba -lmedcouplingclient 
 SALOME_LIBS += ${MED_LIBS}
 SALOME_IDL_LIBS += ${MED_IDL_LIBS}
 SALOME_INCLUDES += ${MED_INCLUDES}
