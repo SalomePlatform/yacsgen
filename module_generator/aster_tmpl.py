@@ -62,10 +62,15 @@ class ${component}(${module}_ORB__POA.${component},dsccalcium.PyDSCComponent,SUP
     if hasattr(self,"init_timer"):
       self.init_timer()
     #fin modif pour aster 9.0
-    if os.path.exists(os.path.join(aster_dir,"elements")):
-      shutil.copyfile(os.path.join(aster_dir,"elements"),"elem.1")
+    elements_file = ""
+    if os.path.exists(os.path.join(aster_dir,"share", "aster", "elements")):
+      elements_file = os.path.join(aster_dir,"elements")
+    elif os.path.exists(os.path.join(aster_dir,"elements")):
+      elements_file = os.path.join(aster_dir,"elements")
     else:
-      shutil.copyfile(os.path.join(aster_dir,"catobj","elements"),"elem.1")
+      elements_file = os.path.join(aster_dir,"catobj","elements")
+    shutil.copyfile(elements_file,"elem.1")
+    
 
   def init_service(self,service):
 ${initservice}
@@ -325,11 +330,11 @@ AC_ARG_WITH(aster,
       [AC_HELP_STRING([--with-aster=DIR],[root directory path of Aster installation])],
       [ASTER_DIR="$withval"],[ASTER_DIR=""])
 
-if test -f ${ASTER_DIR}/asteru ; then
+if test -f ${ASTER_DIR}/bin/aster ; then
    Aster_ok=yes
    AC_MSG_RESULT(Using Aster distribution in ${ASTER_DIR})
 
-   ASTER_INCLUDES=-I$ASTER_DIR/bibc/include
+   ASTER_INCLUDES=-I$ASTER_DIR/include/aster
 
    AC_SUBST(ASTER_DIR)
    AC_SUBST(ASTER_INCLUDES)

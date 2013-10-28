@@ -99,6 +99,31 @@ class ASTERComponent(Component):
       if not found:
         serv.inport.insert(0, ("jdc", "string"))
 
+  def getAsterPythonPath(self):
+    """Directory of aster python modules
+    """
+    python_version_dir = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
+    aster_python_path = os.path.join(self.aster_dir, "lib", python_version_dir, "site-packages")
+
+    if not os.path.exists(aster_python_path) :
+      aster_python_path = os.path.join(self.aster_dir, "bibpyt")
+      
+    return aster_python_path
+
+  def getConfig(self, gen):
+    """Content of the config.txt file
+    """
+    path_compo=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+                      'site-packages','salome','%s_component.py'%self.name)
+    conf="""ENV_SH         | env     | -     | $ASTER_VERSION_DIR/share/aster/profile.sh
+BINELE         | bin     | -     | $ASTER_VERSION_DIR/share/aster/elements
+SRCPY          | src     | -     | %s
+ARGPYT         | exec    | -     | %s
+""" % (self.getAsterPythonPath(), path_compo)
+    
+    return conf
+
   def makeCompo(self, gen):
     """drive the generation of SALOME module files and code files
        depending on the choosen component kind
@@ -108,7 +133,7 @@ class ASTERComponent(Component):
     gen.aster = self.aster_dir
 
     #get ASTER version
-    f = os.path.join(self.aster_dir, "bibpyt", 'Accas', 'properties.py')
+    f = os.path.join(self.aster_dir, self.getAsterPythonPath(), 'Accas', 'properties.py')
     self.version=(0,0,0)
     if os.path.isfile(f):
       mydict = {}
@@ -173,15 +198,21 @@ class ASTERComponent(Component):
       fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program (modification of config.txt file)
-    fil = open(os.path.join(self.aster_dir, "config.txt"))
-    config = fil.read()
-    fil.close()
-    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-
-    path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+    config = ""
+    path_config = os.path.join(self.aster_dir, "config.txt")
+    if os.path.exists(path_config) :
+      # old aster version - old mechanism kept for compatibility
+      fil = open(path_config)
+      config = fil.read()
+      fil.close()
+      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
                       'site-packages','salome','%s_component.py'%self.name)
-    config = re.sub("Execution\/E_SUPERV.py", path, config)
+      config = re.sub("Execution\/E_SUPERV.py", path, config)
+    else :
+      # getConfig doesn't work with older versions of aster
+      config = self.getConfig(gen)
 
     fdict["%s_config.txt" % self.name] = config
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
@@ -206,19 +237,37 @@ class ASTERComponent(Component):
       fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program
-    fil = open(os.path.join(self.aster_dir, "config.txt"))
-    config = fil.read()
-    fil.close()
-    config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-    path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+    config = ""
+    path_config = os.path.join(self.aster_dir, "config.txt")
+    if os.path.exists(path_config) :
+      # old aster version - old mechanism kept for compatibility
+      fil = open(path_config)
+      config = fil.read()
+      fil.close()
+      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
                       'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
                       'site-packages','salome','%s_container.py' % self.name)
-    config = re.sub("Execution\/E_SUPERV.py", path, config)
+      config = re.sub("Execution\/E_SUPERV.py", path, config)
+    else :
+      # getConfig doesn't work with older versions of aster
+      config = self.getConfig(gen)
 
     fdict["%s_container.py" % self.name] = container
     fdict["%s_config.txt" % self.name] = config
 
     return fdict
+
+  def getImportESuperv(self):
+    importesuperv=""
+    if self.version < (10,1,2):
+      importesuperv="from E_SUPERV import SUPERV"
+    else :
+      importesuperv="""sys.path=["%s"]+sys.path
+from Execution.E_SUPERV import SUPERV
+""" % self.getAsterPythonPath()
+    return importesuperv
+
 
   def makeexeaster(self, gen):
     """standalone component: generate SALOME component source"""
@@ -273,12 +322,7 @@ class ASTERComponent(Component):
       services.append(service)
       inits.append(init)
 
-    if self.version < (10,1,2):
-      importesuperv="from E_SUPERV import SUPERV"
-    else:
-      importesuperv="""sys.path=["%s"]+sys.path
-from Execution.E_SUPERV import SUPERV
-""" % os.path.join(self.aster_dir, "bibpyt")
+    importesuperv = self.getImportESuperv()
 
     return asterEXECompo.substitute(component=self.name, module=gen.module.name,
                                     servicesdef="\n".join(defs),
@@ -342,12 +386,7 @@ from Execution.E_SUPERV import SUPERV
       services.append(service)
       inits.append(init)
 
-    if self.version < (10,1,2):
-      importesuperv="from E_SUPERV import SUPERV"
-    else:
-      importesuperv="""sys.path=["%s"] +sys.path
-from Execution.E_SUPERV import SUPERV
-""" % os.path.join(self.aster_dir, "bibpyt")
+    importesuperv = self.getImportESuperv()
 
     return asterCEXECompo.substitute(component=self.name, 
                                      module=gen.module.name,
