@@ -18,6 +18,6 @@ Generate the components with :
 
 Test them with 
 
-  appli/runAppli -u test_compohxx.py
+  appli/runAppli test_compohxx.py
 
 
