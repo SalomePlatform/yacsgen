@@ -53,18 +53,12 @@ cpppath=os.path.join(cwd,"COMPONENTCPP_INSTALL")
 
 
 os.environ["CALCULCPP_ROOT_DIR"]=cpppath
-os.environ["MEDCALCCPP_ROOT_DIR"]=cpppath
-os.environ["TESTMEDCPP_ROOT_DIR"]=cpppath
 os.environ["ICOCOCPP_ROOT_DIR"]=cpppath
-os.environ["TESTMEMCPP_ROOT_DIR"]=cpppath
 c1=HXX2SALOMEComponent("CALCUL.hxx","libCALCULCXX.so" , cpppath )
-c2=HXX2SALOMEComponent("MEDCALC.hxx","libMEDCALCCXX.so" , cpppath )
-c3=HXX2SALOMEComponent("TESTMED.hxx","libTESTMEDCXX.so" , cpppath )
 c4=HXX2SALOMEComponent("ICOCO.hxx","libICOCOCXX.so" , cpppath )
-c5=HXX2SALOMEComponent("TESTMEM.hxx","libTESTMEMCXX.so" , cpppath )
 
 
-g=Generator(Module("hxxcompos",components=[c4,c1,c2,c3,c5],prefix="./install"),context)
+g=Generator(Module("hxxcompos",components=[c4,c1],prefix="./install"),context)
 g.generate()
 g.bootstrap()
 g.configure()
@@ -77,10 +71,7 @@ g.make_appli("appli",
                          "YACS":yacs_root_dir,
                          "GEOM":geom_root_dir})
 cppenv=""" export CALCULCPP_ROOT_DIR=%(cpppath)s
-export MEDCALCCPP_ROOT_DIR=%(cpppath)s
-export TESTMEDCPP_ROOT_DIR=%(cpppath)s
-export ICOCOCPP_ROOT_DIR=%(cpppath)s
-export TESTMEMCPP_ROOT_DIR=%(cpppath)s"""  % {"cpppath" : cpppath}
+export ICOCOCPP_ROOT_DIR=%(cpppath)s """  % {"cpppath" : cpppath}
 
 cppenvfile=open("appli/env.d/cppEnv.sh","w")
 cppenvfile.write(cppenv)
