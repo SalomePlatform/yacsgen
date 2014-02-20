@@ -1,9 +1,9 @@
-C Copyright (C) 2009-2013  EDF R&D
+C Copyright (C) 2009-2014  EDF R&D
 C
 C This library is free software; you can redistribute it and/or
 C modify it under the terms of the GNU Lesser General Public
 C License as published by the Free Software Foundation; either
-C version 2.1 of the License.
+C version 2.1 of the License, or (at your option) any later version.
 C
 C This library is distributed in the hope that it will be useful,
 C but WITHOUT ANY WARRANTY; without even the implied warranty of

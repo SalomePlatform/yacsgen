@@ -1,9 +1,9 @@
-# Copyright (C) 2009-2013  EDF R&D
+# Copyright (C) 2009-2014  EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
-# version 2.1 of the License.
+# version 2.1 of the License, or (at your option) any later version.
 #
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -101,7 +101,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'${module}'
-copyright = u'2010'
+copyright = u'2010-2014'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
