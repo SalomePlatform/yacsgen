@@ -22,6 +22,7 @@ import os
 #import context from ..
 execfile("../context.py")
 from module_generator import Generator,Module,Service,PYComponent,CPPComponent,F77Component
+from module_generator import Library
 
 # C++ component
 
@@ -447,13 +448,12 @@ c3=F77Component("fcode1",
                                             ],
                                  ),
                          ],
-                libs="-L%s -lcode1" % cwd,
-                rlibs="-Wl,--rpath -Wl,%s" % cwd,
+                libs=[Library(name="code1", path=cwd)],
+                rlibs=cwd,
                )
 
-g=Generator(Module("pycompos",components=[c1,c2,c3],prefix="./install",layout="multidir"),context)
+g=Generator(Module("pycompos",components=[c1,c2,c3],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

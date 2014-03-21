@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf *.o *.so hxxcompos_SRC hxxcompos_SRC.bak appli appli.bak install install.bak traceExec_proc COMPONENTCPP_INSTALL COMPONENTCPP_SRC COMPONENTCPP_BUILD parse_result parse_type_result
+	rm -rf parse_* appli install hxxcompos_* COMPONENTCPP_* 

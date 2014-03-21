@@ -24,10 +24,13 @@ libcode1.so:code1.o
 	  $(FC) -shared -fPIC -o libcode1.so code1.o
 code1.o:code1.f
 	  $(FC) -c code1.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
-libcode2.so:code2.o
-	  $(FC) -shared -fPIC -o libcode2.so code2.o
+libcode2.so:code2.o bidul.o
+	  $(FC) -shared -fPIC -o libcode2.so code2.o bidul.o
 code2.o:code2.f
 	  $(FC) -c code2.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
 
+bidul.o:bidul.f
+	  $(FC) -c bidul.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
+
 clean:
-	rm -rf *.o *.so fcompos_SRC  install fcompos_SRC.bak traceExec_proc appli appli.bak install.bak
+	rm -rf *.o *.so fcompos_SRC  install fcompos_SRC.bak traceExec_proc appli appli.bak install.bak fcompos_build fcompos_build.bak

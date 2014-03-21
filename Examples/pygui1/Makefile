@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf *.pyc pycompos_SRC pycompos_SRC.bak appli appli.bak install install.bak traceExec_proc
+	rm -rf *.pyc pycompos_SRC pycompos_SRC.bak appli appli.bak install install.bak traceExec_proc pycompos_build.bak pycompos_build
