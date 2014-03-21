@@ -33,192 +33,304 @@ ${modules}
 """
 application=Template(application)
 
-autogen="""#!/bin/sh
-
-rm -rf autom4te.cache
-rm -f aclocal.m4 adm_local/ltmain.sh
-
-echo "Running aclocal..."    ;
-aclocal --force -I adm_local || exit 1
-echo "Running autoheader..." ; autoheader --force -I adm_local            || exit 1
-echo "Running autoconf..."   ; autoconf --force                    || exit 1
-echo "Running libtoolize..." ; libtoolize --copy --force           || exit 1
-echo "Running automake..."   ; automake --add-missing --copy       || exit 1
-"""
-
-mainMakefile="""include $$(top_srcdir)/adm_local/make_common_starter.am
-SUBDIRS = idl resources src ${docsubdir}
-ACLOCAL_AMFLAGS = -I adm_local
-"""
-mainMakefile=Template(mainMakefile)
-
-configure="""
-AC_INIT(${module}, 1.0)
-AC_CONFIG_AUX_DIR(adm_local)
-AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(${module}_config.h)
-
-dnl Check Salome Install
-CHECK_KERNEL
-if test "x$$Kernel_ok" = "xno"; then
-  AC_MSG_ERROR([You must define a correct KERNEL_ROOT_DIR or use the --with-kernel= configure option !])
-fi
-
-dnl Check Salome modules Install
-${modules}
-
-AC_PROG_LIBTOOL
-AC_PROG_CC
-AC_PROG_CXX
-CHECK_F77
-CHECK_OMNIORB
-CHECK_PACO
-CHECK_MPI
-
-MODULE_NAME=${module}
-AC_SUBST(MODULE_NAME)
-
-AC_CHECK_ASTER
-
-${other_check}
-
-echo
-echo
-echo
-echo "------------------------------------------------------------------------"
-echo "$$PACKAGE $$VERSION"
-echo "------------------------------------------------------------------------"
-echo
-echo "Configuration Options Summary:"
-echo
-echo "  Threads ................ : $$threads_ok"
-echo "  OmniOrb (CORBA) ........ : $$omniORB_ok"
-echo "  OmniOrbpy (CORBA) ...... : $$omniORBpy_ok"
-echo "  Python ................. : $$python_ok"
-echo "  SALOME KERNEL .......... : $$Kernel_ok"
-echo "  PaCO++ ................. : $$PaCO_ok"
-echo "  MPI .................... : $$mpi_ok"
-echo "  Code Aster ............. : $$Aster_ok"
-${other_summary}
-echo
-echo "------------------------------------------------------------------------"
-echo
-
-if test "x$$threads_ok" = "xno"; then
-  AC_MSG_ERROR([Thread is required],1)
-fi
-if test "x$$python_ok" = "xno"; then
-  AC_MSG_ERROR([Python is required],1)
-fi
-if test "x$$omniORB_ok" = "xno"; then
-  AC_MSG_ERROR([OmniOrb is required],1)
-fi
-if test "x$$omniORBpy_ok" = "xno"; then
-  AC_MSG_ERROR([OmniOrbpy is required],1)
-fi
-if test "x$$Kernel_ok" = "xno"; then
-  AC_MSG_ERROR([SALOME KERNEL is required],1)
-fi
-${other_require}
-
-${paco_configure}
-
-AC_CONFIG_FILES([
-        Makefile
-        idl/Makefile
-        resources/Makefile
-        src/Makefile
-${makefiles}
-        ])
-AC_OUTPUT
-"""
-configure=Template(configure)
-
 paco_configure="""\
 if test "x$$PaCO_ok" = "xno"; then
   AC_MSG_ERROR([PaCO++ is required],1)
 fi
 """
 
-makecommon="""
-# Standard directory for installation
-salomeincludedir   = $$(includedir)/salome
-libdir             = $$(prefix)/lib/salome
-bindir             = $$(prefix)/bin/salome
-salomescriptdir    = $$(bindir)
-salomepythondir    = $$(prefix)/lib/python$$(PYTHON_VERSION)/site-packages/salome
+# CMakeLists.txt in root module directory
+# template parameters:
+#   module : name of the module
+#   module_min : module name with only lowercase
+#   compolibs : list of component libraries
+#   with_doc : ON|OFF
+#   with_gui : ON|OFF - module has its own GUI
+#   add_modules : code to find other modules
+cmake_root_cpp = """
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8 FATAL_ERROR)
 
-# Directory for installing idl files
-salomeidldir       = $$(prefix)/idl/salome
+# You can remove "Fortran" if you don't have any fortran component
+PROJECT(Salome${module} C CXX Fortran)
 
-# Directory for installing resource files
-salomeresdir       = $$(prefix)/share/salome/resources/$${MODULE_NAME}
+# Ensure a proper linker behavior:
+CMAKE_POLICY(SET CMP0003 NEW)
 
-# Directories for installing admin files
-admlocaldir       = $$(prefix)/adm_local
-admlocalunixdir     = $$(admlocaldir)/unix
-admlocalm4dir        = $$(admlocaldir)/unix/config_files
+# Versioning
+# ===========
+# Project name, upper case
+STRING(TOUPPER $${PROJECT_NAME} PROJECT_NAME_UC)
 
-# Shared modules installation directory
-sharedpkgpythondir =$$(pkgpythondir)/shared_modules
+SET($${PROJECT_NAME_UC}_MAJOR_VERSION 7)
+SET($${PROJECT_NAME_UC}_MINOR_VERSION 4)
+SET($${PROJECT_NAME_UC}_PATCH_VERSION 0)
+SET($${PROJECT_NAME_UC}_VERSION
+  $${$${PROJECT_NAME_UC}_MAJOR_VERSION}.$${$${PROJECT_NAME_UC}_MINOR_VERSION}.$${$${PROJECT_NAME_UC}_PATCH_VERSION})
+SET($${PROJECT_NAME_UC}_VERSION_DEV 1)
 
-# Documentation directory
-salomedocdir             = $$(prefix)/share/doc/salome/gui/$${MODULE_NAME}
+# Find KERNEL
+# ===========
+SET(KERNEL_ROOT_DIR $$ENV{KERNEL_ROOT_DIR} CACHE PATH "Path to the Salome KERNEL")
+IF(EXISTS $${KERNEL_ROOT_DIR})
+  LIST(APPEND CMAKE_MODULE_PATH "$${KERNEL_ROOT_DIR}/salome_adm/cmake_files")
+  INCLUDE(SalomeMacros)
+  FIND_PACKAGE(SalomeKERNEL REQUIRED)
+ELSE(EXISTS $${KERNEL_ROOT_DIR})
+  MESSAGE(FATAL_ERROR "We absolutely need a Salome KERNEL, please define KERNEL_ROOT_DIR")
+ENDIF(EXISTS $${KERNEL_ROOT_DIR})
 
-IDL_INCLUDES = -I$$(KERNEL_ROOT_DIR)/idl/salome
-KERNEL_LIBS= -L$$(KERNEL_ROOT_DIR)/lib/salome -lSalomeContainer -lOpUtil -lSalomeDSCContainer -lSalomeDSCSuperv -lSalomeDatastream -lSalomeDSCSupervBasic -lCalciumC
-KERNEL_INCLUDES= -I$$(KERNEL_ROOT_DIR)/include/salome $$(OMNIORB_INCLUDES) ${other_includes}
+IF(SALOME_LIGHT_ONLY)
+  MESSAGE(FATAL_ERROR "${module} module can't be built in Light mode (without CORBA)")
+ENDIF()
 
-SALOME_LIBS= $${KERNEL_LIBS}
-SALOME_IDL_LIBS= -L$$(KERNEL_ROOT_DIR)/lib/salome -lSalomeIDLKernel
-SALOME_INCLUDES= $${KERNEL_INCLUDES}
+# Platform setup
+# ==============
+INCLUDE(SalomeSetupPlatform)   # From KERNEL
+# Always build libraries as shared objects:
+SET(BUILD_SHARED_LIBS TRUE)
+# Local macros:
+LIST(APPEND CMAKE_MODULE_PATH "$${PROJECT_SOURCE_DIR}/adm_local/cmake_files")
+
+# User options
+# (some options have already been defined in KERNEL) 
+# ============
+# OPTION(SALOME_BUILD_TESTS "Build SALOME tests" ON) #For use in the future
+
+OPTION(SALOME_BUILD_DOC "Generate SALOME ${module} documentation" ${with_doc})
+
+IF(SALOME_BUILD_DOC)
+  FIND_PACKAGE(SalomeSphinx)
+  SALOME_LOG_OPTIONAL_PACKAGE(Sphinx SALOME_BUILD_DOC)
+  #FIND_PACKAGE(SalomeDoxygen)
+  #SALOME_LOG_OPTIONAL_PACKAGE(Doxygen SALOME_BUILD_DOC)
+ENDIF()
+
+##
+## From KERNEL:
+##
+FIND_PACKAGE(SalomePython REQUIRED)
+FIND_PACKAGE(SalomeOmniORB REQUIRED)
+FIND_PACKAGE(SalomeOmniORBPy REQUIRED)
+  
+# Find GUI
+# ===========
+OPTION(SALOME_GUI_MODULE "Module ${module} has GUI." ${with_gui})
+
+IF(SALOME_GUI_MODULE)
+  SET(GUI_ROOT_DIR $$ENV{GUI_ROOT_DIR} CACHE PATH "Path to the Salome GUI")
+  IF(EXISTS $${GUI_ROOT_DIR})
+    LIST(APPEND CMAKE_MODULE_PATH "$${GUI_ROOT_DIR}/adm_local/cmake_files")
+    FIND_PACKAGE(SalomeGUI REQUIRED)
+    ADD_DEFINITIONS($${GUI_DEFINITIONS})
+    INCLUDE_DIRECTORIES($${GUI_INCLUDE_DIRS})
+  ELSE(EXISTS $${GUI_ROOT_DIR})
+    MESSAGE(FATAL_ERROR "We absolutely need a Salome GUI, please define GUI_ROOT_DIR")
+  ENDIF(EXISTS $${GUI_ROOT_DIR})
+
+  ##
+  ## From GUI:
+  ##
+  FIND_PACKAGE(SalomeCAS REQUIRED)
+  # Qt4
+  FIND_PACKAGE(SalomeQt4 REQUIRED COMPONENTS QtCore QtGui)
+  INCLUDE($${QT_USE_FILE})
+ENDIF(SALOME_GUI_MODULE)
+
+${add_modules}
+
+# Detection summary:
+SALOME_PACKAGE_REPORT_AND_CHECK()
+
+# Directories
+# (default values taken from KERNEL)
+# ===========
+SET(SALOME_INSTALL_BINS "$${SALOME_INSTALL_BINS}" CACHE PATH "Install path: SALOME binaries")
+SET(SALOME_INSTALL_LIBS "$${SALOME_INSTALL_LIBS}" CACHE PATH "Install path: SALOME libs")
+SET(SALOME_INSTALL_IDLS "$${SALOME_INSTALL_IDLS}" CACHE PATH "Install path: SALOME IDL files")
+SET(SALOME_INSTALL_HEADERS "$${SALOME_INSTALL_HEADERS}" CACHE PATH "Install path: SALOME headers")
+SET(SALOME_INSTALL_SCRIPT_SCRIPTS "$${SALOME_INSTALL_SCRIPT_SCRIPTS}" CACHE PATH 
+   "Install path: SALOME scripts")
+SET(SALOME_INSTALL_SCRIPT_DATA "$${SALOME_INSTALL_SCRIPT_DATA}" CACHE PATH 
+   "Install path: SALOME script data")
+SET(SALOME_INSTALL_SCRIPT_PYTHON "$${SALOME_INSTALL_SCRIPT_PYTHON}" CACHE PATH 
+   "Install path: SALOME Python scripts")
+SET(SALOME_INSTALL_APPLISKEL_SCRIPTS "$${SALOME_INSTALL_APPLISKEL_SCRIPTS}" CACHE PATH 
+   "Install path: SALOME application skeleton - scripts")
+SET(SALOME_INSTALL_APPLISKEL_PYTHON "$${SALOME_INSTALL_APPLISKEL_PYTHON}" CACHE PATH 
+   "Install path: SALOME application skeleton - Python")
+SET(SALOME_INSTALL_PYTHON "$${SALOME_INSTALL_PYTHON}" CACHE PATH "Install path: SALOME Python stuff")
+SET(SALOME_INSTALL_PYTHON_SHARED "$${SALOME_INSTALL_PYTHON_SHARED}" CACHE PATH 
+   "Install path: SALOME Python shared modules")
+SET(SALOME_INSTALL_CMAKE_LOCAL "$${SALOME_INSTALL_CMAKE_LOCAL}" CACHE PATH 
+    "Install path: local SALOME CMake files") 
+#SET(SALOME_INSTALL_AMCONFIG_LOCAL "$${SALOME_INSTALL_AMCONFIG_LOCAL}" CACHE PATH
+#  "Install path: local SALOME config files (obsolete, to be removed)")
+SET(SALOME_INSTALL_RES "$${SALOME_INSTALL_RES}" CACHE PATH "Install path: SALOME resources")
+SET(SALOME_INSTALL_DOC "$${SALOME_INSTALL_DOC}" CACHE PATH "Install path: SALOME documentation")
+
+# Specific to component:
+SET(SALOME_${module}_INSTALL_RES_DATA "$${SALOME_INSTALL_RES}/${module_min}" CACHE PATH 
+    "Install path: SALOME ${module} specific data")
+
+MARK_AS_ADVANCED(SALOME_INSTALL_BINS SALOME_INSTALL_LIBS SALOME_INSTALL_IDLS SALOME_INSTALL_HEADERS)
+MARK_AS_ADVANCED(SALOME_INSTALL_SCRIPT_SCRIPTS SALOME_INSTALL_SCRIPT_DATA SALOME_INSTALL_SCRIPT_PYTHON)
+MARK_AS_ADVANCED(SALOME_INSTALL_APPLISKEL_SCRIPTS  SALOME_INSTALL_APPLISKEL_PYTHON SALOME_INSTALL_CMAKE_LOCAL SALOME_INSTALL_RES)
+MARK_AS_ADVANCED(SALOME_INSTALL_PYTHON SALOME_INSTALL_PYTHON_SHARED)
+MARK_AS_ADVANCED(SALOME_INSTALL_AMCONFIG_LOCAL SALOME_INSTALL_DOC)
+MARK_AS_ADVANCED(SALOME_${module}_INSTALL_RES_DATA)
+
+# Accumulate environment variables for component module
+SALOME_ACCUMULATE_ENVIRONMENT(PYTHONPATH NOCHECK $${CMAKE_INSTALL_PREFIX}/$${SALOME_INSTALL_BINS}
+                                                 $${CMAKE_INSTALL_PREFIX}/$${SALOME_INSTALL_PYTHON})
+SALOME_ACCUMULATE_ENVIRONMENT(LD_LIBRARY_PATH NOCHECK $${CMAKE_INSTALL_PREFIX}/$${SALOME_INSTALL_LIBS}) 
+
+# Sources 
+# ========
+
+ADD_SUBDIRECTORY(idl)
+#ADD_SUBDIRECTORY(adm_local)
+ADD_SUBDIRECTORY(resources)
+ADD_SUBDIRECTORY(src)
+#ADD_SUBDIRECTORY(bin)
+IF(SALOME_BUILD_DOC)
+  ADD_SUBDIRECTORY(doc)
+ENDIF()
+
+# Header configuration
+# ====================
+SALOME_XVERSION($${PROJECT_NAME})
+#SALOME_CONFIGURE_FILE(HELLO_version.h.in HELLO_version.h INSTALL $${SALOME_INSTALL_HEADERS})
+
+# Configuration export
+# (here only the level 1 prerequisites are exposed)
+# ====================
+INCLUDE(CMakePackageConfigHelpers)
+
+# List of targets in this project we want to make visible to the rest of the world.
+# They all have to be INSTALL'd with the option "EXPORT $${PROJECT_NAME}TargetGroup"
+SET(_$${PROJECT_NAME}_exposed_targets 
+  ${compolibs} SalomeIDL${module}
+)
+
+# Add all targets to the build-tree export set
+EXPORT(TARGETS $${_$${PROJECT_NAME}_exposed_targets}
+  FILE $${PROJECT_BINARY_DIR}/$${PROJECT_NAME}Targets.cmake)
+
+# Create the configuration files:
+#   - in the build tree:
+
+# Ensure the variables are always defined for the configure:
+# !
+IF(SALOME_GUI_MODULE)
+  SET(GUI_ROOT_DIR "$${GUI_ROOT_DIR}")
+ENDIF(SALOME_GUI_MODULE)
+ 
+SET(CONF_INCLUDE_DIRS "$${PROJECT_SOURCE_DIR}/include" "$${PROJECT_BINARY_DIR}/include")
+
+# Build variables that will be expanded when configuring Salome<MODULE>Config.cmake:
+# SALOME_CONFIGURE_PREPARE() #For use in the future
+
+#CONFIGURE_PACKAGE_CONFIG_FILE($${PROJECT_NAME}Config.cmake.in
+#    $${PROJECT_BINARY_DIR}/$${PROJECT_NAME}Config.cmake
+#    INSTALL_DESTINATION "$${SALOME_INSTALL_CMAKE_LOCAL}"
+#    PATH_VARS CONF_INCLUDE_DIRS SALOME_INSTALL_CMAKE_LOCAL CMAKE_INSTALL_PREFIX
+#    )
+
+#WRITE_BASIC_PACKAGE_VERSION_FILE($${PROJECT_BINARY_DIR}/$${PROJECT_NAME}ConfigVersion.cmake
+#    VERSION $${$${PROJECT_NAME_UC}_VERSION}
+#    COMPATIBILITY AnyNewerVersion)
+  
+# Install the CMake configuration files:
+#INSTALL(FILES
+#  "$${PROJECT_BINARY_DIR}/$${PROJECT_NAME}Config.cmake"
+#  "$${PROJECT_BINARY_DIR}/$${PROJECT_NAME}ConfigVersion.cmake"
+#  DESTINATION "$${SALOME_INSTALL_CMAKE_LOCAL}")
+
+# Install the export set for use with the install-tree
+#INSTALL(EXPORT $${PROJECT_NAME}TargetGroup DESTINATION "$${SALOME_INSTALL_CMAKE_LOCAL}" 
+#  FILE $${PROJECT_NAME}Targets.cmake)
+"""
+cmake_root_cpp = Template(cmake_root_cpp)
+
+# CMakeLists.txt in resources
+# template parameters:
+#   module : module name
+cmake_ressources = """
+SET(${module}_RESOURCES_FILES
+  ${module}Catalog.xml
+)
+
+INSTALL(FILES $${${module}_RESOURCES_FILES} DESTINATION $${SALOME_${module}_INSTALL_RES_DATA})
+"""
+cmake_ressources = Template(cmake_ressources)
+
+# CMakeLists.txt in src
+# template parameters:
+#   components : names of the components, separated by spaces or \n
+cmake_src = """
+SET(SUBDIRS
+  ${components}
+)
+
+FOREACH(dir $${SUBDIRS})
+ ADD_SUBDIRECTORY($${dir})
+ENDFOREACH(dir $${SUBDIRS})
+"""
+cmake_src = Template(cmake_src)
+
+# CMakeLists.txt in idl
+# template parameters:
+#   module : module name
+#   extra_idl : additional idl files
+#   extra_include : additional include paths
+#   extra_link : additional include options
+cmake_idl = """
+INCLUDE(UseOmniORB)  # Provided by KERNEL
+
+INCLUDE_DIRECTORIES(
+  $${OMNIORB_INCLUDE_DIR}
+  $${KERNEL_INCLUDE_DIRS}
+  $${PROJECT_BINARY_DIR}/idl
+)
+
+SET(SalomeIDL${module}_IDLSOURCES
+  ${module}.idl
+  ${extra_idl}
+)
+
+SET(_idl_include_dirs
+  $${KERNEL_ROOT_DIR}/idl/salome
+  ${extra_include}
+)
+
+SET(_idl_link_flags
+  $${KERNEL_SalomeIDLKernel}
+  ${extra_link}
+)
+
+OMNIORB_ADD_MODULE(SalomeIDL${module} "$${SalomeIDL${module}_IDLSOURCES}" "$${_idl_include_dirs}" "$${_idl_link_flags}")
+INSTALL(TARGETS SalomeIDL${module} EXPORT $${PROJECT_NAME}TargetGroup DESTINATION $${SALOME_INSTALL_LIBS})
+"""
+cmake_idl = Template(cmake_idl)
+
+#cmake code to find a SALOME module
+# template parameters:
+#   module : module name (GEOM, SMESH, etc)
+cmake_find_module = """
+
+#####################################
+# FIND ${module}
+#####################################
+SET(${module}_ROOT_DIR $$ENV{${module}_ROOT_DIR} CACHE PATH "Path to ${module} module")
+IF(EXISTS $${${module}_ROOT_DIR})
+  LIST(APPEND CMAKE_MODULE_PATH "$${${module}_ROOT_DIR}/adm_local/cmake_files")
+  FIND_PACKAGE(Salome${module} REQUIRED)
+  ADD_DEFINITIONS($${${module}_DEFINITIONS})
+  INCLUDE_DIRECTORIES($${${module}_INCLUDE_DIRS})
+ELSE(EXISTS $${${module}_ROOT_DIR})
+  MESSAGE(FATAL_ERROR "We absolutely need ${module} module, please define ${module}_ROOT_DIR")
+ENDIF(EXISTS $${${module}_ROOT_DIR})
+#####################################
 
 """
-makecommon=Template(makecommon)
-
-resMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-DATA_INST = ${module}Catalog.xml
-salomeres_DATA = $${DATA_INST}
-EXTRA_DIST = $${DATA_INST}
-"""
-resMakefile=Template(resMakefile)
-
-check_sphinx="""
-AC_DEFUN([CHECK_SPHINX],[
-
-AC_CHECKING(for sphinx doc generator)
-
-sphinx_ok=yes
-dnl where is sphinx ?
-AC_PATH_PROG(SPHINX,sphinx-build)
-if test "x$SPHINX" = "x"
-then
-  AC_MSG_WARN(sphinx not found)
-  sphinx_ok=no
-fi
-
-dnl Can I load ths sphinx module ?
-dnl This code comes from the ax_python_module macro.
-if test -z $PYTHON;
-then
-   PYTHON="python"
-fi
-PYTHON_NAME=`basename $PYTHON`
-AC_MSG_CHECKING($PYTHON_NAME module: sphinx)
-   $PYTHON -c "import sphinx" 2>/dev/null
-   if test $? -eq 0;
-   then
-     AC_MSG_RESULT(yes)
-     eval AS_TR_CPP(HAVE_PYMOD_sphinx)=yes
-   else
-     AC_MSG_RESULT(no)
-     eval AS_TR_CPP(HAVE_PYMOD_sphinx)=no
-     sphinx_ok=no
-   fi
-
-AM_CONDITIONAL(SPHINX_IS_OK, [test x"$sphinx_ok" = xyes])
-
-])
-"""
-
+cmake_find_module = Template(cmake_find_module)

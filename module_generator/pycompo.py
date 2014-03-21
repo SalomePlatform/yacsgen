@@ -22,7 +22,7 @@
 """
 import os
 from gener import Component, Invalid
-from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo
+from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo, cmake_src_compo_py
 import textwrap
 from string import split,rstrip,join
 
@@ -77,29 +77,35 @@ class PYComponent(Component):
     if self.kind not in kinds:
       raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
 
+  def libraryName(self):
+    """ Name of the target library
+        No library for a python component
+    """
+    return ""
+    
   def makeCompo(self, gen):
     """generate component sources as a dictionary containing
        file names (key) and file content (values)
     """
-    pyfile = "%s.py" % self.name
-    sources = " ".join(map(os.path.basename,self.sources))
+    pyfile = ""
+    file_content = ""
     if self.kind == "lib":
-      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
-              pyfile:self.makepy(gen)
-             }
-    if self.kind == "exe":
-      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
-              self.name+".exe":self.makepyexe(gen),
-             }
-
-  def getMakefileItems(self,gen):
-    makefileItems={"header":"include $(top_srcdir)/adm_local/make_common_starter.am"}
-    if self.kind == "lib":
-      makefileItems["salomepython_PYTHON"]=[self.name+".py"]+self.sources
-    if self.kind == "exe":
-      makefileItems["salomepython_PYTHON"]=self.sources
-      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-    return makefileItems
+      pyfile = self.name  + ".py"
+      file_content = self.makepy(gen)
+    elif self.kind == "exe":
+      pyfile = self.name + ".exe"
+      file_content = self.makepyexe(gen)
+    else :
+      raise Invalid("Invalid kind ()%s for component %s" % (
+                                    self.kind, self.name))
+    
+    sources = pyfile + "".join(map(lambda x: "\n  " + os.path.basename(x),
+                                   self.sources))
+    cmake_content = cmake_src_compo_py.substitute(sources=sources)
+    
+    return {"CMakeLists.txt":cmake_content,
+            pyfile:file_content
+           }
 
   def makepy(self, gen):
     """generate standard SALOME component source (python module)"""

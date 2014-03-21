@@ -22,117 +22,46 @@
 #######################################################################
 salome_modules={}
 
-def add_module(module,idldefs="",makefiledefs="",configdefs=""):
+def add_module(module,idldefs="",linklibs=""):
   """ add a module configuration for other module than KERNEL
 
        :param module: module name (GEOM, SMESH, VISU, ...)
        :type module: string
        :param idldefs:  definition instructions to add to idl files when using this module
        :type idldefs: string
-       :param makefiledefs:  definition instructions to add to Makefile files when using this module
-       :type makefiledefs: string
-       :param configdefs:  instructions to add to configure file when using this module
-       :type configdefs: string
+       :param linklibs:  options to add to _link_LIBRARIES in CMakeLists
+       :type linklibs: string
   """
-  salome_modules[module]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
+  salome_modules[module]={"idldefs" : idldefs, "linklibs" : linklibs}
 
 #module GEOM
 idldefs="""
 #include "GEOM_Gen.idl"
 """
-makefiledefs="""
-#module GEOM
-GEOM_IDL_INCLUDES = -I$(GEOM_ROOT_DIR)/idl/salome
-GEOM_INCLUDES= -I$(GEOM_ROOT_DIR)/include/salome
-GEOM_IDL_LIBS= -L$(GEOM_ROOT_DIR)/lib/salome -lSalomeIDLGEOM
-GEOM_LIBS= -L$(GEOM_ROOT_DIR)/lib/salome
-SALOME_LIBS += ${GEOM_LIBS}
-SALOME_IDL_LIBS += ${GEOM_IDL_LIBS}
-SALOME_INCLUDES += ${GEOM_INCLUDES}
-IDL_INCLUDES += ${GEOM_IDL_INCLUDES}
+
+linklibs="""  ${GEOM_SalomeIDLGEOM}
 """
-configdefs="""
-if test "x${GEOM_ROOT_DIR}" != "x" && test -d ${GEOM_ROOT_DIR} ; then
-  AC_MSG_RESULT(Using GEOM installation in ${GEOM_ROOT_DIR})
-else
-  AC_MSG_ERROR([Cannot find module GEOM. Have you set GEOM_ROOT_DIR ?],1)
-fi
-"""
-add_module("GEOM",idldefs,makefiledefs,configdefs)
+add_module("GEOM",idldefs,linklibs)
 
 #module MED
 idldefs="""
 #include "MEDCouplingCorbaServant.idl"
 """
-makefiledefs="""
-#module MED
-MED_IDL_INCLUDES = -I$(MED_ROOT_DIR)/idl/salome
-MED_INCLUDES= -I${MED3HOME}/include -I${MED_ROOT_DIR}/include/salome -DH5_USE_16_API -I${HDF5HOME}/include
-MED_IDL_LIBS= -L$(MED_ROOT_DIR)/lib/salome -lSalomeIDLMED
-MED_LIBS= -L${MED3HOME}/lib -lmed -L${HDF5HOME}/lib -lhdf5 -L${MED_ROOT_DIR}/lib/salome -lSalomeIDLMED -lmedcouplingcorba -lmedcouplingclient 
-SALOME_LIBS += ${MED_LIBS}
-SALOME_IDL_LIBS += ${MED_IDL_LIBS}
-SALOME_INCLUDES += ${MED_INCLUDES}
-IDL_INCLUDES += ${MED_IDL_INCLUDES}
-"""
-configdefs="""
-if test "x${MED_ROOT_DIR}" != "x" && test -d ${MED_ROOT_DIR} ; then
-  AC_MSG_RESULT(Using MED installation in ${MED_ROOT_DIR})
-else
-  AC_MSG_ERROR([Cannot find module MED. Have you set MED_ROOT_DIR ?],1)
-fi
-"""
 
-salome_modules["MED"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}
+linklibs="""  ${MED_SalomeIDLMED}
+  ${MED_med}
+  ${MED_medcouplingcorba}
+  ${MED_medcouplingclient}
+"""
+salome_modules["MED"]={"idldefs" : idldefs, "linklibs" : linklibs}
 
 #module SMESH
 idldefs="""
 #include "SMESH_Gen.idl"
 #include "SMESH_Mesh.idl"
 """
-makefiledefs="""
-#module SMESH
-SMESH_IDL_INCLUDES = -I$(SMESH_ROOT_DIR)/idl/salome
-SMESH_INCLUDES= -I$(SMESH_ROOT_DIR)/include/salome
-SMESH_IDL_LIBS= -L$(SMESH_ROOT_DIR)/lib/salome -lSalomeIDLSMESH
-SMESH_LIBS= -L$(SMESH_ROOT_DIR)/lib/salome
-SALOME_LIBS += ${SMESH_LIBS}
-SALOME_IDL_LIBS += ${SMESH_IDL_LIBS}
-SALOME_INCLUDES += ${SMESH_INCLUDES}
-IDL_INCLUDES += ${SMESH_IDL_INCLUDES}
-"""
-configdefs="""
-if test "x${SMESH_ROOT_DIR}" != "x" && test -d ${SMESH_ROOT_DIR} ; then
-  AC_MSG_RESULT(Using SMESH installation in ${SMESH_ROOT_DIR})
-else
-  AC_MSG_ERROR([Cannot find module SMESH. Have you set SMESH_ROOT_DIR ?],1)
-fi
-"""
 
-salome_modules["SMESH"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs,
+linklibs="""  ${SMESH_SalomeIDLSMESH}
+"""
+salome_modules["SMESH"]={"idldefs" : idldefs, "linklibs" : linklibs,
                          "depends":["GEOM","MED"]}
-
-#module VISU
-idldefs="""
-#include "VISU_Gen.idl"
-"""
-makefiledefs="""
-#module VISU
-VISU_IDL_INCLUDES = -I$(VISU_ROOT_DIR)/idl/salome
-VISU_INCLUDES= -I$(VISU_ROOT_DIR)/include/salome
-VISU_IDL_LIBS= -L$(VISU_ROOT_DIR)/lib/salome -lSalomeIDLVISU
-VISU_LIBS= -L$(VISU_ROOT_DIR)/lib/salome
-SALOME_LIBS += ${VISU_LIBS}
-SALOME_IDL_LIBS += ${VISU_IDL_LIBS}
-SALOME_INCLUDES += ${VISU_INCLUDES}
-IDL_INCLUDES += ${VISU_IDL_INCLUDES}
-"""
-configdefs="""
-if test "x${VISU_ROOT_DIR}" != "x" && test -d ${VISU_ROOT_DIR} ; then
-  AC_MSG_RESULT(Using VISU installation in ${VISU_ROOT_DIR})
-else
-  AC_MSG_ERROR([Cannot find module VISU. Have you set VISU_ROOT_DIR ?],1)
-fi
-"""
-
-salome_modules["VISU"]={"idldefs" : idldefs, "makefiledefs" : makefiledefs, "configdefs" : configdefs}

@@ -27,7 +27,7 @@ import string
 import fnmatch
 from tempfile import mkstemp
 from gener import Component, Invalid
-from hxx_tmpl import cxxService, hxxCompo, cxxCompo, compoMakefile
+from hxx_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxx
 from module_generator import Service
 from yacstypes import corba_rtn_type,moduleTypes
 from hxx_awk import parse01,parse1,parse2,parse3
@@ -39,6 +39,7 @@ from tempfile import mkdtemp
 from hxx_tmpl_gui import hxxgui_cxx, hxxgui_h, hxxgui_icon_ts
 from hxx_tmpl_gui import hxxgui_message_en, hxxgui_message_fr
 from hxx_tmpl_gui import hxxgui_config, hxxgui_xml_fr, hxxgui_xml_en
+from gener import Library
 
 # ------------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ class HXX2SALOMEComponent(Component):
 
     hxxfileful = search_file(hxxfile,cpp_path)
     cpplibful = search_file(cpplib,cpp_path)
-    format_error = 'Error in HXX2SALOMEComponent : file %s ot found in %s'
+    format_error = 'Error in HXX2SALOMEComponent : file %s not found in %s'
     assert len(hxxfileful) > 0, format_error %  (hxxfile, cpp_path)
     assert len(cpplibful) > 0, format_error % (cpplib, cpp_path)
     hxxfile = hxxfileful[0]
@@ -302,8 +303,8 @@ class HXX2SALOMEComponent(Component):
            body=code,
            ) )
 
-    Includes="-I${"+name+"CPP_ROOT_DIR}/include"
-    Libs="-L${"+name+"CPP_ROOT_DIR}/lib -l"+name+"CXX"
+    Includes = os.path.join(cpp_path, "include")
+    Libs = [ Library( name=name+"CXX", path=os.path.join(cpp_path, "lib"))]
     Compodefs=""
     Inheritedclass=""
     self.inheritedconstructor=""
@@ -334,9 +335,26 @@ class HXX2SALOMEComponent(Component):
 """
 
     Component.__init__(self, name, services, impl="CPP", libs=Libs,
-                             rlibs="", includes=Includes, kind="lib",
-                             sources=None,inheritedclass=Inheritedclass,
-                             compodefs=Compodefs)
+                             rlibs=os.path.dirname(cpplib), includes=Includes,
+                             kind="lib", sources=None,
+                             inheritedclass=Inheritedclass,compodefs=Compodefs)
+
+# -----------------------------------------------------------------------------      
+  def libraryName(self):
+    """ Name of the target library
+    """
+    return self.name + "Engine"
+    
+# ------------------------------------------------------------------------------
+  def targetProperties(self):
+    """ define the rpath property of the target using self.rlibs
+    return
+      string containing the commands to add to cmake
+    """
+    text=""
+    if self.rlibs.strip() :
+      text="SET_TARGET_PROPERTIES( %sEngine PROPERTIES INSTALL_RPATH %s)\n" % (self.name, self.rlibs)
+    return text
 
 # ------------------------------------------------------------------------------
   def makeCompo(self, gen):
@@ -346,24 +364,36 @@ class HXX2SALOMEComponent(Component):
     """
     cxxfile = "%s_i.cxx" % self.name
     hxxfile = "%s_i.hxx" % self.name
-    return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+    (cmake_text, cmake_vars) = self.additionalLibraries()
+    
+    cmakelist_content = cmake_src_compo_hxx.substitute(
+                        module = gen.module.name,
+                        component = self.name,
+                        componentlib = self.libraryName(),
+                        includes = self.includes,
+                        libs = cmake_vars,
+                        find_libs = cmake_text,
+                        target_properties = self.targetProperties()
+                        )
+    
+    return {"CMakeLists.txt":cmakelist_content,
             cxxfile:self.makecxx(gen),
             hxxfile:self.makehxx(gen)
            }
 
 # ------------------------------------------------------------------------------
-  def getMakefileItems(self,gen):
-      makefileItems={"header":"""
-include $(top_srcdir)/adm_local/make_common_starter.am
-
-"""}
-      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
-      makefileItems["salomeinclude_HEADERS"]=["%s_i.hxx" % self.name]
-      makefileItems["body"]=compoMakefile.substitute(module=gen.module.name,
-                                                     component=self.name,
-                                                     libs=self.libs,
-                                                     includes=self.includes)
-      return makefileItems
+#  def getMakefileItems(self,gen):
+#      makefileItems={"header":"""
+#include $(top_srcdir)/adm_local/make_common_starter.am
+#
+#"""}
+#      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
+#      makefileItems["salomeinclude_HEADERS"]=["%s_i.hxx" % self.name]
+#      makefileItems["body"]=compoMakefile.substitute(module=gen.module.name,
+#                                                     component=self.name,
+#                                                     libs=self.libs,
+#                                                     includes=self.includes)
+#      return makefileItems
 
 # ------------------------------------------------------------------------------
   def makehxx(self, gen):

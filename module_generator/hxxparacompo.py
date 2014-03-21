@@ -23,11 +23,12 @@
 debug=1
 import os
 from gener import Component, Invalid
-from hxx_para_tmpl import cxxService, hxxCompo, cxxCompo, compoMakefile
+from hxx_para_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxxpara
 from module_generator import Service
 import string
 from tempfile import mkstemp
 from yacstypes import corba_rtn_type,moduleTypes
+from gener import Library
 
 class HXX2SALOMEParaComponent(Component):
   def __init__(self, hxxfile , cpplib , cpp_path ):
@@ -353,8 +354,11 @@ void *th_%(serv_name)s(void *s)
            ) )
         self.thread_func_decl.append(service_definition[serv]["thread_func_decl"])
         self.thread_str_decl.append(service_definition[serv]["thread_str_decl"])
-    Includes="-I${"+name+"CPP_ROOT_DIR}/include"
-    Libs="-L${"+name+"CPP_ROOT_DIR}/lib -l"+cpplibname
+#    Includes="-I${"+name+"CPP_ROOT_DIR}/include"
+    Includes = os.path.join(cpp_path, "include")
+#    Libs="-L${"+name+"CPP_ROOT_DIR}/lib -l"+cpplibname
+#    Libs=[cpplibname+" PATH "+ os.path.join(cpp_path, "lib") ]
+    Libs = [ Library( name=cpplibname, path=os.path.join(cpp_path, "lib"))]
     Compodefs=""
     Inheritedclass=""
     self.inheritedconstructor=""
@@ -368,6 +372,24 @@ void *th_%(serv_name)s(void *s)
                              sources=None,inheritedclass=Inheritedclass,
                              compodefs=Compodefs)
 
+# -----------------------------------------------------------------------------      
+  def libraryName(self):
+    """ Name of the target library
+    """
+    return self.name + "Engine"
+    
+# ------------------------------------------------------------------------------
+  def targetProperties(self):
+    """ define the rpath property of the target using self.rlibs
+    return
+      string containing the commands to add to cmake
+    """
+    text=""
+    if self.rlibs.strip() :
+      text="SET_TARGET_PROPERTIES( %sEngine PROPERTIES INSTALL_RPATH %s)\n" % (self.name, self.rlibs)
+    return text
+
+# ------------------------------------------------------------------------------
   def makeCompo(self, gen):
     """generate files for C++ component
 
@@ -375,23 +397,35 @@ void *th_%(serv_name)s(void *s)
     """
     cxxfile = "%s_i.cxx" % self.name
     hxxfile = "%s_i.hxx" % self.name
-    return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+    (cmake_text, cmake_vars) = self.additionalLibraries()
+    
+    cmakelist_content = cmake_src_compo_hxxpara.substitute(
+                        module = gen.module.name,
+                        component = self.name,
+                        componentlib = self.libraryName(),
+                        includes = self.includes,
+                        libs = cmake_vars,
+                        find_libs = cmake_text,
+                        target_properties = self.targetProperties()
+                        )
+    
+    return {"CMakeLists.txt":cmakelist_content,
             cxxfile:self.makecxx(gen),
             hxxfile:self.makehxx(gen)
            }
 
-  def getMakefileItems(self,gen):
-      makefileItems={"header":"""
-include $(top_srcdir)/adm_local/make_common_starter.am
-
-"""}
-      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
-      makefileItems["salomeinclude_HEADERS"]=["%s_i.hxx" % self.name]
-      makefileItems["body"]=compoMakefile.substitute(module=gen.module.name,
-                                                     component=self.name,
-                                                     libs=self.libs,
-                                                     includes=self.includes)
-      return makefileItems
+#  def getMakefileItems(self,gen):
+#      makefileItems={"header":"""
+#include $(top_srcdir)/adm_local/make_common_starter.am
+#
+#"""}
+#      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
+#      makefileItems["salomeinclude_HEADERS"]=["%s_i.hxx" % self.name]
+#      makefileItems["body"]=compoMakefile.substitute(module=gen.module.name,
+#                                                     component=self.name,
+#                                                     libs=self.libs,
+#                                                     includes=self.includes)
+#      return makefileItems
 
   def makehxx(self, gen):
     """return a string that is the content of .hxx file

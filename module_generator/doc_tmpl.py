@@ -22,38 +22,43 @@ try:
 except:
   from compat import Template,set
 
+# CMakeLists.txt in doc directory
+# template parameters:
+#   module : module name
+#   files : doc source files (.rst)
 docmakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
+INCLUDE($${KERNEL_ROOT_DIR}/salome_adm/cmake_files/SalomeMacros.cmake)
 
-salomedoc_DATA=html/index.html
-salomeres_DATA = ${others}
+SET(RSTFILES
+  ${files}
+  )
 
-html/index.html:
-	make htm
+SET(SPHINXOPTS )
+SET(SOURCEDIR $${CMAKE_CURRENT_SOURCE_DIR})
+SET(PAPEROPT_a4 -D latex_paper_size=a4)
+SET(ALLSPHINXOPTS -d doctrees $${PAPEROPT_a4} $${SPHINXOPTS} $${SOURCEDIR})
 
-SPHINXOPTS      =
-SOURCEDIR       = $$(srcdir)
-SPHINXBUILD     = sphinx-build
-PAPEROPT_a4     = -D latex_paper_size=a4
-ALLSPHINXOPTS   = -d doctrees $$(PAPEROPT_a4) $$(SPHINXOPTS) $$(SOURCEDIR)
+# install user's documentation
+SALOME_CONFIGURE_FILE(conf.py conf.py)
 
-htm:
-	mkdir -p html doctrees
-	$$(SPHINXBUILD) -b html $$(ALLSPHINXOPTS) html
-	@echo
-	@echo "Build finished. The HTML pages are in html."
+ADD_CUSTOM_TARGET(htm 
+  COMMAND $${CMAKE_COMMAND} -E make_directory html 
+  COMMAND $${CMAKE_COMMAND} -E make_directory doctrees
+  COMMAND $${SPHINX_EXECUTABLE} -c $${CMAKE_BINARY_DIR}/doc -b html $${ALLSPHINXOPTS} html
+  DEPENDS $${RSTFILES}
+  WORKING_DIRECTORY $${CMAKE_CURRENT_BINARY_DIR}
+  )
+INSTALL(CODE "EXECUTE_PROCESS(COMMAND \\\"$${CMAKE_COMMAND}\\\" --build $${PROJECT_BINARY_DIR} --target htm)")
+INSTALL(DIRECTORY $${CMAKE_CURRENT_BINARY_DIR}/html/ 
+  DESTINATION $${SALOME_INSTALL_DOC}/gui/${module} 
+  USE_SOURCE_PERMISSIONS
+  PATTERN ".buildinfo" EXCLUDE
+  )
+  
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES html)
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES doctrees)
 
-install-data-local:
-	$$(INSTALL) -d $$(DESTDIR)$$(salomedocdir)
-	cp -rf html/* $$(DESTDIR)$$(salomedocdir) ;
-
-uninstall-local:
-	chmod -R +w $$(DESTDIR)$$(salomedocdir)
-	rm -rf $$(DESTDIR)$$(salomedocdir)/*
-
-clean-local:
-	-rm -rf html latex doctrees
-	if test -d "html"; then rm -rf html ; fi
+#SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES YACS)
 
 """
 docmakefile=Template(docmakefile)
