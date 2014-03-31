@@ -33,4 +33,4 @@ code2.o:code2.f
 	  $(FC) -c code2.f -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions 
 
 clean:
-	rm -rf *.o prog1 prog2 fcode1_inst_1  fcode2_inst_1  fcompos_SRC  install traceExec_proc install.bak fcompos_SRC.bak appli appli.bak fcompos_build.bak fcompos_build
+	rm -rf *.o prog1 prog2 fcode1_inst_1  fcode2_inst_1  fcompos_*  install traceExec_proc *.bak appli build.err build.log

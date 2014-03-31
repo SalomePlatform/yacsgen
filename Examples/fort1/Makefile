@@ -33,4 +33,4 @@ bidul.o:bidul.f
 	  $(FC) -c bidul.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
 
 clean:
-	rm -rf *.o *.so fcompos_SRC  install fcompos_SRC.bak traceExec_proc appli appli.bak install.bak fcompos_build fcompos_build.bak
+	rm -rf *.o *.so fcompos_*  install appli traceExec_proc *.bak build.err build.log
