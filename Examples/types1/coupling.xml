@@ -38,7 +38,7 @@
    <sequence name="stringvec" content="string"/>
    <container name="DefaultContainer">
       <property name="container_name" value="FactoryServer"/>
-      <property name="name" value="cli75al"/>
+      <property name="name" value="localhost"/>
    </container>
    <service name="s10">
       <component>compo1</component>
