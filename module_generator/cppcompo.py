@@ -123,7 +123,11 @@ class CPPComponent(Component):
     (cmake_text, cmake_vars) = self.additionalLibraries()
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
-    ret = { cxxfile:self.makecxx(gen),
+    if self.kind == "exe":
+      exe_opt = 1
+    else:
+      exe_opt = 0
+    ret = { cxxfile:self.makecxx(gen, exe_opt),
             hxxfile:self.makehxx(gen)
           }
     sources = " ".join(map(os.path.basename,self.sources))
@@ -146,7 +150,6 @@ class CPPComponent(Component):
     ret["CMakeLists.txt"] = cmakelist_content
     
     return ret
-    
 
   def makehxx(self, gen):
     """return a string that is the content of .hxx file

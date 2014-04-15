@@ -36,6 +36,8 @@ ${CalciumInterface}
 #include <pthread.h>
 #include <execinfo.h>
 
+#define BUILD_EXE ${exe}
+
 typedef void (*sighandler_t)(int);
 sighandler_t setsig(int sig, sighandler_t handler)
 {
@@ -67,7 +69,7 @@ static void AttachDebugger()
   if(getenv ("DEBUGGER"))
     {
       std::stringstream exec;
-#if ${exe}
+#if BUILD_EXE
       exec << "$$DEBUGGER " << "${exe_path} " << getpid() << "&";
 #else
       exec << "$$DEBUGGER SALOME_Container " << getpid() << "&";
@@ -151,7 +153,7 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, contId, instanceName, interfaceName)
 {
-#if ${exe}
+#if BUILD_EXE
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
   set_unexpected(&unexpectedHandler);
@@ -167,7 +169,7 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, container, instanceName, interfaceName)
 {
-#if ${exe}
+#if BUILD_EXE
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
   set_unexpected(&unexpectedHandler);
@@ -183,7 +185,7 @@ ${component}_i::~${component}_i()
 
 void ${component}_i::destroy()
 {
-#if ${exe}
+#if BUILD_EXE
   _remove_ref();
   if(!CORBA::is_nil(_orb))
     _orb->shutdown(0);
@@ -356,7 +358,7 @@ ${body}
   catch (...)
     {
       std::cerr << "unknown exception" << std::endl;
-#if ${exe}
+#if BUILD_EXE
       _exit(-1);
 #endif
       //cp_fin(component,CP_ARRET);
