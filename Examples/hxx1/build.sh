@@ -14,6 +14,5 @@ cd ..
 ../exec.sh python component.py
 
 appli/salome start -t
-sleep 2
 appli/salome shell python test_compohxx.py
 appli/salome killall

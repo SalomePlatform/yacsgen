@@ -22,4 +22,4 @@ include ../makefile.inc
 prog:prog.cxx
 	g++ -o prog prog.cxx -L./install/lib/salome -lcompo1Exelib -lSalomeIDLcppcompos
 clean:
-	rm -rf *.o prog install appli *.bak compo1_inst_1 traceExec_proc cppcompos_* build.err build.log
+	rm -rf *.o prog install appli *.bak compo1_inst_1 traceExec_proc cppcompos_* *.err *.log

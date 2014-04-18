@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf *.o *.so appli install *.bak traceExec_proc cppcompos_* build.err build.log
+	rm -rf *.o *.so appli install *.bak traceExec_proc cppcompos_* *.err *.log

@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf *.pyc pycompos_* appli install *.bak traceExec_proc build.err build.log
+	rm -rf *.pyc pycompos_* appli install *.bak traceExec_proc *.err *.log
