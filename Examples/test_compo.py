@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+# This test executes the coupling.xml schema found in the current directory
+# and verifies the execution state.
 import unittest
 
 import os

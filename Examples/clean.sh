@@ -1,4 +1,6 @@
 #/bin/bash
+# clean all examples
+
 script_dir=`dirname $0`
 cd $script_dir
 
