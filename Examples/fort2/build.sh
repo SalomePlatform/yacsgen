@@ -3,5 +3,5 @@ python components.py
 make
 
 # test
-appli/runSession ../test_compo.py
+appli/salome shell ../test_compo.py
 

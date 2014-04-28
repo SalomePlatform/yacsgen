@@ -8,12 +8,17 @@ import os
 import sys
 
 import imp
-salome_module = imp.load_source("SALOME", os.path.join("appli", "salome"))
+appli_dir = "appli"
+sys.path[:0] = [os.path.join(appli_dir, "bin", "salome", "appliskel")]
+salome_module = imp.load_source("SALOME", os.path.join(appli_dir, "salome"))
 
 class TestCompo(unittest.TestCase):
   def setUp(self):
     #start salome and connect to it
-    salome_module.main(["start", "-t"])
+    try:
+      salome_module.main(["start", "-t"])
+    except SystemExit, e:
+      pass
     import runSession
     runSession.configureSession()
     import setenv
@@ -47,7 +52,10 @@ class TestCompo(unittest.TestCase):
     self.assertEqual(p.getEffectiveState(), pilot.DONE)
     
   def tearDown(self):
-    salome_module.main(["killall"])
+    try:
+      salome_module.main(["killall"])
+    except SystemExit, e:
+      pass
   
 if __name__ == '__main__':
     unittest.main()
