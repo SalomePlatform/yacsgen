@@ -262,10 +262,25 @@ ARGPYT         | exec    | -     | %s
     importesuperv=""
     if self.version < (10,1,2):
       importesuperv="from E_SUPERV import SUPERV"
-    else :
+    elif self.version < (11,4,1) :
       importesuperv="""sys.path=["%s"]+sys.path
 from Execution.E_SUPERV import SUPERV
 """ % self.getAsterPythonPath()
+    else :
+      importesuperv="""
+VERS=stable
+import os.path as osp
+from asrun.run import AsRunFactory
+from asrun.config import AsterConfig
+
+run = AsRunFactory()
+path = run.get_version_path(VERS)
+cfg = AsterConfig(osp.join(path, 'config.txt'))
+pypath = cfg['REPPY'][0]
+
+sys.path.insert(0, pypath)
+from Execution.E_SUPERV import SUPERV
+"""
     return importesuperv
 
 
