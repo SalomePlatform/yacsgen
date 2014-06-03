@@ -61,12 +61,13 @@ class ASTERComponent(Component):
                                                           argv=["-memjeveux","4"])
   """
   def __init__(self, name, services=None, libs="", rlibs="", aster_dir="", 
-                     python_path=None, argv=None, kind="lib", exe_path=None):
+                     python_path=None, argv=None, kind="lib", exe_path=None, aster_version_type="stable"):
     """initialise component attributes"""
     self.aster_dir = aster_dir
     self.python_path = python_path or []
     self.argv = argv or []
     self.exe_path = exe_path
+    self.aster_version_type = aster_version_type
     Component.__init__(self, name, services, impl="ASTER", libs=libs, 
                              rlibs=rlibs, kind=kind)
 
@@ -110,19 +111,19 @@ class ASTERComponent(Component):
       
     return aster_python_path
 
-  def getConfig(self, gen):
-    """Content of the config.txt file
-    """
-    path_compo=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-                      'site-packages','salome','%s_component.py'%self.name)
-    conf="""ENV_SH         | env     | -     | $ASTER_VERSION_DIR/share/aster/profile.sh
-BINELE         | bin     | -     | $ASTER_VERSION_DIR/share/aster/elements
-SRCPY          | src     | -     | %s
-ARGPYT         | exec    | -     | %s
-""" % (self.getAsterPythonPath(), path_compo)
-    
-    return conf
+#  def getConfig(self, gen):
+#    """Content of the config.txt file
+#    """
+#    path_compo=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+#                      'site-packages','salome','%s_component.py'%self.name)
+#    conf="""ENV_SH         | env     | -     | $ASTER_VERSION_DIR/share/aster/profile.sh
+#BINELE         | bin     | -     | $ASTER_VERSION_DIR/share/aster/elements
+#SRCPY          | src     | -     | %s
+#ARGPYT         | exec    | -     | %s
+#""" % (self.getAsterPythonPath(), path_compo)
+#    
+#    return conf
 
   def makeCompo(self, gen):
     """drive the generation of SALOME module files and code files
@@ -133,13 +134,13 @@ ARGPYT         | exec    | -     | %s
     gen.aster = self.aster_dir
 
     #get ASTER version
-    f = os.path.join(self.aster_dir, self.getAsterPythonPath(), 'Accas', 'properties.py')
-    self.version=(0,0,0)
-    if os.path.isfile(f):
-      mydict = {}
-      execfile(f, mydict)
-      v,r,p = mydict['version'].split('.')
-      self.version=(int(v),int(r),int(p))
+#    f = os.path.join(self.aster_dir, self.getAsterPythonPath(), 'Accas', 'properties.py')
+#    self.version=(0,0,0)
+#    if os.path.isfile(f):
+#      mydict = {}
+#      execfile(f, mydict)
+#      v,r,p = mydict['version'].split('.')
+#      self.version=(int(v),int(r),int(p))
 
     if self.kind == "lib":
       return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
@@ -167,16 +168,16 @@ ARGPYT         | exec    | -     | %s
       makefileItems["salomepython_PYTHON"]=[self.name+".py"]
     elif self.kind == "exe":
       makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py"]
-      if self.version < (10,1,2):
-        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
+#      if self.version < (10,1,2):
+#        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
       makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+#      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
     elif self.kind == "cexe":
       makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py"]
-      if self.version < (10,1,2):
-        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
+#      if self.version < (10,1,2):
+#        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
       makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
+#      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
     return makefileItems
 
 
@@ -185,36 +186,36 @@ ARGPYT         | exec    | -     | %s
 
     fdict={}
 
-    if self.version < (10,1,2):
+#    if self.version < (10,1,2):
       #patch to E_SUPERV.py
-      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-      esuperv = fil.read()
-      fil.close()
-      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
-      fdict["E_SUPERV.py"]=esuperv
+#      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+#      esuperv = fil.read()
+#      fil.close()
+#      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+#      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+#      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+#      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+#      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+#      fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program (modification of config.txt file)
-    config = ""
-    path_config = os.path.join(self.aster_dir, "config.txt")
-    if os.path.exists(path_config) :
+#    config = ""
+#    path_config = os.path.join(self.aster_dir, "config.txt")
+#    if os.path.exists(path_config) :
       # old aster version - old mechanism kept for compatibility
-      fil = open(path_config)
-      config = fil.read()
-      fil.close()
-      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-                      'site-packages','salome','%s_component.py'%self.name)
-      config = re.sub("Execution\/E_SUPERV.py", path, config)
-    else :
+#      fil = open(path_config)
+#      config = fil.read()
+#      fil.close()
+#      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+#      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+#                      'site-packages','salome','%s_component.py'%self.name)
+#      config = re.sub("Execution\/E_SUPERV.py", path, config)
+#    else :
       # getConfig doesn't work with older versions of aster
-      config = self.getConfig(gen)
+#      config = self.getConfig(gen)
 
-    fdict["%s_config.txt" % self.name] = config
+#    fdict["%s_config.txt" % self.name] = config
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
 
     return fdict
@@ -224,51 +225,43 @@ ARGPYT         | exec    | -     | %s
 
     fdict={}
 
-    if self.version < (10,1,2):
+#    if self.version < (10,1,2):
       #patch to E_SUPERV.py
-      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-      esuperv = fil.read()
-      fil.close()
-      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
-      fdict["E_SUPERV.py"]=esuperv
+#      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
+#      esuperv = fil.read()
+#      fil.close()
+#      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
+#      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
+#      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
+#      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
+#      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
+#      fdict["E_SUPERV.py"]=esuperv
 
     #use a specific main program
-    config = ""
-    path_config = os.path.join(self.aster_dir, "config.txt")
-    if os.path.exists(path_config) :
+#    config = ""
+#    path_config = os.path.join(self.aster_dir, "config.txt")
+#    if os.path.exists(path_config) :
       # old aster version - old mechanism kept for compatibility
-      fil = open(path_config)
-      config = fil.read()
-      fil.close()
-      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-                      'site-packages','salome','%s_container.py' % self.name)
-      config = re.sub("Execution\/E_SUPERV.py", path, config)
-    else :
+#      fil = open(path_config)
+#      config = fil.read()
+#      fil.close()
+#      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+#      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+#                      'site-packages','salome','%s_container.py' % self.name)
+#      config = re.sub("Execution\/E_SUPERV.py", path, config)
+#    else :
       # getConfig doesn't work with older versions of aster
-      config = self.getConfig(gen)
+#      config = self.getConfig(gen)
 
     fdict["%s_container.py" % self.name] = container
-    fdict["%s_config.txt" % self.name] = config
+#    fdict["%s_config.txt" % self.name] = config
 
     return fdict
 
   def getImportESuperv(self):
-    importesuperv=""
-    if self.version < (10,1,2):
-      importesuperv="from E_SUPERV import SUPERV"
-    elif self.version < (11,4,1) :
-      importesuperv="""sys.path=["%s"]+sys.path
-from Execution.E_SUPERV import SUPERV
-""" % self.getAsterPythonPath()
-    else :
-      importesuperv="""
-VERS=stable
+    importesuperv="""
+VERS="%s"
 import os.path as osp
 from asrun.run import AsRunFactory
 from asrun.config import AsterConfig
@@ -280,7 +273,7 @@ pypath = cfg['REPPY'][0]
 
 sys.path.insert(0, pypath)
 from Execution.E_SUPERV import SUPERV
-"""
+""" % self.aster_version_type
     return importesuperv
 
 
