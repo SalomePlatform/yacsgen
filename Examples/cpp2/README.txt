@@ -1,23 +1,12 @@
 A C++ standalone component (executable form)
 =================================================
 
-To build this example, modify the ../context.py file
-to take into account your configuration.
-
-1- your prerequisite file 
-2- your KERNEL_ROOT_DIR
-
-Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here and execute components.py ::
-
-  source <your prerequisite file>
-  python components.py
+To build this example, modify the ../exec.sh file to take into account your configuration.
+Run build.sh to build and test the component.
 
 You should get a SALOME module in source form (cppcompos_SRC), its installation (install) and
 a SALOME application (appli) composed of modules KERNEL, GUI, YACS and the new module cppcompos.
-
-To build the standalone component (executable named prog), execute the Makefile in the SALOME application environment::
-
-  ./appli/runSession make
+You also get the standalone component (executable named prog).
 
 To run a coupling:
 

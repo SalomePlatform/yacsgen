@@ -27,4 +27,4 @@ code1.o:code1.f
 	  $(FC) -c code1.f -fPIC -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions
 
 clean:
-	rm -rf *.o *.so install install.bak traceExec_proc appli appli.bak pycompos_SRC pycompos_SRC.bak
+	rm -rf *.o *.so install traceExec_proc appli *.bak pycompos_* *.err *.log

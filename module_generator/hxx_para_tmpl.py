@@ -190,16 +190,91 @@ ${body}
 cxxService=Template(cxxService)
 
 
-compoMakefile="""
+#compoMakefile="""
+#
+#dist_lib${component}Engine_la_SOURCES = \
+#	${component}_i.cxx
+#
+#lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) $$(MPI_INCLUDES) ${includes}
+#lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} -lSalomeMPIContainer -lparamedmemcompo $$(FLIBS)
+#
+#
+#"""
+#
+#compoMakefile=Template(compoMakefile)
 
-dist_lib${component}Engine_la_SOURCES = \
-	${component}_i.cxx
 
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) $$(MPI_INCLUDES) ${includes}
-lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} -lSalomeMPIContainer -lparamedmemcompo $$(FLIBS)
+# CMakeLists.txt in src/<component>
+# template parameters:
+#   module : module name
+#   component : component name
+#   componentlib : name of the target library
+#   includes : additional headers, separated by spaces or \n. can be empty
+#   libs : additional libraries
+#   find_libs : find_library commands
+#   target_properties : additional properties of the target
+cmake_src_compo_hxxpara = """
+# --- options ---
+# additional include directories
+INCLUDE_DIRECTORIES(
+  $${KERNEL_INCLUDE_DIRS}
+  $${OMNIORB_INCLUDE_DIR}
+  $${PROJECT_BINARY_DIR}
+  $${PROJECT_BINARY_DIR}/idl
+  ${includes}
+)
 
+# --- definitions ---
+ADD_DEFINITIONS(
+  $${OMNIORB_DEFINITIONS}
+)
 
+# find additional libraries
+${find_libs}
+
+# libraries to link to
+SET(_link_LIBRARIES
+  $${OMNIORB_LIBRARIES}
+  $${KERNEL_SalomeIDLKernel}
+  $${KERNEL_OpUtil}
+  $${KERNEL_SalomeContainer}
+  $${KERNEL_SalomeDSCContainer}
+  $${KERNEL_SalomeDSCSuperv}
+  $${KERNEL_SalomeDatastream}
+  $${KERNEL_SalomeDSCSupervBasic}
+  $${KERNEL_CalciumC}
+  $${KERNEL_SalomeMPIContainer}
+  $${MED_paramedmemcompo}
+  SalomeIDL${module}
+  ${libs}
+)
+
+# --- headers ---
+
+# header files / no moc processing
+
+SET(${module}_HEADERS
+  ${component}_i.hxx
+)
+
+# --- sources ---
+
+# sources / static
+SET(${module}_SOURCES
+  ${component}_i.cxx
+)
+
+# --- rules ---
+
+ADD_LIBRARY(${componentlib} $${${module}_SOURCES})
+TARGET_LINK_LIBRARIES(${componentlib} $${_link_LIBRARIES} )
+${target_properties}
+
+INSTALL(TARGETS ${componentlib} EXPORT $${PROJECT_NAME}TargetGroup DESTINATION $${SALOME_INSTALL_LIBS})
+
+INSTALL(FILES $${${module}_HEADERS} DESTINATION $${SALOME_INSTALL_HEADERS})
 """
+cmake_src_compo_hxxpara = Template(cmake_src_compo_hxxpara)
 
 #, SALOME_MED::MED_Gen_Driver, SALOME::MultiCommClass
 interfaceidlhxx="""
@@ -210,5 +285,3 @@ ${services}
 """
 interfaceidlhxx=Template(interfaceidlhxx)
 
-
-compoMakefile=Template(compoMakefile)

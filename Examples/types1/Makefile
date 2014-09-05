@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf *.o *.so mymodule_SRC mymodule_SRC.bak appli appli.bak install install.bak traceExec_*
+	rm -rf *.o *.so *.bak mymodule_* appli install *.bak traceExec_* *.err *.log

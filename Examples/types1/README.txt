@@ -1,16 +1,8 @@
 A test for several YACS types SALOME_TYPES and others
 =========================================================
 
-To build this example, modify the ../context.py file
-to take into account your configuration.
-
-1- your prerequisite file 
-2- your KERNEL_ROOT_DIR
-
-Then set the environment (including PYTHONPATH for YACSGEN, ../.. from here and execute components.py ::
-
-  source <your prerequisite file>
-  python components.py
+To build this example, modify the ../exec.sh file to take into account your configuration.
+Run build.sh to build and test the component.
 
 You should get a SALOME module in source form (module_SRC), its installation (install) and
 a SALOME application (appli) composed of modules KERNEL, GUI, YACS and the new module module.

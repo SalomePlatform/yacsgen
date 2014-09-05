@@ -132,3 +132,16 @@ pyinitService=Template(pyinitService)
 pyinitCEXEService=pyinitService
 pyinitEXEService=pyinitService
 
+# CMakeLists.txt in src/<component> for a python component
+# template parameters:
+#   sources: source files, separated by spaces
+cmake_src_compo_py="""
+# scripts / static
+SET(_bin_SCRIPTS
+  ${sources}
+)
+
+# --- rules ---
+SALOME_INSTALL_SCRIPTS("$${_bin_SCRIPTS}" $${SALOME_INSTALL_SCRIPT_PYTHON})
+"""
+cmake_src_compo_py=Template(cmake_src_compo_py)

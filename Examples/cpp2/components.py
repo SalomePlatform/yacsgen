@@ -48,7 +48,6 @@ c1=CPPComponent("compo1",services=[
                        defs="//def1",body=body,
                  ),
           ],
-         includes="-I/usr/include",
          kind="exe",
          exe_path=os.path.join(cwd,"prog"),
          )
@@ -56,7 +55,6 @@ c1=CPPComponent("compo1",services=[
 
 g=Generator(Module("cppcompos",components=[c1],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

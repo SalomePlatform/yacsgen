@@ -94,43 +94,6 @@ xml_service = """\
       </Method>"""
 xml_service = Template(xml_service)
 
-idlMakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-BUILT_SOURCES = ${module}SK.cc ${PACO_BUILT_SOURCES} ${other_sks}
-IDL_FILES=${module}.idl ${other_idls}
-
-lib_LTLIBRARIES = libSalomeIDL${module}.la
-salomeidl_DATA = $$(IDL_FILES) ${PACO_salomeidl_DATA}
-libSalomeIDL${module}_la_SOURCES      =
-nodist_libSalomeIDL${module}_la_SOURCES = ${module}SK.cc ${other_sks}
-nodist_salomeinclude_HEADERS= ${module}.hh ${PACO_SALOMEINCLUDE_HEADERS}
-libSalomeIDL${module}_la_CXXFLAGS     = -I.  $$(SALOME_INCLUDES)
-libSalomeIDL${module}_la_LIBADD     = $$(SALOME_IDL_LIBS)
-##########################################################
-%SK.cc %.hh : %.idl
-\t$$(OMNIORB_IDL) -bcxx $$(OMNIORB_IDLCXXFLAGS) $$(IDL_INCLUDES) $$<
-%_idl.py : %.idl
-\t$$(OMNIORB_IDL) $$(OMNIORB_IDLPYFLAGS) $$(IDL_INCLUDES) ${PACO_INCLUDES} $$<
-%PaCO.hxx %PaCO.cxx : %.idl %.xml
-\t$$(OMNIORB_IDL) -I@KERNEL_ROOT_DIR@/idl/salome -p@PACOPATH@/lib/python -bpaco -Wb$$(top_srcdir)/idl/$$*.xml,$$(srcdir):@PACOPATH@/idl:@KERNEL_ROOT_DIR@/idl/salome $$(top_srcdir)/idl/$$*.idl
-
-CLEANFILES = *.hh *SK.cc *.py *.hxx *.cxx
-
-EXTRA_DIST = $$(IDL_FILES)
-
-install-data-local: $$(IDL_FILES)
-\t$$(INSTALL) -d  $$(DESTDIR)$$(salomepythondir)
-\tls $$^ | while read file; do \\
-\t$$(OMNIORB_IDL) $$(OMNIORB_IDLPYFLAGS) $$(IDL_INCLUDES) -C$$(DESTDIR)$$(salomepythondir) $$$$file ; \\
-\tdone
-
-uninstall-local:
-\trm -rf $$(DESTDIR)$$(salomepythondir)/*
-
-"""
-idlMakefile=Template(idlMakefile)
-
 # PACO Part
 idlMakefilePaCO_BUILT_SOURCES = "${module}PaCO.cxx "
 idlMakefilePaCO_nodist_salomeinclude_HEADERS = "${module}PaCO.hxx "

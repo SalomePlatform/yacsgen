@@ -314,40 +314,6 @@ asterCEXEService="""
 asterCEXEService=Template(asterCEXEService)
 asterEXEService=asterCEXEService
 
-
-check_aster="""
-#
-# Check availability of Aster binary distribution
-#
-
-AC_DEFUN([AC_CHECK_ASTER],[
-
-AC_CHECKING(for Aster)
-
-Aster_ok=no
-
-AC_ARG_WITH(aster,
-      [AC_HELP_STRING([--with-aster=DIR],[root directory path of Aster installation])],
-      [ASTER_DIR="$withval"],[ASTER_DIR=""])
-
-if test -f ${ASTER_DIR}/bin/aster ; then
-   Aster_ok=yes
-   AC_MSG_RESULT(Using Aster distribution in ${ASTER_DIR})
-
-   ASTER_INCLUDES=-I$ASTER_DIR/include/aster
-
-   AC_SUBST(ASTER_DIR)
-   AC_SUBST(ASTER_INCLUDES)
-
-else
-   AC_MSG_WARN("Cannot find Aster distribution")
-fi
-
-AC_MSG_RESULT(for Aster: $Aster_ok)
-
-])dnl
-"""
-
 comm="""
 DEBUT(PAR_LOT='NON')
 """
@@ -472,3 +438,43 @@ if __name__ == '__main__':
 """
 component=Template(component)
 
+# CMakeLists.txt in src/<component> for an aster component
+# template parameters:
+#   sources: source files, separated by spaces
+#   module: module name
+#   resources: files to be installed in resources directory
+#   scripts: scripts to be installed
+cmake_src_compo_aster="""
+# scripts / static
+SET(_bin_py
+  ${sources}
+)
+
+SET(_res_files
+  ${resources}
+)
+
+SET(_bin_scripts
+  ${scripts}
+)
+
+# --- rules ---
+INSTALL(FILES $${_res_files} DESTINATION $${SALOME_${module}_INSTALL_RES_DATA})
+SALOME_INSTALL_SCRIPTS("$${_bin_scripts}" $${SALOME_INSTALL_SCRIPT_SCRIPTS})
+SALOME_INSTALL_SCRIPTS("$${_bin_py}" $${SALOME_INSTALL_PYTHON})
+"""
+cmake_src_compo_aster=Template(cmake_src_compo_aster)
+
+# CMakeLists.txt in src/<component> for an aster lib component
+# template parameters:
+#   sources: source files, separated by spaces
+cmake_src_compo_aster_lib="""
+# scripts / static
+SET(_bin_SCRIPTS
+  ${sources}
+)
+
+# --- rules ---
+SALOME_INSTALL_SCRIPTS("$${_bin_SCRIPTS}" $${SALOME_INSTALL_PYTHON})
+"""
+cmake_src_compo_aster_lib=Template(cmake_src_compo_aster_lib)

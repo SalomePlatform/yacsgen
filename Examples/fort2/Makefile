@@ -19,16 +19,18 @@
 
 include ../makefile.inc
 
+OPT_RPATH=-Wl,-rpath-link,$(KERNEL_ROOT_DIR)/lib/salome -Wl,-rpath-link,install/lib/salome
+
 all:prog1 prog2
 prog1:code1.o
-	  $(FC) -o prog1 code1.o -L./install/lib/salome -lfcode1Exelib -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC
+	  $(FC) -o prog1 code1.o -L./install/lib/salome -lfcode1Exelib -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC $(OPT_RPATH)
 code1.o:code1.f
 	  $(FC) -c code1.f -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions 
 
 prog2:code2.o
-	  $(FC) -o prog2 code2.o -L./install/lib/salome -lfcode2Exelib -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC
+	  $(FC) -o prog2 code2.o -L./install/lib/salome -lfcode2Exelib -L$(KERNEL_ROOT_DIR)/lib/salome -lCalciumC $(OPT_RPATH)
 code2.o:code2.f
 	  $(FC) -c code2.f -I$(KERNEL_ROOT_DIR)/include/salome -fexceptions 
 
 clean:
-	rm -rf *.o prog1 prog2 fcode1_inst_1  fcode2_inst_1  fcompos_SRC  install traceExec_proc install.bak fcompos_SRC.bak appli appli.bak
+	rm -rf *.o prog1 prog2 fcode1_inst_1  fcode2_inst_1  fcompos_*  install traceExec_proc *.bak appli *.err *.log

@@ -18,15 +18,15 @@
 #
 
 import os,sys
-sys.path.insert(0,"../..")
 
-SALOME_ROOT=os.path.expanduser("~/Salome/Install")
-SALOME_PREREQ=os.path.expanduser("~/.packages.d/envSalome6main")
+SALOME_ROOT=os.getenv("SALOME_DIR")
+SALOME_PREREQ=os.path.join(SALOME_ROOT, "salome_prerequisites.sh")
+#SALOME_PREREQ=os.path.join(SALOME_ROOT, "salome_prerequisites_appli.sh")
 
-KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR",os.path.join(SALOME_ROOT,"KERNEL_V6"))
-GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR",os.path.join(SALOME_ROOT,"GUI_V6"))
-YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR",os.path.join(SALOME_ROOT,"YACS_V6"))
-GEOM_ROOT_DIR=os.getenv("GEOM_ROOT_DIR",os.path.join(SALOME_ROOT,"GEOM_V6"))
+KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","")
+GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","")
+YACS_ROOT_DIR=os.getenv("YACS_ROOT_DIR","")
+GEOM_ROOT_DIR=os.getenv("GEOM_ROOT_DIR","")
 
 context={'update':1,
          "makeflags":"",

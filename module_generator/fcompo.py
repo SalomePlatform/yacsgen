@@ -47,10 +47,10 @@ class F77Component(CPPComponent):
    This component is implemented as a dynamic library linked with a user's library "mylib"::
 
       >>> c1 = module_generator.F77Component('mycompo', services=[s1,],
-                                                       libs="-lmylib -Lmydir")
+                                                       libs=[[Library(name="mylib", path=mydir)])
 
   """
-  def __init__(self, name, services=None, libs="", rlibs="", 
+  def __init__(self, name, services=None, libs=[], rlibs="", 
                      kind="lib", exe_path=None, sources=None):
     CPPComponent.__init__(self, name, services, libs=libs, rlibs=rlibs, 
                                 kind=kind, exe_path=exe_path, sources=sources)

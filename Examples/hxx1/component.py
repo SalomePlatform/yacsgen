@@ -28,7 +28,9 @@ gui_root_dir=os.environ["GUI_ROOT_DIR"]
 yacs_root_dir=os.environ["YACS_ROOT_DIR"]
 med_root_dir=os.environ["MED_ROOT_DIR"]
 geom_root_dir=os.environ["GEOM_ROOT_DIR"]
-prereq_file=os.path.join(kernel_root_dir,"..","env_products.sh")
+SALOME_ROOT=os.getenv("SALOME_DIR")
+prereq_file=os.path.join(SALOME_ROOT, "salome_prerequisites.sh")
+
 if not os.path.exists(prereq_file):
     prereq_file=os.path.join(kernel_root_dir,"..","..","env_products.sh")
 if not os.path.exists(prereq_file):
@@ -60,20 +62,19 @@ c4=HXX2SALOMEComponent("ICOCO.hxx","libICOCOCXX.so" , cpppath )
 
 g=Generator(Module("hxxcompos",components=[c4,c1],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()
 g.make_appli("appli",
-             restrict=["KERNEL","GUI","YACS"],
-             altmodules={"GUI":gui_root_dir,
-                         "MED":med_root_dir,
-                         "YACS":yacs_root_dir,
-                         "GEOM":geom_root_dir})
+             restrict=["KERNEL","GUI","YACS","MED","GEOM"],
+#             altmodules={"GUI":gui_root_dir,
+#                         "MED":med_root_dir,
+#                         "YACS":yacs_root_dir,
+#                         "GEOM":geom_root_dir})
+            )
 cppenv=""" export CALCULCPP_ROOT_DIR=%(cpppath)s
 export ICOCOCPP_ROOT_DIR=%(cpppath)s """  % {"cpppath" : cpppath}
 
 cppenvfile=open("appli/env.d/cppEnv.sh","w")
 cppenvfile.write(cppenv)
 cppenvfile.close()
-

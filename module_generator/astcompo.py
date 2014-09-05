@@ -34,6 +34,7 @@ from aster_tmpl import asterCEXEService, asterEXEService
 from aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
 from aster_tmpl import comm, make_etude, cexe, exeaster
 from aster_tmpl import container, component
+from aster_tmpl import cmake_src_compo_aster, cmake_src_compo_aster_lib
 
 class ASTERComponent(Component):
   """
@@ -60,7 +61,7 @@ class ASTERComponent(Component):
                                                           exe_path="launch.sh",
                                                           argv=["-memjeveux","4"])
   """
-  def __init__(self, name, services=None, libs="", rlibs="", aster_dir="", 
+  def __init__(self, name, services=None, libs=[], rlibs="", aster_dir="", 
                      python_path=None, argv=None, kind="lib", exe_path=None):
     """initialise component attributes"""
     self.aster_dir = aster_dir
@@ -99,6 +100,12 @@ class ASTERComponent(Component):
       if not found:
         serv.inport.insert(0, ("jdc", "string"))
 
+  def libraryName(self):
+    """ Name of the target library
+        No library for an aster component
+    """
+    return ""
+    
   def getAsterPythonPath(self):
     """Directory of aster python modules
     """
@@ -142,11 +149,19 @@ ARGPYT         | exec    | -     | %s
       self.version=(int(v),int(r),int(p))
 
     if self.kind == "lib":
-      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+      f = self.name+".py"
+      return {"CMakeLists.txt":cmake_src_compo_aster_lib.substitute(sources=f),
               filename:self.makeaster(gen)}
     elif self.kind == "cexe":
       fdict=self.makecexepath(gen)
-      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+      sources = self.name + ".py\n  " + self.name + "_container.py"
+      if self.version < (10,1,2):
+	sources =  sources + "\n  E_SUPERV.py"
+      d= {"CMakeLists.txt":cmake_src_compo_aster.substitute(
+                                            sources=sources,
+                                            module=gen.module.name,
+                                            resources=self.name+"_config.txt",
+                                            scripts=self.name+".exe"),
            self.name+".exe":cexe.substitute(compoexe=self.exe_path),
            filename:self.makecexeaster(gen)
          }
@@ -154,31 +169,20 @@ ARGPYT         | exec    | -     | %s
       return d
     elif self.kind == "exe":
       fdict=self.makeexepath(gen)
-      d= {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
+      sources =  self.name + "_module.py\n  "
+      sources =  sources + self.name + "_component.py"
+      if self.version < (10,1,2):
+	sources =  sources + "\n  E_SUPERV.py"
+      d= {"CMakeLists.txt":cmake_src_compo_aster.substitute(
+                                            sources=sources,
+                                            module=gen.module.name,
+                                            resources=self.name+"_config.txt",
+                                            scripts=self.name+".exe"),
            self.name+".exe":exeaster.substitute(compoexe=self.exe_path),
            self.name+"_module.py":self.makeexeaster(gen)
          }
       d.update(fdict)
       return d
-
-  def getMakefileItems(self,gen):
-    makefileItems={"header":"include $(top_srcdir)/adm_local/make_common_starter.am"}
-    if self.kind == "lib":
-      makefileItems["salomepython_PYTHON"]=[self.name+".py"]
-    elif self.kind == "exe":
-      makefileItems["salomepython_PYTHON"]=[self.name+"_module.py",self.name+"_component.py"]
-      if self.version < (10,1,2):
-        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
-      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
-    elif self.kind == "cexe":
-      makefileItems["salomepython_PYTHON"]=[self.name+".py",self.name+"_container.py"]
-      if self.version < (10,1,2):
-        makefileItems["salomepython_PYTHON"].append("E_SUPERV.py")
-      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-      makefileItems["salomeres_DATA"]=[self.name+"_config.txt"]
-    return makefileItems
-
 
   def makeexepath(self, gen):
     """standalone component: generate files for calculation code"""
