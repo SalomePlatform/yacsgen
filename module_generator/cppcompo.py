@@ -42,11 +42,11 @@ class CPPComponent(Component):
    :param services: the list of services (:class:`Service`) of the component.
    :param kind: If it is given and has the value "exe", the component will be built as a standalone
       component (executable or shell script). The default is to build the component as a dynamic library.
-   :param libs: list of the additional libraries. see :class:'Library'
+   :param libs: list of the additional libraries. see *Library* class.
       If you want to add "libmylib.so", installed in "/path/to/lib" you should use:
-         libs=[Library(name="mylib", path="/path/to/lib"]
+         libs=[Library(name="mylib", path="/path/to/lib")]
       For more advanced features, see the documentation of cmake / FIND_LIBRARY
-   :param rlibs: semicolon-separated list specifying the rpath to use in installed targets
+   :param rlibs: space-separated list specifying the rpath to use in installed targets
    :param includes: additional include directories, separated by spaces.
    :param sources: gives all the external source files to add in the compilation step (list of paths).
    :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
