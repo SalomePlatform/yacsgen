@@ -103,7 +103,6 @@ c1=CPPComponent("cppcompos",services=[
                        defs="//def1",body=body,
                  ),
           ],
-         includes="-I/usr/include",
          idls=["*.idl"],
          interfacedefs=idldefs,
          inheritedinterface="Idl_A",
@@ -119,7 +118,6 @@ modul=Module("cppcompos",components=[c1],prefix="./install",
 
 g=Generator(modul,context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

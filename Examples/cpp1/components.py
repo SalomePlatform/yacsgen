@@ -48,14 +48,12 @@ c1=CPPComponent("compo1",services=[
                        defs="//def1",body=body,
                  ),
           ],
-         includes="-I/usr/include",
          calciumextendedinterface=1,
          )
 
 
 g=Generator(Module("cppcompos",components=[c1],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

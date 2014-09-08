@@ -17,8 +17,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-KERNEL_ROOT_DIR=$(HOME)/Salome/Install/KERNEL_V6
-MED2HOME=/temp
+#MED2HOME=/temp
 
 ASTER_ROOT=$(HOME)/Aster/V10.3/aster
 ASTER_VERSION=STA10.3

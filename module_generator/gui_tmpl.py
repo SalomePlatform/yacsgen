@@ -22,17 +22,6 @@ try:
 except:
   from compat import Template,set
 
-pyguimakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-# Scripts to be installed
-salomepython_PYTHON= ${sources}
-
-salomeres_DATA =SalomeApp.xml ${other_sources}
-"""
-pyguimakefile=Template(pyguimakefile)
-
-
 pysalomeapp="""
 <document>
   <section name="${module}">
@@ -52,32 +41,6 @@ pysalomeapp="""
 """
 pysalomeapp=Template(pysalomeapp)
 
-cppguimakefile="""
-include $$(top_srcdir)/adm_local/make_common_starter.am
-
-BUILT_SOURCES=${uisources}
-
-lib_LTLIBRARIES= lib${module}.la
-lib${module}_la_SOURCES = ${sources}
-lib${module}_la_CPPFLAGS = $$(SALOME_INCLUDES) $$(GUI_CXXFLAGS) $$(BOOST_CPPFLAGS) $$(QT_INCLUDES) -I$$(top_builddir)/idl
-lib${module}_la_LIBADD   = -L$$(top_builddir)/idl -lSalomeIDL${module}
-
-salomeres_DATA =SalomeApp.xml ${other_sources}
-
-# meta object implementation files generation (moc)
-%_moc.cxx: %.h
-	$$(MOC) $$< -o $$@
-
-# qt forms files generation (uic)
-ui_%.h: %.ui
-	$$(UIC) -o $$@ $$<
-
-# translation (*.qm) files generation (lrelease)
-%.qm: %.ts
-	$$(LRELEASE) $$< -qm $$@
-"""
-cppguimakefile=Template(cppguimakefile)
-
 cppsalomeapp="""
 <document>
   <section name="${module}">
@@ -95,3 +58,142 @@ cppsalomeapp="""
 </document>
 """
 cppsalomeapp=Template(cppsalomeapp)
+
+# CMakeLists.txt for a c++ GUI of the module (src/{module}GUI/CMakeLists.txt)
+# template parameters:
+#   module : module name
+#   include_dirs : additional include directories
+#   libs : libraries to link to
+#   uic_files : .ui files
+#   moc_headers : header files - to be processed by moc
+#   sources : .cxx
+#   resources : resource files
+#   ts_resources : .ts files - to be processed by lrelease
+cmake_cpp_gui = """
+INCLUDE(UseQt4Ext)
+
+# --- options ---
+# additional include directories
+INCLUDE_DIRECTORIES(
+  $${QT_INCLUDES}
+  $${OMNIORB_INCLUDE_DIR}
+  $${KERNEL_INCLUDE_DIRS}
+  $${GUI_INCLUDE_DIRS}
+  $${PROJECT_BINARY_DIR}/idl
+  ${include_dirs}
+)
+
+# additional preprocessor / compiler flags
+ADD_DEFINITIONS(
+  $${QT_DEFINITIONS}
+  $${OMNIORB_DEFINITIONS}
+  $${KERNEL_DEFINITIONS}
+  $${GUI_DEFINITIONS}
+)
+
+# libraries to link to
+SET(_link_LIBRARIES
+  $${QT_LIBRARIES}
+  SalomeIDL${module}
+  ${libs}
+)
+
+# --- resources ---
+
+# resource files / to be processed by uic
+SET(_uic_files
+  ${uic_files}
+)
+
+# --- headers ---
+
+# header files / to be processed by moc
+SET(_moc_HEADERS
+  ${moc_headers}
+)
+
+# header files / uic wrappings
+QT4_WRAP_UI(_uic_HEADERS $${_uic_files})
+
+# --- sources ---
+
+# sources / moc wrappings
+QT4_WRAP_CPP(_moc_SOURCES $${_moc_HEADERS})
+
+
+# sources / static
+SET(_other_SOURCES
+  ${sources}
+)
+
+# sources / to compile
+SET(${module}GUI_SOURCES 
+  $${_other_SOURCES}
+  $${_moc_SOURCES}
+  $${_uic_files}
+)
+
+# --- resources ---
+
+# resource files / to be processed by lrelease
+SET(_ts_files
+  ${ts_resources}
+) 
+
+SET(_res_files
+  SalomeApp.xml
+  ${resources}
+) 
+
+# --- rules ---
+
+ADD_LIBRARY(${module} $${${module}GUI_SOURCES})
+TARGET_LINK_LIBRARIES(${module} $${_link_LIBRARIES} )
+INSTALL(TARGETS ${module} EXPORT $${PROJECT_NAME}TargetGroup DESTINATION $${SALOME_INSTALL_LIBS})
+
+INSTALL(FILES $${_moc_HEADERS} DESTINATION $${SALOME_INSTALL_HEADERS})
+INSTALL(FILES $${_res_files} DESTINATION "$${SALOME_${module}_INSTALL_RES_DATA}")
+QT4_INSTALL_TS_RESOURCES("$${_ts_files}" "$${SALOME_${module}_INSTALL_RES_DATA}")
+"""
+cmake_cpp_gui = Template(cmake_cpp_gui)
+
+# CMakeLists.txt for a python GUI (src/{module}GUI/CMakeLists.txt)
+# template parameters:
+#   module : module name
+#   scripts : .py files
+#   ts_resources : .ts files - to be processed by lrelease
+#   resources : other resource files
+cmake_py_gui = """
+INCLUDE(UseQt4Ext)
+
+# additional include directories
+INCLUDE_DIRECTORIES(
+  $${QT_INCLUDES}
+)
+
+# --- scripts ---
+
+# scripts / static
+SET(_bin_SCRIPTS
+  ${scripts}
+)
+
+# --- resources ---
+
+# resource files / to be processed by lrelease
+SET(_ts_RESOURCES
+  ${ts_resources}
+)
+
+SET(_res_files
+  SalomeApp.xml
+  ${resources}
+)
+
+# --- rules ---
+
+SALOME_INSTALL_SCRIPTS("$${_bin_SCRIPTS}" $${SALOME_INSTALL_SCRIPT_PYTHON})
+INSTALL(FILES $${_res_files} DESTINATION "$${SALOME_${module}_INSTALL_RES_DATA}")
+QT4_INSTALL_TS_RESOURCES("$${_ts_RESOURCES}" "$${SALOME_${module}_INSTALL_RES_DATA}")
+"""
+cmake_py_gui = Template(cmake_py_gui)

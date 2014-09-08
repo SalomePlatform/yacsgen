@@ -55,7 +55,6 @@ c1=PYComponent("compo2",services=[
 
 g=Generator(Module("pycompos",components=[c1],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

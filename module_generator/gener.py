@@ -31,10 +31,8 @@ class Invalid(Exception):
 
 debug=0
 
-from mod_tmpl import resMakefile, makecommon, configure, paco_configure
-from mod_tmpl import mainMakefile, autogen, application
-from mod_tmpl import check_sphinx
-from cata_tmpl import catalog, interface, idl, idlMakefile, parallel_interface
+from mod_tmpl import *
+from cata_tmpl import catalog, interface, idl, parallel_interface
 from cata_tmpl import xml, xml_interface, xml_service
 from cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
 from cata_tmpl import idlMakefilePACO_salomepython_DATA, idlMakefilePACO_salomeidl_DATA
@@ -42,12 +40,12 @@ from cata_tmpl import idlMakefilePACO_INCLUDES
 from cata_tmpl import cataOutStream, cataInStream, cataOutparam, cataInparam
 from cata_tmpl import cataOutParallelStream, cataInParallelStream
 from cata_tmpl import cataService, cataCompo
-from aster_tmpl import check_aster
+#from aster_tmpl import check_aster
 from salomemodules import salome_modules
 from yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in_type, corba_out_type
 from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
 from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
-from gui_tmpl import pyguimakefile, pysalomeapp, cppguimakefile, cppsalomeapp
+from gui_tmpl import cmake_py_gui, pysalomeapp, cmake_cpp_gui, cppsalomeapp
 from doc_tmpl import docmakefile, docconf, docsalomeapp
 
 def makedirs(namedir):
@@ -71,15 +69,12 @@ class Module(object):
    :type name: str
    :param components: gives the list of components of the module.
    :param prefix: is the path of the installation directory.
-   :param layout: If given and has the value "monodir", all components
-      will be generated in a single directory. The default is to generate each component in its
-      own directory.
    :param doc: can be used to add an online documentation to the module. It must be a list of file names (sources, images, ...) that will be
       used to build a sphinx documentation (see http://sphinx.pocoo.org, for more information). If not given, the Makefile.am
       and the conf.py (sphinx configuration) files are generated. In this case, the file name extension of source files must be .rst.
       See small examples in Examples/pygui1 and Examples/cppgui1.
    :param gui: can be used to add a GUI to the module. It must be a list of file names (sources, images, qt designer files, ...).
-      If not given, the Makefile.am and SalomeApp.xml are generated. All image files are put in the resources directory of the module.
+      If not given, the CMakeLists.txt and SalomeApp.xml are generated. All image files are put in the resources directory of the module.
       The GUI can be implemented in C++ (file name extension '.cxx') or in Python (file name extension '.py').
       See small examples in Examples/pygui1 and Examples/cppgui1.
 
@@ -90,11 +85,10 @@ class Module(object):
                                                   prefix="./install")
 
   """
-  def __init__(self, name, components=None, prefix="",layout="multidir", doc=None, gui=None):
+  def __init__(self, name, components=None, prefix="", doc=None, gui=None):
     self.name = name
     self.components = components or []
     self.prefix = prefix or "%s_INSTALL" % name
-    self.layout=layout
     self.doc = doc
     self.gui = gui
     try:
@@ -115,11 +109,34 @@ class Module(object):
         raise Invalid("%s is already defined as a component of the module" % compo.name)
       lcompo.add(compo.name)
       compo.validate()
-    if self.gui and self.layout != "multidir":
-      raise Invalid("A module with GUI can not be generated if layout is not multidir")
+
+class Library(object):
+  """
+     A :class:'Library' instance contains the informations of a user library.
+     
+     :param name: name of the library (exemple: "cppunit", "calcul")
+     :param path: path where to find the library (exemple: "/home/user/libs")
+  """
+  
+  def __init__(self, name, path):
+    self.name=name
+    self.path=path
+
+  def findLibrary(self):
+    """
+    return : text for the FIND_LIBRARY command for cmake.
+    Feel free to overload this function for your own needs.
+    """
+    return "FIND_LIBRARY( "+self.cmakeVarName()+" "+self.name+" PATH "+self.path + ")\n"
+    
+  def cmakeVarName(self):
+    """
+    return : name of the cmake variable used by FIND_LIBRARY
+    """
+    return "_userlib_" + self.name.split()[0]
 
 class Component(object):
-  def __init__(self, name, services=None, impl="PY", libs="", rlibs="",
+  def __init__(self, name, services=None, impl="PY", libs=[], rlibs="",
                      includes="", kind="lib", sources=None,
                      inheritedclass="",compodefs="",
                      idls=None,interfacedefs="",inheritedinterface="",addedmethods=""):
@@ -137,6 +154,31 @@ class Component(object):
     self.interfacedefs=interfacedefs
     self.inheritedinterface=inheritedinterface
     self.addedmethods=addedmethods
+
+  def additionalLibraries(self):
+    """ generate the cmake code for finding the additional libraries
+    return
+      string containing a list of "find_library"
+      string containing a list of cmake variables defined
+    """
+    cmake_text=""
+    cmake_vars=""
+    
+    for lib in self.libs:
+      cmake_text = cmake_text + lib.findLibrary()
+      cmake_vars = cmake_vars + "${" + lib.cmakeVarName() + "}\n  "
+    
+    var_template = Template("$${${name}_SalomeIDL${name}}")
+    for mod in self.depend_modules:
+      if salome_modules[mod]["linklibs"]:
+        cmake_vars = cmake_vars + salome_modules[mod]["linklibs"]
+      else:
+        default_lib = var_template.substitute(name=mod)
+        print "Unknown libraries for module " + mod
+        print "Using default library name " + default_lib
+        cmake_vars = cmake_vars + default_lib + "\n  "
+    
+    return cmake_text, cmake_vars
 
   def validate(self):
     if self.impl not in ValidImpl:
@@ -317,10 +359,14 @@ class Generator(object):
     for component in self.module.components:
       component.setPrerequisites(self.context.get("prerequisites"))
 
+  def sourceDir(self):
+    """ get the name of the source directory"""
+    return self.module.name+"_SRC"
+
   def generate(self):
     """Generate a SALOME source module"""
     module = self.module
-    namedir = module.name+"_SRC"
+    namedir = self.sourceDir()
     force = self.context.get("force")
     update = self.context.get("update")
     paco = self.context.get("paco")
@@ -335,18 +381,6 @@ class Generator(object):
       os.makedirs(namedir)
 
     srcs = {}
-    makefile = "SUBDIRS="
-    makefileItems={"header":"""
-include $(top_srcdir)/adm_local/make_common_starter.am
-AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
-""",
-                   "salomepython_PYTHON":[],
-                   "dist_salomescript_SCRIPTS":[],
-                   "salomeres_DATA":[],
-                   "lib_LTLIBRARIES":[],
-                   "salomeinclude_HEADERS":[],
-                   "body":"",
-                  }
 
     #get the list of SALOME modules used and put it in used_modules attribute
     def get_dependent_modules(mod,modules):
@@ -358,209 +392,109 @@ AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
 
     modules = {}
     for compo in module.components:
+      compo.depend_modules = set()
       for serv in compo.services:
         for name, typ in serv.inport + serv.outport + [ ("return",serv.ret) ] :
           mod = moduleTypes[typ]
           if mod:
             get_dependent_modules(mod,modules)
+            compo.depend_modules.add(mod)
 
     self.used_modules = modules.keys()
 
     for compo in module.components:
       #for components files
       fdict=compo.makeCompo(self)
-      if self.module.layout=="multidir":
-        srcs[compo.name] = fdict
-        #for src/Makefile.am
-        makefile = makefile + " " + compo.name
-      else:
-        srcs.update(fdict)
-        #for src/Makefile.am
-        mdict=compo.getMakefileItems(self)
-        makefileItems["salomepython_PYTHON"]=makefileItems["salomepython_PYTHON"]+mdict.get("salomepython_PYTHON",[])
-        makefileItems["dist_salomescript_SCRIPTS"]=makefileItems["dist_salomescript_SCRIPTS"]+mdict.get("dist_salomescript_SCRIPTS",[])
-        makefileItems["salomeres_DATA"]=makefileItems["salomeres_DATA"]+mdict.get("salomeres_DATA",[])
-        makefileItems["lib_LTLIBRARIES"]=makefileItems["lib_LTLIBRARIES"]+mdict.get("lib_LTLIBRARIES",[])
-        makefileItems["salomeinclude_HEADERS"]=makefileItems["salomeinclude_HEADERS"]+mdict.get("salomeinclude_HEADERS",[])
-        makefileItems["body"]=makefileItems["body"]+mdict.get("body","")+'\n'
+      srcs[compo.name] = fdict
 
-    if module.gui:
+    cmakecontent = ""
+    components_string = "".join(map(lambda x: x.name+" ", module.components))
+
+    if self.module.gui:
       GUIname=module.name+"GUI"
       fdict=self.makeGui(namedir)
       srcs[GUIname] = fdict
-      #for src/Makefile.am
-      makefile = makefile + " " + GUIname
-
-    if self.module.layout == "multidir":
-      srcs["Makefile.am"] = makefile+'\n'
-    else:
-      srcs["Makefile.am"] = self.makeMakefile(makefileItems)
+      components_string = components_string + "\n  " + GUIname
+      
+    cmakecontent = cmake_src.substitute(components=components_string)
+    srcs["CMakeLists.txt"] = cmakecontent
 
     docsubdir=""
     if module.doc:
       docsubdir="doc"
+      cmake_doc="ON"
+    else:
+      cmake_doc="OFF"
 
     #for catalog files
     catalogfile = "%sCatalog.xml" % module.name
 
-    need_boost=0
     if module.gui:
-        need_boost=1
-    for compo in module.components:
-      if hasattr(compo,"calciumextendedinterface") and compo.calciumextendedinterface:
-        need_boost=1
-        break
-
-    #add makefile definitions to make_common_starter.am
-    other_includes=""
-    common_starter = makecommon.substitute(other_includes=other_includes)
-    for mod in self.used_modules:
-      common_starter = common_starter + salome_modules[mod]["makefiledefs"] + '\n'
-
-    adm_local={"make_common_starter.am": common_starter, "check_aster.m4":check_aster}
-    if module.doc:
-      adm_local["check_sphinx.m4"]=check_sphinx
-
-    self.makeFiles({"autogen.sh":autogen,
-                    "Makefile.am":mainMakefile.substitute(docsubdir=docsubdir),
+      cmake_gui="ON"
+    else:
+      cmake_gui="OFF"
+      
+    prefix = os.path.abspath(self.module.prefix)
+    component_libs = "".join(map(lambda x: x.libraryName()+" ",
+                                           module.components))
+    add_modules = "".join(map(lambda x:cmake_find_module.substitute(module=x),
+                                       self.used_modules))
+    self.makeFiles({"CMakeLists.txt":cmake_root_cpp.substitute(
+                                                 module=self.module.name,
+                                                 module_min=self.module.name.lower(),
+                                                 compolibs=component_libs,
+                                                 with_doc=cmake_doc,
+                                                 with_gui=cmake_gui,
+                                                 add_modules=add_modules),
                     "README":"", "NEWS":"", "AUTHORS":"", "ChangeLog":"",
                     "src":srcs,
-                    "resources":{"Makefile.am":resMakefile.substitute(module=module.name), catalogfile:self.makeCatalog()},
-                    "adm_local":adm_local,
+                    "resources":{"CMakeLists.txt":cmake_ressources.substitute(
+                                                        module=self.module.name),
+                                 catalogfile:self.makeCatalog()},
                     }, namedir)
-
-    #add checks for modules in configure.ac
-    configure_modules=""
-    for mod in self.used_modules:
-      configure_modules = configure_modules + salome_modules[mod]["configdefs"] + '\n'
-
-    #for configure.ac
-    configure_makefiles = []
-    if self.module.layout=="multidir":
-      for compo in module.components:
-        configure_makefiles.append("     src/"+compo.name+"/Makefile")
-
-    if module.gui:
-      configure_makefiles.append("     src/%sGUI/Makefile" % module.name)
-    if module.doc:
-      configure_makefiles.append("     doc/Makefile")
-
-    other_check=""
-    other_summary=""
-    other_require=""
-
-    if need_boost:
-      other_check=other_check+"""CHECK_BOOST
-"""
-      other_summary=other_summary+"""echo "  Boost  ................. : $boost_ok"
-"""
-
-    if module.gui:
-      other_check=other_check + """CHECK_SALOME_GUI
-CHECK_QT
-"""
-      other_summary=other_summary+'''echo "  SALOME GUI ............. : $SalomeGUI_ok"
-echo "  Qt ..................... : $qt_ok"
-'''
-      other_require=other_require + """
-      if test "x$SalomeGUI_ok" = "xno"; then
-        AC_MSG_ERROR([SALOME GUI is required],1)
-      fi
-      if test "x$qt_ok" = "xno"; then
-        AC_MSG_ERROR([Qt library is required],1)
-      fi
-"""
-    if module.doc:
-      other_check=other_check+"CHECK_SPHINX\n"
-      other_summary=other_summary+'''echo "  Sphinx ................. : $sphinx_ok"\n'''
-      other_require=other_require + """
-      if test "x$sphinx_ok" = "xno"; then
-        AC_MSG_ERROR([Sphinx documentation generator is required],1)
-      fi
-"""
 
     files={}
     #for idl files
     idlfile = "%s.idl" % module.name
-    paco_config=""
-    PACO_BUILT_SOURCES=""
-    PACO_SALOMEINCLUDE_HEADERS=""
-    PACO_INCLUDES=""
-    PACO_salomepython_DATA=""
-    PACO_salomeidl_DATA=""
-
-    if paco:
-      PACO_BUILT_SOURCES = idlMakefilePaCO_BUILT_SOURCES.substitute(module=module.name)
-      PACO_SALOMEINCLUDE_HEADERS = idlMakefilePaCO_nodist_salomeinclude_HEADERS.substitute(module=module.name)
-      PACO_salomepython_DATA = idlMakefilePACO_salomepython_DATA.substitute(module=module.name)
-      PACO_salomeidl_DATA = idlMakefilePACO_salomeidl_DATA.substitute(module=module.name)
-      PACO_INCLUDES = idlMakefilePACO_INCLUDES
-      paco_config=paco_configure
-
-    files["configure.ac"]=configure.substitute(module=module.name.lower(),
-                                               makefiles='\n'.join(configure_makefiles),
-                                               paco_configure=paco_config,
-                                               modules=configure_modules,
-                                               other_check=other_check,
-                                               other_summary=other_summary,
-                                               other_require=other_require,
-                                              )
 
     #if components have other idls
     other_idls=""
-    other_sks=""
+#    other_sks=""
     for compo in module.components:
       if compo.idls:
         for idl in compo.idls:
           for fidl in glob.glob(idl):
             other_idls=other_idls+os.path.basename(fidl) +" "
-            other_sks=other_sks+os.path.splitext(os.path.basename(fidl))[0]+"SK.cc "
+#            other_sks=other_sks+os.path.splitext(os.path.basename(fidl))[0]+"SK.cc "
 
-    idlfiles={"Makefile.am":    idlMakefile.substitute(module=module.name,
-                                                       PACO_BUILT_SOURCES=PACO_BUILT_SOURCES,
-                                                       PACO_SALOMEINCLUDE_HEADERS=PACO_SALOMEINCLUDE_HEADERS,
-                                                       PACO_INCLUDES=PACO_INCLUDES,
-                                                       PACO_salomepython_DATA=PACO_salomepython_DATA,
-                                                       PACO_salomeidl_DATA=PACO_salomeidl_DATA,
-                                                       other_idls=other_idls,other_sks=other_sks,
-                                                       ),
-              idlfile : self.makeidl(),
+    include_template=Template("$${${module}_ROOT_DIR}/idl/salome")
+    opt_inc="".join(map(lambda x:include_template.substitute(module=x)+"\n  ",
+                                       self.used_modules))
+    link_template=Template("$${${module}_SalomeIDL${module}}")
+    opt_link="".join(map(lambda x:link_template.substitute(module=x)+"\n  ",
+                                       self.used_modules))
+    
+    idlfiles={"CMakeLists.txt":cmake_idl.substitute(module=module.name,
+                                                    extra_idl=other_idls,
+                                                    extra_include=opt_inc,
+                                                    extra_link=opt_link),
+              idlfile         :self.makeidl(),
              }
-    if paco:
-      idlfiles["%s.xml" % module.name]=self.makexml()
 
     files["idl"]=idlfiles
 
     self.makeFiles(files,namedir)
 
-    os.chmod(os.path.join(namedir, "autogen.sh"), 0777)
     #copy source files if any in created tree
     for compo in module.components:
       for src in compo.sources:
-        if self.module.layout=="multidir":
-          shutil.copyfile(src, os.path.join(namedir, "src", compo.name, os.path.basename(src)))
-        else:
-          shutil.copyfile(src, os.path.join(namedir, "src", os.path.basename(src)))
+        shutil.copyfile(src, os.path.join(namedir, "src", compo.name, os.path.basename(src)))
 
       if compo.idls:
         #copy provided idl files in idl directory
         for idl in compo.idls:
           for fidl in glob.glob(idl):
             shutil.copyfile(fidl, os.path.join(namedir, "idl", os.path.basename(fidl)))
-
-    checks= ("check_Kernel.m4", "check_omniorb.m4", "ac_linker_options.m4", "ac_cxx_option.m4",
-             "python.m4", "enable_pthreads.m4", "check_f77.m4", "acx_pthread.m4", "check_paco++.m4",
-             "check_mpi.m4", "check_lam.m4", "check_openmpi.m4", "check_mpich.m4")
-    if need_boost:
-      checks=checks+("check_boost.m4",)
-    for m4file in checks:
-      shutil.copyfile(os.path.join(self.kernel, "salome_adm", "unix", "config_files", m4file),
-                      os.path.join(namedir, "adm_local", m4file))
-
-    if self.module.gui:
-      for m4file in ("check_GUI.m4", "check_qt.m4", "check_opengl.m4"):
-        shutil.copyfile(os.path.join(self.gui, "adm_local", "unix", "config_files", m4file),
-                        os.path.join(namedir, "adm_local", m4file))
 
     self.makeDoc(namedir)
     return
@@ -570,25 +504,34 @@ echo "  Qt ..................... : $qt_ok"
       return
     rep=os.path.join(namedir,"doc")
     os.makedirs(rep)
+    doc_files=""
     for docs in self.module.doc:
       for doc in glob.glob(docs):
         name = os.path.basename(doc)
+        doc_files = doc_files + name + "\n  "
         shutil.copyfile(doc, os.path.join(rep, name))
 
     d={}
 
-    others=""
     if not self.module.gui:
        #without gui but with doc: create a small SalomeApp.xml in doc directory
        if not os.path.exists(os.path.join(namedir, "doc", "SalomeApp.xml")):
          #create a minimal SalomeApp.xml
          salomeapp=docsalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
          d["SalomeApp.xml"]=salomeapp
-       others="SalomeApp.xml"
 
-    if not os.path.exists(os.path.join(namedir, "doc", "Makefile.am")):
-      #create a minimal makefile.am
-      d["Makefile.am"]=docmakefile.substitute(others=others)
+    if not os.path.exists(os.path.join(namedir, "doc", "CMakeLists.txt")):
+      #create a minimal CMakeLists.txt
+      makefile_txt=docmakefile.substitute(module=self.module.name,
+                                          files=doc_files)
+      if not self.module.gui:
+        txt = 'INSTALL(FILES SalomeApp.xml DESTINATION \
+"${SALOME_%s_INSTALL_RES_DATA}")\n' % self.module.name
+        makefile_txt = makefile_txt + txt
+        pass
+      
+      d["CMakeLists.txt"]=makefile_txt
+      pass
 
     if not os.path.exists(os.path.join(namedir, "doc", "conf.py")):
       #create a minimal conf.py
@@ -619,18 +562,25 @@ echo "  Qt ..................... : $qt_ok"
 
   def makePyGUI(self,namedir):
     d={}
-    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "Makefile.am")):
-      #create a minimal makefile.am
-      sources=[]
-      other=[]
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "CMakeLists.txt")):
+      #create a minimal CMakeLists.txt
+      sources=""
+      other=""
+      ui_files=""
+      ts_files=""
       for srcs in self.module.gui:
         for src in glob.glob(srcs):
           if src[-3:]==".py":
-            sources.append(os.path.basename(src))
+            sources=sources+os.path.basename(src)+"\n  "
+          elif src[-3:]==".ts":
+            ts_files=ts_files+os.path.basename(src)+"\n  "
           else:
-            other.append(os.path.basename(src))
-      makefile=pyguimakefile.substitute(sources=" ".join(sources),other_sources=" ".join(other))
-      d["Makefile.am"]=makefile
+            other=other+os.path.basename(src)+"\n  "
+      makefile=cmake_py_gui.substitute(module=self.module.name,
+                                       scripts=sources,
+                                       ts_resources=ts_files,
+                                       resources=other)
+      d["CMakeLists.txt"]=makefile
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
@@ -641,27 +591,41 @@ echo "  Qt ..................... : $qt_ok"
 
   def makeCPPGUI(self,namedir):
     d={}
-    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "Makefile.am")):
-      #create a minimal makefile.am
-      sources=[]
-      other=[]
-      ui_files=[]
+    if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "CMakeLists.txt")):
+      #create a minimal CMakeLists.txt
+      sources=""
+      headers=""
+      other=""
+      ui_files=""
+      ts_files=""
       for srcs in self.module.gui:
         for src in glob.glob(srcs):
-          if src[-4:]==".cxx":
-            sources.append(os.path.basename(src))
-          elif src[-2:]==".h":
-            sources.append(os.path.basename(src)[:-2]+"_moc.cxx")
+          if src[-4:]==".cxx" or src[-4:]==".cpp":
+            sources=sources+os.path.basename(src)+"\n  "
+          elif src[-2:]==".h" or src[-4:]==".hxx":
+            headers=headers+os.path.basename(src)+"\n  "
           elif src[-3:]==".ui":
-            ui_files.append("ui_"+os.path.basename(src)[:-3]+".h")
+            ui_files=ui_files+os.path.basename(src)+"\n  "
           elif src[-3:]==".ts":
-            other.append(os.path.basename(src)[:-3]+".qm")
+	    ts_files=ts_files+os.path.basename(src)+"\n  "
           else:
-            other.append(os.path.basename(src))
+            other=other+os.path.basename(src)+"\n  "
 
-      makefile=cppguimakefile.substitute(sources=" ".join(sources),other_sources=" ".join(other),
-                                         module=self.module.name, uisources= " ".join(ui_files))
-      d["Makefile.am"]=makefile
+      compo_dirs = "".join(map(lambda x: 
+                                 "${PROJECT_SOURCE_DIR}/src/"+x.name+"\n  ",
+                                 self.module.components))
+      compo_dirs = compo_dirs + "${PROJECT_BINARY_DIR}/src/" + self.module.name + "GUI\n"
+      component_libs = "".join(map(lambda x:
+                              x.libraryName()+" ", self.module.components))
+      makefile=cmake_cpp_gui.substitute(module=self.module.name,
+                                    include_dirs=compo_dirs,
+                                    libs=component_libs,
+                                    uic_files=ui_files,
+                                    moc_headers=headers,
+                                    sources=sources,
+                                    resources=other,
+                                    ts_resources=ts_files)
+      d["CMakeLists.txt"]=makefile
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
@@ -836,46 +800,31 @@ echo "  Qt ..................... : $qt_ok"
           os.makedirs(filename)
         self.makeFiles(content, filename)
 
-  def bootstrap(self):
-    """Execute the first build step (bootstrap autotools with autogen.sh script) : execution of libtool, autoconf, automake"""
-    ier = os.system("cd %s_SRC;sh autogen.sh" % self.module.name)
-    if ier != 0:
-      raise Invalid("bootstrap has ended in error")
-
   def configure(self):
     """Execute the second build step (configure) with installation prefix as given by the prefix attribute of module"""
-    prefix = self.module.prefix
-    paco = self.context.get("paco")
-    mpi = self.context.get("mpi")
-    args = (self.module.name, self.kernel, self.aster)
-    cmd = "cd %s_SRC;./configure --with-kernel=%s --with-aster=%s" % args
-    if self.gui:
-      cmd = cmd + " --with-gui=%s" % self.gui
-    if prefix:
-      prefix = os.path.abspath(prefix)
-      cmd = cmd + " --prefix=%s" % prefix
-    if paco:
-      cmd += " --with-paco=%s" % paco
-    if mpi:
-      cmd += " --with-mpi=%s" % mpi
+    prefix = os.path.abspath(self.module.prefix)
 
-    ier = os.system(cmd)
+    self.build_dir = "%s_build" % self.module.name
+    makedirs(self.build_dir)
+    
+    build_sh = "cd %s; cmake ../%s -DCMAKE_INSTALL_PREFIX:PATH=%s"%(self.build_dir, self.sourceDir(), prefix) 
+    ier = os.system(build_sh)
     if ier != 0:
       raise Invalid("configure has ended in error")
 
   def make(self):
     """Execute the third build step (compile and link) : make"""
-    make_command = "make "
+    make_command = "cd %s; make " % self.build_dir
     if self.makeflags:
       make_command += self.makeflags
-    ier = os.system("cd %s_SRC;%s" % (self.module.name, make_command))
+    ier = os.system(make_command)
     if ier != 0:
       raise Invalid("make has ended in error")
 
   def install(self):
     """Execute the installation step : make install """
-    makedirs(self.module.prefix)
-    ier = os.system("cd %s_SRC;make install" % self.module.name)
+    make_command = "cd %s; make install" % self.build_dir
+    ier = os.system(make_command)
     if ier != 0:
       raise Invalid("install has ended in error")
 
@@ -898,7 +847,6 @@ echo "  Qt ..................... : $qt_ok"
 
      >>> g=Generator(m,context)
      >>> g.generate()
-     >>> g.bootstrap()
      >>> g.configure()
      >>> g.make()
      >>> g.install()

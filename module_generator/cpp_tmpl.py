@@ -36,6 +36,8 @@ ${CalciumInterface}
 #include <pthread.h>
 #include <execinfo.h>
 
+#define BUILD_EXE ${exe}
+
 typedef void (*sighandler_t)(int);
 sighandler_t setsig(int sig, sighandler_t handler)
 {
@@ -67,7 +69,7 @@ static void AttachDebugger()
   if(getenv ("DEBUGGER"))
     {
       std::stringstream exec;
-#if ${exe}
+#if BUILD_EXE
       exec << "$$DEBUGGER " << "${exe_path} " << getpid() << "&";
 #else
       exec << "$$DEBUGGER SALOME_Container " << getpid() << "&";
@@ -151,7 +153,7 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, contId, instanceName, interfaceName)
 {
-#if ${exe}
+#if BUILD_EXE
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
   set_unexpected(&unexpectedHandler);
@@ -167,7 +169,7 @@ ${component}_i::${component}_i(CORBA::ORB_ptr orb,
                      const char *interfaceName)
           : Superv_Component_i(orb, poa, container, instanceName, interfaceName)
 {
-#if ${exe}
+#if BUILD_EXE
   setsig(SIGSEGV,&THandler);
   set_terminate(&terminateHandler);
   set_unexpected(&unexpectedHandler);
@@ -183,7 +185,7 @@ ${component}_i::~${component}_i()
 
 void ${component}_i::destroy()
 {
-#if ${exe}
+#if BUILD_EXE
   _remove_ref();
   if(!CORBA::is_nil(_orb))
     _orb->shutdown(0);
@@ -356,7 +358,7 @@ ${body}
   catch (...)
     {
       std::cerr << "unknown exception" << std::endl;
-#if ${exe}
+#if BUILD_EXE
       _exit(-1);
 #endif
       //cp_fin(component,CP_ARRET);
@@ -407,22 +409,73 @@ exeCPP=Template(exeCPP)
 
 # Makefile
 
-compoMakefile="""
-lib${component}Engine_la_SOURCES      = ${component}.cxx ${sources}
-nodist_lib${component}Engine_la_SOURCES =
-lib${component}Engine_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
-lib${component}Engine_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
-lib${component}Engine_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
-lib${component}Engine_la_LDFLAGS = ${rlibs}
-"""
-compoMakefile=Template(compoMakefile)
+# CMakeLists.txt in src/<component>
+# template parameters:
+#   module : module name
+#   component : component name
+#   componentlib : name of the target library
+#   includes : additional headers, separated by spaces or \n. can be empty
+#   sources : additional sources, separated by spaces or \n. can be empty
+#   libs : additional libraries
+#   find_libs : find_library commands
+#   target_properties : set_target_properties commands
+cmake_src_compo_cpp = """
+# --- options ---
+# additional include directories
+INCLUDE_DIRECTORIES(
+  $${KERNEL_INCLUDE_DIRS}
+  $${OMNIORB_INCLUDE_DIR}
+  $${PROJECT_BINARY_DIR}
+  $${PROJECT_BINARY_DIR}/idl
+  ${includes}
+)
 
-compoEXEMakefile="""
-lib${component}Exelib_la_SOURCES      = ${component}.cxx
-nodist_lib${component}Exelib_la_SOURCES =
-lib${component}Exelib_la_CXXFLAGS = -I$$(top_builddir)/idl  $$(SALOME_INCLUDES) ${includes}
-lib${component}Exelib_la_FFLAGS = $$(SALOME_INCLUDES) -fexceptions ${includes}
-lib${component}Exelib_la_LIBADD   = ${libs} -L$$(top_builddir)/idl -lSalomeIDL${module} $${SALOME_LIBS} $$(FLIBS)
-lib${component}Exelib_la_LDFLAGS = ${rlibs}
+# --- definitions ---
+ADD_DEFINITIONS(
+  $${OMNIORB_DEFINITIONS}
+)
+
+# find additional libraries
+${find_libs}
+
+# libraries to link to
+SET(_link_LIBRARIES
+  $${OMNIORB_LIBRARIES}
+  $${KERNEL_SalomeIDLKernel}
+  $${KERNEL_OpUtil}
+  $${KERNEL_SalomeContainer}
+  $${KERNEL_SalomeDSCContainer}
+  $${KERNEL_SalomeDSCSuperv}
+  $${KERNEL_SalomeDatastream}
+  $${KERNEL_SalomeDSCSupervBasic}
+  $${KERNEL_CalciumC}
+  SalomeIDL${module}
+  ${libs}
+)
+
+# --- headers ---
+
+# header files / no moc processing
+
+SET(${module}_HEADERS
+  ${component}.hxx
+)
+
+# --- sources ---
+
+# sources / static
+SET(${module}_SOURCES
+  ${component}.cxx
+  ${sources}
+)
+
+# --- rules ---
+
+ADD_LIBRARY(${componentlib} $${${module}_SOURCES})
+TARGET_LINK_LIBRARIES(${componentlib} $${_link_LIBRARIES} )
+${target_properties}
+INSTALL(TARGETS ${componentlib} EXPORT $${PROJECT_NAME}TargetGroup DESTINATION $${SALOME_INSTALL_LIBS})
+
+INSTALL(FILES $${${module}_HEADERS} DESTINATION $${SALOME_INSTALL_HEADERS})
 """
-compoEXEMakefile=Template(compoEXEMakefile)
+cmake_src_compo_cpp = Template(cmake_src_compo_cpp)

@@ -46,7 +46,6 @@ modul=Module("pycompos",components=[c1],prefix="./install",
 
 g=Generator(modul,context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

@@ -24,8 +24,13 @@
 import os
 from gener import Component, Invalid
 from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
-from cpp_tmpl import exeCPP, compoEXEMakefile, compoMakefile
+from cpp_tmpl import exeCPP, cmake_src_compo_cpp
 from yacstypes import corba_rtn_type
+
+try:
+  from string import Template
+except:
+  from compat import Template,set
 
 class CPPComponent(Component):
   """
@@ -37,9 +42,12 @@ class CPPComponent(Component):
    :param services: the list of services (:class:`Service`) of the component.
    :param kind: If it is given and has the value "exe", the component will be built as a standalone
       component (executable or shell script). The default is to build the component as a dynamic library.
-   :param libs: gives all the libraries options to add when linking the generated component (-L...).
-   :param rlibs: gives all the runtime libraries options to add when linking the generated component (-R...).
-   :param includes: gives all the include options to add when compiling the generated component (-I...).
+   :param libs: list of the additional libraries. see *Library* class.
+      If you want to add "libmylib.so", installed in "/path/to/lib" you should use:
+         libs=[Library(name="mylib", path="/path/to/lib")]
+      For more advanced features, see the documentation of cmake / FIND_LIBRARY
+   :param rlibs: space-separated list specifying the rpath to use in installed targets
+   :param includes: additional include directories, separated by spaces.
    :param sources: gives all the external source files to add in the compilation step (list of paths).
    :param exe_path: is only used when kind is "exe" and gives the path to the standalone component.
    :param compodefs: can be used to add extra definition code in the component for example when using a base class
@@ -62,7 +70,7 @@ class CPPComponent(Component):
       >>> c1 = module_generator.CPPComponent('mycompo', services=[s1,], kind="exe",
                                              exe_path="./launch.sh")
   """
-  def __init__(self, name, services=None, libs="", rlibs="", includes="", kind="lib",
+  def __init__(self, name, services=None, libs=[], rlibs="", includes="", kind="lib",
                      exe_path=None, sources=None, inheritedclass="", compodefs="",
                      idls=None,interfacedefs="",inheritedinterface="",addedmethods="",
                      calciumextendedinterface=0):
@@ -85,51 +93,63 @@ class CPPComponent(Component):
       if not self.exe_path:
         raise Invalid("exe_path must be defined for component %s" % self.name)
 
+  def targetProperties(self):
+    """ define the rpath property of the target using self.rlibs
+    return
+      string containing the commands to add to cmake
+    """
+    text=""
+    if self.rlibs.strip() :
+      text="SET_TARGET_PROPERTIES( %sEngine PROPERTIES INSTALL_RPATH %s)\n" % (self.name, self.rlibs)
+    return text
+
+  def libraryName(self):
+    """ Name of the target library
+    """
+    ret=""
+    if self.kind == "lib":
+      ret = self.name + "Engine"
+    elif self.kind == "exe":
+      ret = self.name + "Exelib"
+    else:
+      raise Invalid("Invalid kind of component: %s. Supported kinds are 'lib' and 'exe'" % self.name)
+    return ret
+    
   def makeCompo(self, gen):
     """generate files for C++ component
 
-       return a dict where key is the file name and value is the content of the file
+       return a dict where key is the file name and value is the file content
     """
+    (cmake_text, cmake_vars) = self.additionalLibraries()
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
-    if self.kind == "lib":
-      sources = " ".join(map(os.path.basename,self.sources))
-      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
-              cxxfile:self.makecxx(gen),
-              hxxfile:self.makehxx(gen)
-             }
     if self.kind == "exe":
-      return {"Makefile.am":gen.makeMakefile(self.getMakefileItems(gen)),
-              self.name+".exe":exeCPP.substitute(compoexe=self.exe_path),
-              cxxfile:self.makecxx(gen, 1),
-              hxxfile:self.makehxx(gen)
-             }
-
-  def getMakefileItems(self,gen):
-    makefileItems={"header":"""
-include $(top_srcdir)/adm_local/make_common_starter.am
-
-AM_CFLAGS=$(SALOME_INCLUDES) -fexceptions
-"""}
-    if self.kind == "lib":
-      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Engine.la"]
-      makefileItems["salomeinclude_HEADERS"]=[self.name+".hxx"]
-      makefileItems["body"]=compoMakefile.substitute(module=gen.module.name,
-                                                     component=self.name,
-                                                     libs=self.libs,
-                                                     rlibs=self.rlibs,
-                                                     sources= " ".join(map(os.path.basename,self.sources)),
-                                                     includes=self.includes)
-    elif self.kind == "exe":
-      makefileItems["lib_LTLIBRARIES"]=["lib"+self.name+"Exelib.la"]
-      makefileItems["salomeinclude_HEADERS"]=[self.name+".hxx"]
-      makefileItems["dist_salomescript_SCRIPTS"]=[self.name+".exe"]
-      makefileItems["body"]=compoEXEMakefile.substitute(module=gen.module.name,
-                                                        component=self.name,
-                                                        libs=self.libs,
-                                                        rlibs=self.rlibs,
-                                                        includes=self.includes)
-    return makefileItems
+      exe_opt = 1
+    else:
+      exe_opt = 0
+    ret = { cxxfile:self.makecxx(gen, exe_opt),
+            hxxfile:self.makehxx(gen)
+          }
+    sources = " ".join(map(os.path.basename,self.sources))
+    cmakelist_content = cmake_src_compo_cpp.substitute(
+                        module = gen.module.name,
+                        component = self.name,
+                        componentlib = self.libraryName(),
+                        includes = self.includes,
+                        sources = sources,
+                        libs = cmake_vars,
+                        find_libs = cmake_text,
+                        target_properties = self.targetProperties())
+    if self.kind == "exe":
+      exe_file = self.name+".exe"
+      install_commande = "\nINSTALL(PROGRAMS %s DESTINATION ${SALOME_INSTALL_BINS})\n" % exe_file
+      cmakelist_content = cmakelist_content + install_commande
+      ret[exe_file] = exeCPP.substitute(compoexe=self.exe_path)
+    pass
+    
+    ret["CMakeLists.txt"] = cmakelist_content
+    
+    return ret
 
   def makehxx(self, gen):
     """return a string that is the content of .hxx file

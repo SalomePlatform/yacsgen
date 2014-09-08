@@ -40,7 +40,6 @@ c2=F77Component("fcode2", services=[Service("serv1",inport=[("a","double"),("b",
 
 g=Generator(Module("fcompos",components=[c1,c2],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()

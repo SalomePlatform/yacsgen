@@ -24,30 +24,6 @@ execfile("../context.py")
 
 from module_generator import Generator,Module,Service,CPPComponent,PYComponent,add_type,add_module
 
-#overload module GEOM definition
-idldefs="""
-#include "GEOM_Gen.idl"
-"""
-makefiledefs="""
-#module GEOM
-GEOM_IDL_INCLUDES = -I$(GEOM_ROOT_DIR)/idl/salome
-GEOM_INCLUDES= -I$(GEOM_ROOT_DIR)/include/salome
-GEOM_IDL_LIBS= -L$(GEOM_ROOT_DIR)/lib/salome -lSalomeIDLGEOM
-GEOM_LIBS= -L$(GEOM_ROOT_DIR)/lib/salome
-SALOME_LIBS += ${GEOM_LIBS}
-SALOME_IDL_LIBS += ${GEOM_IDL_LIBS}
-SALOME_INCLUDES += ${GEOM_INCLUDES}
-IDL_INCLUDES += ${GEOM_IDL_INCLUDES}
-"""
-configdefs="""
-if test "x${GEOM_ROOT_DIR}" != "x" && test -d ${GEOM_ROOT_DIR} ; then
-  AC_MSG_RESULT(Using GEOM installation in ${GEOM_ROOT_DIR})
-else
-  AC_MSG_ERROR([Cannot find module GEOM. Have you set GEOM_ROOT_DIR ?],1)
-fi
-"""
-add_module("GEOM",idldefs,makefiledefs,configdefs)
-
 #overload GEOM_Object definition
 add_type("GEOM_Object", "GEOM::GEOM_Object_ptr", "GEOM::GEOM_Object_out", "GEOM", "GEOM::GEOM_Object","GEOM::GEOM_Object_ptr")
 
@@ -222,7 +198,6 @@ c2=PYComponent("compo2",services=[
 
 g=Generator(Module("mymodule",components=[c1,c2],prefix="./install"),context)
 g.generate()
-g.bootstrap()
 g.configure()
 g.make()
 g.install()
