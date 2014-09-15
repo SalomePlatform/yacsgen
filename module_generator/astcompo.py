@@ -118,20 +118,6 @@ class ASTERComponent(Component):
       
     return aster_python_path
 
-#  def getConfig(self, gen):
-#    """Content of the config.txt file
-#    """
-#    path_compo=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-#                      'site-packages','salome','%s_component.py'%self.name)
-#    conf="""ENV_SH         | env     | -     | $ASTER_VERSION_DIR/share/aster/profile.sh
-#BINELE         | bin     | -     | $ASTER_VERSION_DIR/share/aster/elements
-#SRCPY          | src     | -     | %s
-#ARGPYT         | exec    | -     | %s
-#""" % (self.getAsterPythonPath(), path_compo)
-#    
-#    return conf
-
   def makeCompo(self, gen):
     """drive the generation of SALOME module files and code files
        depending on the choosen component kind
@@ -140,15 +126,6 @@ class ASTERComponent(Component):
     #on suppose que les composants ASTER sont homogenes (utilisent meme install)
     gen.aster = self.aster_dir
 
-    #get ASTER version
-#    f = os.path.join(self.aster_dir, self.getAsterPythonPath(), 'Accas', 'properties.py')
-#    self.version=(0,0,0)
-#    if os.path.isfile(f):
-#      mydict = {}
-#      execfile(f, mydict)
-#      v,r,p = mydict['version'].split('.')
-#      self.version=(int(v),int(r),int(p))
-
     if self.kind == "lib":
       f = self.name+".py"
       return {"CMakeLists.txt":cmake_src_compo_aster_lib.substitute(sources=f),
@@ -156,8 +133,6 @@ class ASTERComponent(Component):
     elif self.kind == "cexe":
       fdict=self.makecexepath(gen)
       sources = self.name + ".py\n  " + self.name + "_container.py"
-      if self.version < (10,1,2):
-	sources =  sources + "\n  E_SUPERV.py"
       d= {"CMakeLists.txt":cmake_src_compo_aster.substitute(
                                             sources=sources,
                                             module=gen.module.name,
@@ -172,8 +147,6 @@ class ASTERComponent(Component):
       fdict=self.makeexepath(gen)
       sources =  self.name + "_module.py\n  "
       sources =  sources + self.name + "_component.py"
-      if self.version < (10,1,2):
-	sources =  sources + "\n  E_SUPERV.py"
       d= {"CMakeLists.txt":cmake_src_compo_aster.substitute(
                                             sources=sources,
                                             module=gen.module.name,
@@ -189,37 +162,6 @@ class ASTERComponent(Component):
     """standalone component: generate files for calculation code"""
 
     fdict={}
-
-#    if self.version < (10,1,2):
-      #patch to E_SUPERV.py
-#      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-#      esuperv = fil.read()
-#      fil.close()
-#      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-#      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-#      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-#      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-#      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
-#      fdict["E_SUPERV.py"]=esuperv
-
-    #use a specific main program (modification of config.txt file)
-#    config = ""
-#    path_config = os.path.join(self.aster_dir, "config.txt")
-#    if os.path.exists(path_config) :
-      # old aster version - old mechanism kept for compatibility
-#      fil = open(path_config)
-#      config = fil.read()
-#      fil.close()
-#      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-#      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-#                      'site-packages','salome','%s_component.py'%self.name)
-#      config = re.sub("Execution\/E_SUPERV.py", path, config)
-#    else :
-      # getConfig doesn't work with older versions of aster
-#      config = self.getConfig(gen)
-
-#    fdict["%s_config.txt" % self.name] = config
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
 
     return fdict
@@ -228,39 +170,7 @@ class ASTERComponent(Component):
     """specific container: generate files"""
 
     fdict={}
-
-#    if self.version < (10,1,2):
-      #patch to E_SUPERV.py
-#      fil = open(os.path.join(self.aster_dir, "bibpyt", "Execution", "E_SUPERV.py"))
-#      esuperv = fil.read()
-#      fil.close()
-#      esuperv = re.sub("def Execute\(self\)", "def Execute(self, params)", esuperv)
-#      esuperv = re.sub("j=self.JdC", "self.jdc=j=self.JdC", esuperv)
-#      esuperv = re.sub("\*\*args", "context_ini=params, **args", esuperv)
-#      esuperv = re.sub("def main\(self\)", "def main(self,params={})", esuperv)
-#      esuperv = re.sub("return self.Execute\(\)", "return self.Execute(params)", esuperv)
-#      fdict["E_SUPERV.py"]=esuperv
-
-    #use a specific main program
-#    config = ""
-#    path_config = os.path.join(self.aster_dir, "config.txt")
-#    if os.path.exists(path_config) :
-      # old aster version - old mechanism kept for compatibility
-#      fil = open(path_config)
-#      config = fil.read()
-#      fil.close()
-#      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
-#      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
-#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
-#                      'site-packages','salome','%s_container.py' % self.name)
-#      config = re.sub("Execution\/E_SUPERV.py", path, config)
-#    else :
-      # getConfig doesn't work with older versions of aster
-#      config = self.getConfig(gen)
-
     fdict["%s_container.py" % self.name] = container
-#    fdict["%s_config.txt" % self.name] = config
-
     return fdict
 
   def getImportESuperv(self):
