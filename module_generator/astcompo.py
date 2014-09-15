@@ -61,8 +61,8 @@ class ASTERComponent(Component):
                                                           exe_path="launch.sh",
                                                           argv=["-memjeveux","4"])
   """
-  def __init__(self, name, services=None, libs=[], rlibs="", aster_dir="", 
-                     python_path=None, argv=None, kind="lib", exe_path=None):
+  def __init__(self, name, services=None, libs="", rlibs="", aster_dir="",
+                     python_path=None, argv=None, kind="lib", exe_path=None, aster_version_type="stable"):
     """initialise component attributes"""
     self.aster_dir = aster_dir
     self.python_path = python_path or []
