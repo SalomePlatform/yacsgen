@@ -162,6 +162,7 @@ class ASTERComponent(Component):
     """standalone component: generate files for calculation code"""
 
     fdict={}
+    fdict["%s_config.txt" % self.name] = "# a completer"
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
 
     return fdict
