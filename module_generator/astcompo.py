@@ -162,7 +162,22 @@ class ASTERComponent(Component):
     """standalone component: generate files for calculation code"""
 
     fdict={}
-    fdict["%s_config.txt" % self.name] = "# a completer"
+    #use a specific main program (modification of config.txt file)
+    config = ""
+    path_config = os.path.join(self.aster_dir, "config.txt")
+    if os.path.exists(path_config) :
+      fil = open(path_config)
+      config = fil.read()
+      fil.close()
+#      config = re.sub(" profile.sh", os.path.join(self.aster_dir, "profile.sh"), config)
+#      path=os.path.join(os.path.abspath(gen.module.prefix),'lib',
+#                      'python%s.%s' % (sys.version_info[0], sys.version_info[1]),
+#                      'site-packages','salome','%s_component.py'%self.name)
+#      config = re.sub("Execution\/E_SUPERV.py", path, config)
+    else :
+      config = "# a completer:%s n'existe pas" % path_config
+
+    fdict["%s_config.txt" % self.name] = config
     fdict["%s_component.py" % self.name] = component.substitute(component=self.name)
 
     return fdict
