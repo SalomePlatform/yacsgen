@@ -33,6 +33,7 @@ hxxgui_cxx="""
 #include <LightApp_Preferences.h>
 
 #include <SALOME_LifeCycleCORBA.hxx>
+#include <utilities.h>
 
 #define COMPONENT_NAME "${component_name}"
 
