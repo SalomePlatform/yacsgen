@@ -59,7 +59,7 @@ class CPPComponent(Component):
    :param interfacedefs: can be used to add idl definitions (or includes of idl files) into the generated idl of the module.
    :param inheritedinterface: can be used to make the component inherit an extra idl interface that has been included through
       the *idls* and *interfacedefs* parameters. See the cppgui1 example for how to use these last parameters.
-   :param addmethods: is a C++ specific parameter that can be used to redefine a component method (DumpPython for example). This
+   :param addedmethods: is a C++ specific parameter that can be used to redefine a component method (DumpPython for example). This
       parameter is a string that must contain the definition and implementation code of the method. See the cppgui1 example
       for how to use it.
    :param calciumextendedinterface: if you want to use the Calcium extended interface for C++ as defined by the header CalciumInterface.hxx
