@@ -22,6 +22,11 @@ try:
 except:
   from compat import Template,set
 
+# SalomeApp.xml file for a python gui.
+# template parameters:
+#   module : module name
+#   lmodule : module name in lower case
+#   version : version number of the module
 pysalomeapp="""
 <document>
   <section name="${module}">
@@ -29,6 +34,7 @@ pysalomeapp="""
     <parameter name="icon" value="${module}.png"/>
     <parameter name="library" value="SalomePyQtGUI"/>
     <parameter name="documentation" value="${lmodule}_help"/>
+    <parameter name="version" value="${version}"/>
   </section>
   <section name="resources">
     <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>
@@ -41,12 +47,18 @@ pysalomeapp="""
 """
 pysalomeapp=Template(pysalomeapp)
 
+# SalomeApp.xml file for a cpp gui.
+# template parameters:
+#   module : module name
+#   lmodule : module name in lower case
+#   version : version number of the module
 cppsalomeapp="""
 <document>
   <section name="${module}">
     <parameter name="name" value="${module}"/>
     <parameter name="icon" value="${module}.png"/>
     <parameter name="documentation" value="${lmodule}_help"/>
+    <parameter name="version" value="${version}"/>
   </section>
   <section name="resources">
     <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>

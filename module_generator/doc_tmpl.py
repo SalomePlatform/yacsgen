@@ -283,10 +283,15 @@ man_pages = [
 
 docconf=Template(docconf)
 
+# SalomeApp.xml file for a documentation only module.
+# template parameters:
+#   module : module name
+#   version : version number of the module
 docsalomeapp="""
 <document>
   <section name="${module}">
     <parameter name="name" value="${module}"/>
+    <parameter name="version" value="${version}"/>
   </section>
   <section name="resources">
     <parameter name="${module}" value="$${${module}_ROOT_DIR}/share/salome/resources/${lmodule}"/>

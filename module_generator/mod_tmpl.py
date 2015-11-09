@@ -47,6 +47,9 @@ fi
 #   with_doc : ON|OFF
 #   with_gui : ON|OFF - module has its own GUI
 #   add_modules : code to find other modules
+#   major_version : major version of the module
+#   minor_version : minor version of the module
+#   patch_version : patch version of the module
 cmake_root_cpp = """
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8 FATAL_ERROR)
 
@@ -61,9 +64,9 @@ CMAKE_POLICY(SET CMP0003 NEW)
 # Project name, upper case
 STRING(TOUPPER $${PROJECT_NAME} PROJECT_NAME_UC)
 
-SET($${PROJECT_NAME_UC}_MAJOR_VERSION 7)
-SET($${PROJECT_NAME_UC}_MINOR_VERSION 4)
-SET($${PROJECT_NAME_UC}_PATCH_VERSION 0)
+SET($${PROJECT_NAME_UC}_MAJOR_VERSION ${major_version})
+SET($${PROJECT_NAME_UC}_MINOR_VERSION ${minor_version})
+SET($${PROJECT_NAME_UC}_PATCH_VERSION ${patch_version})
 SET($${PROJECT_NAME_UC}_VERSION
   $${$${PROJECT_NAME_UC}_MAJOR_VERSION}.$${$${PROJECT_NAME_UC}_MINOR_VERSION}.$${$${PROJECT_NAME_UC}_PATCH_VERSION})
 SET($${PROJECT_NAME_UC}_VERSION_DEV 1)

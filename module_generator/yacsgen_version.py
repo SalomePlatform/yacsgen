@@ -17,11 +17,7 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-from distutils.core import setup
-from module_generator import yacsgen_version
-setup(name='YACSGEN',
-      version=yacsgen_version.complete_version,
-      author='C. Caremoli',
-      packages=['module_generator'],
-      scripts=['script/hxx2salome.py',]
-     )
+major_version=7
+minor_version=7
+patch_version=0
+complete_version="%d.%d.%d" % (major_version, minor_version, patch_version)

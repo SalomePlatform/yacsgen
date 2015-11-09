@@ -47,6 +47,7 @@ from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallel
 from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
 from gui_tmpl import cmake_py_gui, pysalomeapp, cmake_cpp_gui, cppsalomeapp
 from doc_tmpl import docmakefile, docconf, docsalomeapp
+import yacsgen_version
 
 def makedirs(namedir):
   """Create a new directory named namedir. If a directory already exists copy it to namedir.bak"""
@@ -445,7 +446,10 @@ class Generator(object):
                                                  compolibs=component_libs,
                                                  with_doc=cmake_doc,
                                                  with_gui=cmake_gui,
-                                                 add_modules=add_modules),
+                                                 add_modules=add_modules,
+                                                 major_version=yacsgen_version.major_version,
+                                                 minor_version=yacsgen_version.minor_version,
+                                                 patch_version=yacsgen_version.patch_version),
                     "README":"", "NEWS":"", "AUTHORS":"", "ChangeLog":"",
                     "src":srcs,
                     "resources":{"CMakeLists.txt":cmake_ressources.substitute(
@@ -517,7 +521,9 @@ class Generator(object):
        #without gui but with doc: create a small SalomeApp.xml in doc directory
        if not os.path.exists(os.path.join(namedir, "doc", "SalomeApp.xml")):
          #create a minimal SalomeApp.xml
-         salomeapp=docsalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
+         salomeapp=docsalomeapp.substitute(module=self.module.name,
+                                           lmodule=self.module.name.lower(),
+                                           version=yacsgen_version.complete_version)
          d["SalomeApp.xml"]=salomeapp
 
     if not os.path.exists(os.path.join(namedir, "doc", "CMakeLists.txt")):
@@ -584,7 +590,9 @@ class Generator(object):
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
-      salomeapp=pysalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
+      salomeapp=pysalomeapp.substitute(module=self.module.name,
+                                       lmodule=self.module.name.lower(),
+                                       version=yacsgen_version.complete_version)
       d["SalomeApp.xml"]=salomeapp
 
     return d
@@ -629,7 +637,9 @@ class Generator(object):
 
     if not os.path.exists(os.path.join(namedir, "src", self.module.name+"GUI", "SalomeApp.xml")):
       #create a minimal SalomeApp.xml
-      salomeapp=cppsalomeapp.substitute(module=self.module.name,lmodule=self.module.name.lower())
+      salomeapp=cppsalomeapp.substitute(module=self.module.name,
+                                        lmodule=self.module.name.lower(),
+                                        version=yacsgen_version.complete_version)
       d["SalomeApp.xml"]=salomeapp
 
     return d
