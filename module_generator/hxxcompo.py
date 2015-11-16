@@ -280,7 +280,7 @@ class HXX2SALOMEComponent(Component):
         # find out if component uses medmem types and/or medcoupling types
         for (argname,argtype) in inports + outports + [("return",Return)]:
             if moduleTypes[argtype]=="MED":
-                if argtype.count("Coupling")>0:
+                if argtype.count("CorbaInterface")>0:
                     self.use_medcoupling=True
                 else:
                     self.use_medmem=True
@@ -328,11 +328,14 @@ class HXX2SALOMEComponent(Component):
 #include CORBA_CLIENT_HEADER(MEDCouplingCorbaServant)
 #include "MEDCouplingFieldDoubleServant.hxx"
 #include "MEDCouplingUMeshServant.hxx"
+#include "DataArrayDoubleServant.hxx"
 #include "MEDCouplingFieldDouble.hxx"
 #include "MEDCouplingUMesh.hxx"
 #include "MEDCouplingUMeshClient.hxx"
 #include "MEDCouplingFieldDouble.hxx"
 #include "MEDCouplingFieldDoubleClient.hxx"
+#include "MEDCouplingMemArray.hxx"
+#include "DataArrayDoubleClient.hxx"
 """
 
     Component.__init__(self, name, services, impl="CPP", libs=Libs,

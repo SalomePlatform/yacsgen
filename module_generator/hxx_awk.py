@@ -117,6 +117,7 @@ cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingUMesh*"]="SALOME_MED/MEDCouplingU
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*&"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingUMesh*"]="SALOME_MED/MEDCouplingUMeshCorbaInterface"
 cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED/MEDCouplingFieldDoubleCorbaInterface"
+cpp2yacs_mapping["ParaMEDMEM::DataArrayDouble*"]="SALOME_MED/DataArrayDoubleCorbaInterface"
 # table for c++ code generation : argument's processing
 cpp_impl_a={}
 cpp_impl_a["int"]="\tint _%(arg)s(%(arg)s);\n"
@@ -220,6 +221,9 @@ cpp_impl_b["ParaMEDMEM::MEDCouplingFieldDouble*"]="""\tParaMEDMEM::MEDCouplingFi
 cpp_impl_b["ParaMEDMEM::MEDCouplingUMesh*"]="""\tParaMEDMEM::MEDCouplingUMeshServant * _rtn_mesh_i = new ParaMEDMEM::MEDCouplingUMeshServant(_rtn_cpp);
 \t_rtn_cpp->decrRef();
 \tSALOME_MED::MEDCouplingUMeshCorbaInterface_ptr _rtn_ior = _rtn_mesh_i->_this();\n"""
+cpp_impl_b["ParaMEDMEM::DataArrayDouble*"]="""\tParaMEDMEM::DataArrayDoubleServant * _rtn_field_i = new ParaMEDMEM::DataArrayDoubleServant(_rtn_cpp);
+\t_rtn_cpp->decrRef();
+\tSALOME_MED::DataArrayDoubleCorbaInterface_ptr _rtn_ior = _rtn_field_i->_this();\n"""
 #
 # table for c++ code generation : out parameters processing and removeRef for reference counted objects
 #
@@ -409,6 +413,7 @@ BEGIN {
   idl_rtn_type["std::vector<std::string>"]="StrSeq"
   idl_rtn_type["ParaMEDMEM::MEDCouplingUMesh*"]="SALOME_MED::MEDCouplingUMeshCorbaInterface"
   idl_rtn_type["ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED::MEDCouplingFieldDoubleCorbaInterface"
+  idl_rtn_type["ParaMEDMEM::DataArrayDouble*"]="SALOME_MED::DataArrayDoubleServantCorbaInterface"
 #
 #
 # record sep is ");\\n" whith blanks all around, and optional "(" at the beginning
