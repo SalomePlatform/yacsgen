@@ -32,6 +32,7 @@ from paco_tmpl import cxxFactoryDummy, cxxFactoryMpi, cxx_des_parallel_stream
 from paco_tmpl import hxxparallel_instream, hxxparallel_outstream, hxxinit_ok
 from paco_tmpl import hxxparallel_instream_init, hxxparallel_outstream_init, cxxService_connect
 from paco_tmpl import cxx_cons_service, cxx_cons_parallel_outstream, cxx_cons_parallel_instream
+from cata_tmpl import parallel_interface
 
 class PACOComponent(Component):
 
@@ -165,3 +166,29 @@ class PACOComponent(Component):
 
     return cxxfile
 
+  def getIdlServices(self):
+    services = []
+    for serv in self.services:
+      params = []
+      for name, typ in serv.inport:
+        if typ == "file":continue #files are not passed through IDL interface
+        params.append("in %s %s" % (idlTypes[typ], name))
+      for name, typ in serv.outport:
+        if typ == "file":continue #files are not passed through IDL interface
+        params.append("out %s %s" % (idlTypes[typ], name))
+      service = "    void %s(" % serv.name
+      service = service+",".join(params)+");"
+      services.append(service)
+    return services
+
+  def getIdlInterfaces(self):
+    services = self.getIdlServices()
+    return parallel_interface.substitute(component=self.name, services="\n".join(services))
+
+  def getIdlDefs(self):
+    idldefs = """
+#include "SALOME_PACOExtension.idl"
+"""
+    if self.interfacedefs:
+      idldefs = idldefs + self.interfacedefs
+    return idldefs

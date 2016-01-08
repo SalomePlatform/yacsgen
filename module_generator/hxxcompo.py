@@ -526,3 +526,14 @@ class HXX2SALOMEComponent(Component):
       gui_salomeapp_file.close()
       list_of_gui_names.append(gui_salomeapp_file_name)
       return list_of_gui_names
+
+  def getIdlInterfaces(self):
+    services = self.getIdlServices()
+    from hxx_tmpl import interfaceidlhxx
+    Inherited=""
+    if compo.use_medmem==True:
+        Inherited="Engines::EngineComponent,SALOME::MultiCommClass,SALOME_MED::MED_Gen_Driver"
+    else:
+        Inherited="Engines::EngineComponent"
+    return interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services))
+

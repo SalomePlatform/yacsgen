@@ -25,16 +25,18 @@ import os
 from gener import Component, Invalid
 from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
 from cpp_tmpl import exeCPP, cmake_src_compo_cpp
-from yacstypes import corba_rtn_type
+from yacstypes import corba_rtn_type, corba_in_type
+import mpi_tmpl
+from cppcompo import CPPComponent
 
 try:
   from string import Template
 except:
   from compat import Template,set
 
-class CPPComponent(Component):
+class MPIComponent(CPPComponent):
   """
-   A :class:`CPPComponent` instance represents a C++ SALOME component with services given as a list of :class:`Service`
+   A :class:`MPIComponent` instance represents a C++ SALOME component with services given as a list of :class:`Service`
    instances with the parameter *services*.
 
    :param name: gives the name of the component.
@@ -62,8 +64,6 @@ class CPPComponent(Component):
    :param addedmethods: is a C++ specific parameter that can be used to redefine a component method (DumpPython for example). This
       parameter is a string that must contain the definition and implementation code of the method. See the cppgui1 example
       for how to use it.
-   :param calciumextendedinterface: if you want to use the Calcium extended interface for C++ as defined by the header CalciumInterface.hxx
-      set this parameter to 1. By default its value is 0 so to not use extended interface. The extended interface requires boost as a dependency.
 
    For example, the following call defines a standalone component named "mycompo" with one service s1 (it must have been defined before)::
 
@@ -72,10 +72,8 @@ class CPPComponent(Component):
   """
   def __init__(self, name, services=None, libs=[], rlibs="", includes="", kind="lib",
                      exe_path=None, sources=None, inheritedclass="", compodefs="",
-                     idls=None,interfacedefs="",inheritedinterface="",addedmethods="",
-                     calciumextendedinterface=0):
+                     idls=None,interfacedefs="",inheritedinterface="",addedmethods=""):
     self.exe_path = exe_path
-    self.calciumextendedinterface=calciumextendedinterface
     Component.__init__(self, name, services, impl="CPP", libs=libs, rlibs=rlibs,
                              includes=includes, kind=kind, sources=sources,
                              inheritedclass=inheritedclass, compodefs=compodefs, idls=idls,
@@ -85,23 +83,9 @@ class CPPComponent(Component):
   def validate(self):
     """ validate component definition parameters"""
     Component.validate(self)
-    kinds = ("lib", "exe")
+    kinds = ("lib")
     if self.kind not in kinds:
       raise Invalid("kind must be one of %s for component %s" % (kinds,self.name))
-
-    if self.kind == "exe" :
-      if not self.exe_path:
-        raise Invalid("exe_path must be defined for component %s" % self.name)
-
-  def targetProperties(self):
-    """ define the rpath property of the target using self.rlibs
-    return
-      string containing the commands to add to cmake
-    """
-    text=""
-    if self.rlibs.strip() :
-      text="SET_TARGET_PROPERTIES( %sEngine PROPERTIES INSTALL_RPATH %s)\n" % (self.name, self.rlibs)
-    return text
 
   def libraryName(self):
     """ Name of the target library
@@ -109,8 +93,6 @@ class CPPComponent(Component):
     ret=""
     if self.kind == "lib":
       ret = self.name + "Engine"
-    elif self.kind == "exe":
-      ret = self.name + "Exelib"
     else:
       raise Invalid("Invalid kind of component: %s. Supported kinds are 'lib' and 'exe'" % self.name)
     return ret
@@ -121,14 +103,7 @@ class CPPComponent(Component):
        return a dict where key is the file name and value is the file content
     """
     (cmake_text, cmake_vars) = self.additionalLibraries()
-    # DSC_libs are needed for datastream ports only
-    DSC_libs = """${KERNEL_SalomeDSCContainer}
-  ${KERNEL_SalomeDSCSuperv}
-  ${KERNEL_SalomeDatastream}
-  ${KERNEL_SalomeDSCSupervBasic}
-  ${KERNEL_CalciumC}
-  """
-    cmake_vars = DSC_libs + cmake_vars
+    cmake_vars = "${KERNEL_SalomeMPIContainer}\n  " + cmake_vars
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
     if self.kind == "exe":
@@ -148,25 +123,29 @@ class CPPComponent(Component):
                         libs = cmake_vars,
                         find_libs = cmake_text,
                         target_properties = self.targetProperties())
-    if self.kind == "exe":
-      exe_file = self.name+".exe"
-      install_commande = "\nINSTALL(PROGRAMS %s DESTINATION ${SALOME_INSTALL_BINS})\n" % exe_file
-      cmakelist_content = cmakelist_content + install_commande
-      ret[exe_file] = exeCPP.substitute(compoexe=self.exe_path)
-    pass
     
     ret["CMakeLists.txt"] = cmakelist_content
     
     return ret
 
+  def makeThServiceDeclaration(self, service, module_name):
+    inputVals = []
+    for port in service.inport:
+      name, typ = service.validatePort(port)
+      inputVals.append("%s %s;" % (corba_in_type(typ, module_name), name ))
+    return mpi_tmpl.hxxThreadService.substitute(service=service.name,
+                                       input_vals="\n".join(inputVals))
+
   def makehxx(self, gen):
     """return a string that is the content of .hxx file
     """
     services = []
+    compodefs=self.compodefs
     for serv in self.services:
       service = "    %s %s(" % (corba_rtn_type(serv.ret,gen.module.name),serv.name)
       service = service+gen.makeArgs(serv)+");"
       services.append(service)
+      compodefs = compodefs + self.makeThServiceDeclaration(serv,gen.module.name)
 
     if self.addedmethods:
       services.append(self.addedmethods)
@@ -176,9 +155,9 @@ class CPPComponent(Component):
     if self.inheritedclass:
       inheritedclass= " public virtual " + self.inheritedclass + ","
 
-    return hxxCompo.substitute(component=self.name, module=gen.module.name,
+    return mpi_tmpl.hxxCompo.substitute(component=self.name, module=gen.module.name,
                                servicesdef=servicesdef, inheritedclass=inheritedclass,
-                               compodefs=self.compodefs)
+                               compodefs=compodefs)
 
   def makecxx(self, gen, exe=0):
     """return a string that is the content of .cxx file
@@ -188,31 +167,45 @@ class CPPComponent(Component):
     defs = []
     for serv in self.services:
       defs.append(serv.defs)
-      service = cxxService.substitute(component=self.name, service=serv.name,
+      in_vals = []
+      out_vals = []
+      call_params = []
+      for name, typ in serv.inport:
+        in_vals.append("st->%s = %s;" % (name, name ))
+        call_params.append("st->%s" % name)
+        
+      for name, typ in serv.outport:
+        out_vals.append("%s %s;" % (corba_in_type(typ, gen.module.name), name ))
+        call_params.append(name)
+      
+      service_call = "%s(%s)" % (serv.name, ",".join(call_params))
+      
+      service = mpi_tmpl.cxxService.substitute(module=gen.module.name,
+                                      component=self.name, service=serv.name,
+                                      out_vals="\n".join(out_vals),
+                                      service_call=service_call,
+                                      in_vals="\n".join(in_vals),
                                       parameters=gen.makeArgs(serv),
-                                      body=serv.body, exe=exe)
-      streams = []
-      for name, typ, dep in serv.instream:
-        streams.append('          create_calcium_port(this,(char *)"%s",(char *)"%s",(char *)"IN",(char *)"%s");'% (name, typ, dep))
-      instream = "\n".join(streams)
-      streams = []
-      for name, typ, dep in serv.outstream:
-        streams.append('          create_calcium_port(this,(char *)"%s",(char *)"%s",(char *)"OUT",(char *)"%s");'% (name, typ, dep))
-      outstream = "\n".join(streams)
-
-      init = initService.substitute(component=self.name, service=serv.name,
-                                    instream=instream, outstream=outstream)
+                                      body=serv.body)
       services.append(service)
-      inits.append(init)
 
-    CalciumInterface=""
-    if self.calciumextendedinterface:
-      CalciumInterface="#include <CalciumInterface.hxx>"
-
-    return cxxCompo.substitute(component=self.name, module=gen.module.name,
-                               exe=exe, exe_path=self.exe_path,
+    return mpi_tmpl.cxxCompo.substitute(component=self.name,
                                servicesdef="\n".join(defs),
-                               servicesimpl="\n".join(services),
-                               initservice='\n'.join(inits),
-                               CalciumInterface=CalciumInterface)
+                               servicesimpl="\n".join(services))
 
+  def getIdlInterfaces(self):
+    services = self.getIdlServices()
+    inheritedinterface=""
+    if self.inheritedinterface:
+      inheritedinterface=self.inheritedinterface+","
+    return mpi_tmpl.interface.substitute(component=self.name,
+                                         services="\n".join(services),
+                                         inheritedinterface=inheritedinterface)
+
+  def getIdlDefs(self):
+    idldefs = """
+#include "SALOME_MPIObject.idl"
+"""
+    if self.interfacedefs:
+      idldefs = idldefs + self.interfacedefs
+    return idldefs

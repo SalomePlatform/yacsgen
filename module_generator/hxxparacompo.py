@@ -471,3 +471,10 @@ void *th_%(serv_name)s(void *s)
                                servicesimpl="\n".join(services),
                                thread_impl=self.thread_impl % {"module":gen.module.name} )
 
+  def getIdlInterfaces(self):
+    services = self.getIdlServices()
+    from hxx_tmpl import interfaceidlhxx
+    Inherited=""
+    Inherited="SALOME_MED::ParaMEDMEMComponent"
+    idldefs="""#include "ParaMEDMEMComponent.idl"\n"""
+    return interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services))

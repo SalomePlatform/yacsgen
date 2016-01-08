@@ -32,7 +32,7 @@ class Invalid(Exception):
 debug=0
 
 from mod_tmpl import *
-from cata_tmpl import catalog, interface, idl, parallel_interface
+from cata_tmpl import catalog, interface, idl
 from cata_tmpl import xml, xml_interface, xml_service
 from cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
 from cata_tmpl import idlMakefilePACO_salomepython_DATA, idlMakefilePACO_salomeidl_DATA
@@ -205,6 +205,47 @@ class Component(object):
 
   def setPrerequisites(self, prerequisites_file):
     self.prerequisites = prerequisites_file
+
+  def getIdlInterfaces(self):
+    services = self.getIdlServices()
+    inheritedinterface=""
+    if self.inheritedinterface:
+      inheritedinterface=self.inheritedinterface+","
+    return interface.substitute(component=self.name,
+                                services="\n".join(services),
+                                inheritedinterface=inheritedinterface)
+
+  def getIdlServices(self):
+    services = []
+    for serv in self.services:
+      params = []
+      for name, typ in serv.inport:
+        if typ == "file":continue #files are not passed through IDL interface
+        if self.impl in ("PY", "ASTER") and typ == "pyobj":
+          typ = "Engines::fileBlock"
+        else:
+          typ=idlTypes[typ]
+        params.append("in %s %s" % (typ, name))
+      for name, typ in serv.outport:
+        if typ == "file":continue #files are not passed through IDL interface
+        if self.impl in ("PY", "ASTER") and typ == "pyobj":
+          typ = "Engines::fileBlock"
+        else:
+          typ=idlTypes[typ]
+        params.append("out %s %s" % (typ, name))
+      service = "    %s %s(" % (idlTypes[serv.ret],serv.name)
+      service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
+      services.append(service)
+    return services
+
+  def getIdlDefs(self):
+    idldefs = """
+#include "DSC_Engines.idl"
+#include "SALOME_Parametric.idl"
+"""
+    if self.interfacedefs:
+      idldefs = idldefs + self.interfacedefs
+    return idldefs
 
 class Service(object):
   """
@@ -708,77 +749,26 @@ class Generator(object):
 
   def makeidl(self):
     """generate module IDL file source (CORBA interface)"""
-    from pacocompo import PACOComponent
     interfaces = []
     idldefs=""
     for compo in self.module.components:
-      if isinstance(compo, PACOComponent):
-        services = []
-        for serv in compo.services:
-          params = []
-          for name, typ in serv.inport:
-            if typ == "file":continue #files are not passed through IDL interface
-            params.append("in %s %s" % (idlTypes[typ], name))
-          for name, typ in serv.outport:
-            if typ == "file":continue #files are not passed through IDL interface
-            params.append("out %s %s" % (idlTypes[typ], name))
-          service = "    void %s(" % serv.name
-          service = service+",".join(params)+");"
-          services.append(service)
-
-        interfaces.append(parallel_interface.substitute(component=compo.name, services="\n".join(services)))
-
-      else:
-        services = []
-        for serv in compo.services:
-          params = []
-          for name, typ in serv.inport:
-            if typ == "file":continue #files are not passed through IDL interface
-            if compo.impl in ("PY", "ASTER") and typ == "pyobj":
-              typ = "Engines::fileBlock"
-            else:
-              typ=idlTypes[typ]
-            params.append("in %s %s" % (typ, name))
-          for name, typ in serv.outport:
-            if typ == "file":continue #files are not passed through IDL interface
-            if compo.impl in ("PY", "ASTER") and typ == "pyobj":
-              typ = "Engines::fileBlock"
-            else:
-              typ=idlTypes[typ]
-            params.append("out %s %s" % (typ, name))
-          service = "    %s %s(" % (idlTypes[serv.ret],serv.name)
-          service = service+",".join(params)+") raises (SALOME::SALOME_Exception);"
-          services.append(service)
-
-        from hxxcompo import HXX2SALOMEComponent
-        from hxxparacompo import HXX2SALOMEParaComponent
-        if isinstance(compo,HXX2SALOMEComponent) or isinstance(compo,HXX2SALOMEParaComponent):
-          from hxx_tmpl import interfaceidlhxx
-          Inherited=""
-          if isinstance(compo,HXX2SALOMEParaComponent):
-              Inherited="SALOME_MED::ParaMEDMEMComponent"
-              idldefs="""#include "ParaMEDMEMComponent.idl"\n"""
-          else:
-              if compo.use_medmem==True:
-                  Inherited="Engines::EngineComponent,SALOME::MultiCommClass,SALOME_MED::MED_Gen_Driver"
-              else:
-                  Inherited="Engines::EngineComponent"
-          interfaces.append(interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services)))
-        else:
-          inheritedinterface=""
-          if compo.inheritedinterface:
-            inheritedinterface=compo.inheritedinterface+","
-          interfaces.append(interface.substitute(component=compo.name, services="\n".join(services),inheritedinterface=inheritedinterface))
+      interfaces.append(compo.getIdlInterfaces())
 
     #build idl includes for SALOME modules
     for mod in self.used_modules:
       idldefs = idldefs + salome_modules[mod]["idldefs"]
 
     for compo in self.module.components:
-      if compo.interfacedefs:
-        idldefs = idldefs + compo.interfacedefs
+      idldefs = idldefs + compo.getIdlDefs()
+    
+    filteredDefs = []
+    for defLine in idldefs.split('\n'):
+      if defLine not in filteredDefs:
+        filteredDefs.append(defLine)
 
-    return idl.substitute(module=self.module.name, interfaces='\n'.join(interfaces),idldefs=idldefs)
+    return idl.substitute(module=self.module.name,
+                          interfaces='\n'.join(interfaces),
+                          idldefs='\n'.join(filteredDefs) )
 
   # For PaCO++
   def makexml(self):

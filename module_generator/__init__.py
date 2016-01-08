@@ -33,3 +33,4 @@ from hxxparacompo import HXX2SALOMEParaComponent
 from yacstypes import add_type
 from salomemodules import add_module
 from gener import Library
+from mpicompo import MPIComponent

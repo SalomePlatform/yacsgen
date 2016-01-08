@@ -444,11 +444,6 @@ SET(_link_LIBRARIES
   $${KERNEL_SalomeIDLKernel}
   $${KERNEL_OpUtil}
   $${KERNEL_SalomeContainer}
-  $${KERNEL_SalomeDSCContainer}
-  $${KERNEL_SalomeDSCSuperv}
-  $${KERNEL_SalomeDatastream}
-  $${KERNEL_SalomeDSCSupervBasic}
-  $${KERNEL_CalciumC}
   SalomeIDL${module}
   ${libs}
 )

@@ -28,12 +28,9 @@ idl="""
 #ifndef _${module}_IDL_
 #define _${module}_IDL_
 
-#include "DSC_Engines.idl"
 #include "SALOME_Exception.idl"
-#include "SALOME_PACOExtension.idl"
 #include "SALOME_Component.idl"
 #include "SALOME_Comm.idl"
-#include "SALOME_Parametric.idl"
 
 ${idldefs}
 
