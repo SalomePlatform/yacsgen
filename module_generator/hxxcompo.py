@@ -531,9 +531,9 @@ class HXX2SALOMEComponent(Component):
     services = self.getIdlServices()
     from hxx_tmpl import interfaceidlhxx
     Inherited=""
-    if compo.use_medmem==True:
+    if self.use_medmem==True:
         Inherited="Engines::EngineComponent,SALOME::MultiCommClass,SALOME_MED::MED_Gen_Driver"
     else:
         Inherited="Engines::EngineComponent"
-    return interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services))
+    return interfaceidlhxx.substitute(component=self.name,inherited=Inherited, services="\n".join(services))
 

@@ -221,6 +221,7 @@ INCLUDE_DIRECTORIES(
   $${OMNIORB_INCLUDE_DIR}
   $${PROJECT_BINARY_DIR}
   $${PROJECT_BINARY_DIR}/idl
+  $${MEDCOUPLING_INCLUDE_DIRS}
   ${includes}
 )
 
@@ -238,13 +239,9 @@ SET(_link_LIBRARIES
   $${KERNEL_SalomeIDLKernel}
   $${KERNEL_OpUtil}
   $${KERNEL_SalomeContainer}
-  $${KERNEL_SalomeDSCContainer}
-  $${KERNEL_SalomeDSCSuperv}
-  $${KERNEL_SalomeDatastream}
-  $${KERNEL_SalomeDSCSupervBasic}
-  $${KERNEL_CalciumC}
   $${KERNEL_SalomeMPIContainer}
   $${MED_paramedmemcompo}
+  $${MED_paramedcouplingcorba}
   SalomeIDL${module}
   ${libs}
 )

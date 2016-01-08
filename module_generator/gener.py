@@ -170,7 +170,7 @@ class Component(object):
       cmake_vars = cmake_vars + "${" + lib.cmakeVarName() + "}\n  "
     
     var_template = Template("$${${name}_SalomeIDL${name}}")
-    for mod in self.depend_modules:
+    for mod in self.getDependentModules():
       if salome_modules[mod]["linklibs"]:
         cmake_vars = cmake_vars + salome_modules[mod]["linklibs"]
       else:
@@ -246,6 +246,24 @@ class Component(object):
     if self.interfacedefs:
       idldefs = idldefs + self.interfacedefs
     return idldefs
+
+  def getDependentModules(self):
+    """get the list of SALOME modules used by the component
+    """
+    def get_dependent_modules(mod,modules):
+      modules.add(mod)
+      if salome_modules[mod].has_key("depends"):
+        for m in salome_modules[mod]["depends"]:
+          if m not in modules:
+            get_dependent_modules(m,modules)
+
+    depend_modules = set()
+    for serv in self.services:
+      for name, typ in serv.inport + serv.outport + [ ("return",serv.ret) ] :
+        mod = moduleTypes[typ]
+        if mod:
+          get_dependent_modules(mod,depend_modules)
+    return depend_modules
 
 class Service(object):
   """
@@ -425,24 +443,11 @@ class Generator(object):
     srcs = {}
 
     #get the list of SALOME modules used and put it in used_modules attribute
-    def get_dependent_modules(mod,modules):
-      modules[mod]=1
-      if not salome_modules[mod].has_key("depends"):return
-      for m in salome_modules[mod]["depends"]:
-        if modules.has_key(m):continue
-        get_dependent_modules(m,modules)
-
-    modules = {}
+    modules = set()
     for compo in module.components:
-      compo.depend_modules = set()
-      for serv in compo.services:
-        for name, typ in serv.inport + serv.outport + [ ("return",serv.ret) ] :
-          mod = moduleTypes[typ]
-          if mod:
-            get_dependent_modules(mod,modules)
-            compo.depend_modules.add(mod)
-
-    self.used_modules = modules.keys()
+      modules |= compo.getDependentModules()
+      
+    self.used_modules = modules
 
     for compo in module.components:
       #for components files

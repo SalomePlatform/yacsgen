@@ -476,5 +476,17 @@ void *th_%(serv_name)s(void *s)
     from hxx_tmpl import interfaceidlhxx
     Inherited=""
     Inherited="SALOME_MED::ParaMEDMEMComponent"
+    return interfaceidlhxx.substitute(component=self.name,inherited=Inherited, services="\n".join(services))
+
+  def getIdlDefs(self):
     idldefs="""#include "ParaMEDMEMComponent.idl"\n"""
-    return interfaceidlhxx.substitute(component=compo.name,inherited=Inherited, services="\n".join(services))
+    if self.interfacedefs:
+      idldefs = idldefs + self.interfacedefs
+    return idldefs
+
+  def getDependentModules(self):
+    """ This component depends on "MED" because it inherits from ParaMEDMEMComponent
+    """
+    depend_modules = Component.getDependentModules(self)
+    depend_modules.add("MED")
+    return depend_modules

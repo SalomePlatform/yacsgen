@@ -42,8 +42,7 @@ class MPIComponent(CPPComponent):
    :param name: gives the name of the component.
    :type name: str
    :param services: the list of services (:class:`Service`) of the component.
-   :param kind: If it is given and has the value "exe", the component will be built as a standalone
-      component (executable or shell script). The default is to build the component as a dynamic library.
+   :param kind: For this type of component, "lib" is the unique valid option. The component is built as a dynamic library.
    :param libs: list of the additional libraries. see *Library* class.
       If you want to add "libmylib.so", installed in "/path/to/lib" you should use:
          libs=[Library(name="mylib", path="/path/to/lib")]
@@ -106,11 +105,7 @@ class MPIComponent(CPPComponent):
     cmake_vars = "${KERNEL_SalomeMPIContainer}\n  " + cmake_vars
     cxxfile = "%s.cxx" % self.name
     hxxfile = "%s.hxx" % self.name
-    if self.kind == "exe":
-      exe_opt = 1
-    else:
-      exe_opt = 0
-    ret = { cxxfile:self.makecxx(gen, exe_opt),
+    ret = { cxxfile:self.makecxx(gen),
             hxxfile:self.makehxx(gen)
           }
     sources = " ".join(map(os.path.basename,self.sources))
@@ -159,7 +154,7 @@ class MPIComponent(CPPComponent):
                                servicesdef=servicesdef, inheritedclass=inheritedclass,
                                compodefs=compodefs)
 
-  def makecxx(self, gen, exe=0):
+  def makecxx(self, gen):
     """return a string that is the content of .cxx file
     """
     services = []
