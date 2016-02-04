@@ -162,7 +162,6 @@ def hxx2salome(cppdir,
 
     # if specified : compile and install the generated component
     if do_compile:
-        g.bootstrap()
         g.configure()
         g.make()
         g.install()
