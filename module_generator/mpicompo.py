@@ -204,3 +204,13 @@ class MPIComponent(CPPComponent):
     if self.interfacedefs:
       idldefs = idldefs + self.interfacedefs
     return idldefs
+  
+  def additionalLibraries(self):
+    cmake_text, cmake_vars = Component.additionalLibraries(self)
+    if "MED" in self.getDependentModules():
+      cmake_vars = cmake_vars + """
+  ${MED_paramedmemcompo}
+  ${MED_paramedcouplingcorba}  
+"""
+    return cmake_text, cmake_vars
+
