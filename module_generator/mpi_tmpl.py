@@ -110,10 +110,7 @@ extern "C"
     }
     
     MPI_Comm_rank( MPI_COMM_WORLD, &numproc );
-    if( numproc == 0 )
-      regist = true;
-    else
-      regist = false;
+    regist = ( numproc == 0 );
     ${component}_i * myEngine = new ${component}_i(orb, poa, contId, instanceName, interfaceName, regist);
     return myEngine->getId() ;
   }
@@ -275,10 +272,6 @@ ${body}
   catch ( const SALOME_Exception & ex)
     {
       THROW_SALOME_CORBA_EXCEPTION(CORBA::string_dup(ex.what()), SALOME::INTERNAL_ERROR);
-/*      SALOME::ExceptionStruct es;
-      es.text=CORBA::string_dup(ex.what());
-      es.type=SALOME::INTERNAL_ERROR;
-      throw SALOME::SALOME_Exception(es);*/
     }
   catch ( const SALOME::SALOME_Exception & ex)
     {
@@ -287,20 +280,10 @@ ${body}
   catch ( const std::exception& ex)
     {
       THROW_SALOME_CORBA_EXCEPTION(CORBA::string_dup(ex.what()), SALOME::INTERNAL_ERROR);
-/*      //std::cerr << typeid(ex).name() << std::endl;
-      SALOME::ExceptionStruct es;
-      es.text=CORBA::string_dup(ex.what());
-      es.type=SALOME::INTERNAL_ERROR;
-      throw SALOME::SALOME_Exception(es);*/
     }
   catch (...)
     {
       THROW_SALOME_CORBA_EXCEPTION("unknown exception", SALOME::INTERNAL_ERROR);
-/*      std::cerr << "unknown exception" << std::endl;
-      SALOME::ExceptionStruct es;
-      es.text=CORBA::string_dup(" unknown exception");
-      es.type=SALOME::INTERNAL_ERROR;
-      throw SALOME::SALOME_Exception(es);*/
     }
   endService("${component}_i::${service}");
 }
