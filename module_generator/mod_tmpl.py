@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2015  EDF R&D
+# Copyright (C) 2009-2016  EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -111,7 +111,9 @@ ENDIF()
 ##
 ## From KERNEL:
 ##
-FIND_PACKAGE(SalomePython REQUIRED)
+FIND_PACKAGE(SalomePythonInterp REQUIRED)
+FIND_PACKAGE(SalomePythonLibs REQUIRED)
+
 FIND_PACKAGE(SalomeOmniORB REQUIRED)
 FIND_PACKAGE(SalomeOmniORBPy REQUIRED)
   
