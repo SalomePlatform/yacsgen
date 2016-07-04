@@ -19,10 +19,10 @@
 
 import os
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, uic, QtWidgets
+from PyQt5.QtWebKitWidgets import QWebView
 
 import salome
 import pycompos_ORB
@@ -101,7 +101,7 @@ def getEngine():
 ###
 def CreateObject():
     global __objectid__
-    default_name = str( sgPyQt.stringSetting( "pycompos", "def_obj_name", "Object" ).trimmed() )
+    default_name = str( sgPyQt.stringSetting( "pycompos", "def_obj_name", "Object" ).lstrip().rstrip() )
     # generate object name
     __objectid__  = __objectid__ + 1
     name = "%s_%d" % ( default_name, __objectid__ )
@@ -111,7 +111,7 @@ def CreateObject():
     print getEngine().ComponentDataType()
     sg.updateObjBrowser( True )
 
-class DemoImpl(QtGui.QDialog):
+class DemoImpl(QtWidgets.QDialog):
     def __init__(self, *args):
         super(DemoImpl, self).__init__(*args)
 

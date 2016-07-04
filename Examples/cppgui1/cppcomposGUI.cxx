@@ -135,7 +135,7 @@ bool cppcomposGUI::deactivateModule( SUIT_Study* theStudy )
 void cppcomposGUI::OnGetBanner()
 {
   // Dialog to get the Name
-  bool ok = FALSE;
+  bool ok = false;
   QString myName = QInputDialog::getText( getApp()->desktop(), "label", "name", QLineEdit::Normal, QString::null, &ok );
 
   if ( ok && !myName.isEmpty()) 
