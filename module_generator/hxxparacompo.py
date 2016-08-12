@@ -103,10 +103,10 @@ class HXX2SALOMEParaComponent(Component):
     # The information relative to a service (called service_name) is stored in the dictionnary service_definition[service_name]
     from hxx_awk import cpp2idl_mapping
     from hxx_awk import cpp2yacs_mapping
-    cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
-    cpp2yacs_mapping["const ParaMEDMEM::MEDCouplingFieldDouble&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
-    cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
-    cpp2yacs_mapping["ParaMEDMEM::MEDCouplingFieldDouble*"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
+    cpp2yacs_mapping["const MEDCoupling::MEDCouplingFieldDouble*"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
+    cpp2yacs_mapping["const MEDCoupling::MEDCouplingFieldDouble&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
+    cpp2yacs_mapping["MEDCoupling::MEDCouplingFieldDouble*&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
+    cpp2yacs_mapping["MEDCoupling::MEDCouplingFieldDouble*"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
     list_of_services=[]
     service_definition={}
     result_parsing=open("parse_type_result","r")
@@ -147,10 +147,10 @@ class HXX2SALOMEParaComponent(Component):
     # store it in service_definition[serv]["impl"]
     #
     from hxx_awk import cpp_impl_a,cpp_impl_b,cpp_impl_c  # these tables contain the part of code which depends upon c++ types
-    cpp_impl_b["ParaMEDMEM::MEDCouplingFieldDouble*"]="""\tParaMEDMEM::MPIMEDCouplingFieldDoubleServant * _rtn_field_i = new ParaMEDMEM::MPIMEDCouplingFieldDoubleServant(_orb,_poa,this,_rtn_cpp);
+    cpp_impl_b["MEDCoupling::MEDCouplingFieldDouble*"]="""\tMEDCoupling::MPIMEDCouplingFieldDoubleServant * _rtn_field_i = new MEDCoupling::MPIMEDCouplingFieldDoubleServant(_orb,_poa,this,_rtn_cpp);
 \t_rtn_cpp->decrRef();
 \tSALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface_ptr _rtn_ior = _rtn_field_i->_this();\n"""
-    cpp_impl_a["const ParaMEDMEM::MEDCouplingFieldDouble*"]="\tParaMEDMEM::MEDCouplingFieldDouble* _%(arg)s=cppCompo_->getInputFieldTemplate();\n\t_setInputField(%(arg)s,_%(arg)s);\n\t_initializeCoupling(%(arg)s);\n"
+    cpp_impl_a["const MEDCoupling::MEDCouplingFieldDouble*"]="\tMEDCoupling::MEDCouplingFieldDouble* _%(arg)s=cppCompo_->getInputFieldTemplate();\n\t_setInputField(%(arg)s,_%(arg)s);\n\t_initializeCoupling(%(arg)s);\n"
 
     from yacstypes import corbaTypes,corbaOutTypes
     format_thread_signature="void * th_%s(void * st);" # this thread declaration will be included in servant's header

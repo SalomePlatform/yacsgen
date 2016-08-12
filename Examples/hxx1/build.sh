@@ -1,15 +1,18 @@
-
 # build COMPONENTCPP lib
-tar -xzvf cpp_component.tgz
-mkdir COMPONENTCPP_BUILD
-export HXXTESTPATH=`pwd`
-cd COMPONENTCPP_SRC
-../../exec.sh ./build_configure
-cd ../COMPONENTCPP_BUILD
-../../exec.sh ../COMPONENTCPP_SRC/configure --prefix=$HXXTESTPATH/COMPONENTCPP_INSTALL
+mkdir CALCUL_build
+cd CALCUL_build
+../../exec.sh cmake -DCMAKE_INSTALL_PREFIX:PATH=../COMPONENTCPP_INSTALL ../CALCUL/src/
 ../../exec.sh make
 ../../exec.sh make install
 cd ..
+
+mkdir ICOCO_build
+cd ICOCO_build
+../../exec.sh cmake -DCMAKE_INSTALL_PREFIX:PATH=../COMPONENTCPP_INSTALL ../ICOCO/src/
+../../exec.sh make
+../../exec.sh make install
+cd ..
+
 # build & test SALOME component 
 ../exec.sh python component.py
 

@@ -131,7 +131,7 @@ class ${component};  // forward declaration
 
 class ${component}_i: ${inheritedclass}
   public POA_${module}_ORB::${component}_Gen,
-  public ParaMEDMEM::ParaMEDMEMComponent_i
+  public MEDCoupling::ParaMEDMEMComponent_i
 {
 
 public:

@@ -18,4 +18,4 @@
 #
 
 clean:
-	rm -rf parse_* appli install hxxcompos_* COMPONENTCPP_* *.bak *.err *.log
+	rm -rf parse_* appli install hxxcompos_* COMPONENTCPP_* *.bak *.err *.log *_build
