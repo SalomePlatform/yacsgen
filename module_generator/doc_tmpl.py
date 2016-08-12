@@ -27,8 +27,6 @@ except:
 #   module : module name
 #   files : doc source files (.rst)
 docmakefile="""
-INCLUDE($${KERNEL_ROOT_DIR}/salome_adm/cmake_files/SalomeMacros.cmake)
-
 SET(RSTFILES
   ${files}
   )
@@ -106,7 +104,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'${module}'
-copyright = u'2010-2015'
+copyright = u'2010-2016'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
