@@ -438,8 +438,30 @@ class Generator(object):
     prefix = os.path.abspath(self.module.prefix)
     component_libs = "".join(map(lambda x: x.libraryName()+" ",
                                            module.components))
-    add_modules = "".join(map(lambda x:cmake_find_module.substitute(module=x),
-                                       self.used_modules))
+    add_modules = ""
+    for x in self.used_modules:
+      cmake_text = cmake_find_module.substitute(module=x)
+      if x == "MED":
+        cmake_text += """
+
+#####################################
+# FIND MEDCOUPLING
+#####################################
+SET(MEDCOUPLING_ROOT_DIR $ENV{MEDCOUPLING_ROOT_DIR} CACHE PATH "Path to MEDCOUPLING module")
+IF(EXISTS ${MEDCOUPLING_ROOT_DIR})
+  LIST(APPEND CMAKE_MODULE_PATH "${MEDCOUPLING_ROOT_DIR}/cmake_files")
+  FIND_PACKAGE(SalomeMEDCoupling REQUIRED)
+  ADD_DEFINITIONS(${MEDCOUPLING_DEFINITIONS})
+  INCLUDE_DIRECTORIES(${MEDCOUPLING_INCLUDE_DIRS})
+ELSE(EXISTS ${MEDCOUPLING_ROOT_DIR})
+  MESSAGE(FATAL_ERROR "We absolutely need MEDCOUPLING module, please define MEDCOUPLING_ROOT_DIR")
+ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
+#####################################
+
+"""
+      add_modules = add_modules + cmake_text
+      pass
+
     self.makeFiles({"CMakeLists.txt":cmake_root_cpp.substitute(
                                                  module=self.module.name,
                                                  module_min=self.module.name.lower(),
@@ -801,7 +823,10 @@ class Generator(object):
     """
     for name, content in dic.items():
       filename = os.path.join(basedir, name)
-      if isinstance(content, str):
+      if isinstance(content, basestring):
+        if isinstance(content, unicode): 
+            # encodage to utf-8 if unicode string
+            content=content.encode('utf8')
         fil =  open(filename, 'w')
         fil.write(content)
         fil.close()
