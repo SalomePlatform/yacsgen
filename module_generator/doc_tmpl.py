@@ -20,7 +20,7 @@
 try:
   from string import Template
 except:
-  from compat import Template,set
+  from module_generator.compat import Template,set
 
 # CMakeLists.txt in doc directory
 # template parameters:

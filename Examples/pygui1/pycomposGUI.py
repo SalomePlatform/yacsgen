@@ -107,8 +107,8 @@ def CreateObject():
     name = "%s_%d" % ( default_name, __objectid__ )
     if not name: return
     getEngine().createObject( _getStudy(), name )
-    print getEngine().s1(4,5)
-    print getEngine().ComponentDataType()
+    print(getEngine().s1(4,5))
+    print(getEngine().ComponentDataType())
     sg.updateObjBrowser( True )
 
 class DemoImpl(QtWidgets.QDialog):
@@ -125,7 +125,7 @@ class DemoImpl(QtWidgets.QDialog):
 # called when GUI action is activated
 # action ID is passed as parameter
 def OnGUIEvent( commandID ):
-  print "pycompos.OnGUIEvent(): command = %d" % commandID
+  print("pycompos.OnGUIEvent(): command = %d" % commandID)
   if commandID==941:
     widget=QMainWindow(sgPyQt.getDesktop())
     web = QWebView(widget)

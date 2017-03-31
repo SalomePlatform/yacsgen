@@ -20,7 +20,7 @@
 try:
   from string import Template
 except:
-  from compat import Template,set
+  from module_generator.compat import Template,set
 
 # cxx file of a MPI component.
 # template parameters:

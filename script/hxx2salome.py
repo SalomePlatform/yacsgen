@@ -80,21 +80,21 @@ def main():
 
 #   Make sure given paths/files are valid
     if not os.path.exists(cppdir):
-        print "ERROR: cppdir %s does not exist. It is mandatory" % cppdir
-        print usage
+        print("ERROR: cppdir %s does not exist. It is mandatory" % cppdir)
+        print(usage)
         sys.exit(1)
 
     if not os.path.exists(installpath):
-        print "ERROR: installpath %s does not exist. It is mandatory" \
-              % installpath
-        print usage
+        print("ERROR: installpath %s does not exist. It is mandatory" \
+              % installpath)
+        print(usage)
         sys.exit(1)
 
     if options.environ_file != None:
         if not os.path.exists(options.environ_file):
-            print "ERROR: environ_file %s does not exist. It is mandatory" \
-                  % options.environ_file
-            print usage
+            print("ERROR: environ_file %s does not exist. It is mandatory" \
+                  % options.environ_file)
+            print(usage)
             sys.exit(1)
 
     hxx2salome(cppdir=cppdir,
@@ -141,7 +141,7 @@ def hxx2salome(cppdir,
     try: 
         os.mkdir(install_root_dir)
     except OSError:
-        print "Warning : directory %s already exixts!" % install_root_dir
+        print("Warning : directory %s already exixts!" % install_root_dir)
 
     # if a graphical user interface is required,
     # ask HXX2SALOMEComponent to generate template files

@@ -24,30 +24,30 @@ import warnings
 try:
   from string import Template
 except:
-  from compat import Template, set
+  from module_generator.compat import Template, set
 
 class Invalid(Exception):
   pass
 
 debug=0
 
-from mod_tmpl import *
-from cata_tmpl import catalog, interface, idl
-from cata_tmpl import xml, xml_interface, xml_service
-from cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
-from cata_tmpl import idlMakefilePACO_salomepython_DATA, idlMakefilePACO_salomeidl_DATA
-from cata_tmpl import idlMakefilePACO_INCLUDES
-from cata_tmpl import cataOutStream, cataInStream, cataOutparam, cataInparam
-from cata_tmpl import cataOutParallelStream, cataInParallelStream
-from cata_tmpl import cataService, cataCompo
+from module_generator.mod_tmpl import *
+from module_generator.cata_tmpl import catalog, interface, idl
+from module_generator.cata_tmpl import xml, xml_interface, xml_service
+from module_generator.cata_tmpl import idlMakefilePaCO_BUILT_SOURCES, idlMakefilePaCO_nodist_salomeinclude_HEADERS
+from module_generator.cata_tmpl import idlMakefilePACO_salomepython_DATA, idlMakefilePACO_salomeidl_DATA
+from module_generator.cata_tmpl import idlMakefilePACO_INCLUDES
+from module_generator.cata_tmpl import cataOutStream, cataInStream, cataOutparam, cataInparam
+from module_generator.cata_tmpl import cataOutParallelStream, cataInParallelStream
+from module_generator.cata_tmpl import cataService, cataCompo
 #from aster_tmpl import check_aster
-from salomemodules import salome_modules
-from yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in_type, corba_out_type
-from yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
-from yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
-from gui_tmpl import cmake_py_gui, pysalomeapp, cmake_cpp_gui, cppsalomeapp
-from doc_tmpl import docmakefile, docconf, docsalomeapp
-import yacsgen_version
+from module_generator.salomemodules import salome_modules
+from module_generator.yacstypes import corbaTypes, corbaOutTypes, moduleTypes, idlTypes, corba_in_type, corba_out_type
+from module_generator.yacstypes import ValidTypes, PyValidTypes, calciumTypes, DatastreamParallelTypes
+from module_generator.yacstypes import ValidImpl, ValidImplTypes, ValidStreamTypes, ValidParallelStreamTypes, ValidDependencies
+from module_generator.gui_tmpl import cmake_py_gui, pysalomeapp, cmake_cpp_gui, cppsalomeapp
+from module_generator.doc_tmpl import docmakefile, docconf, docsalomeapp
+from module_generator import yacsgen_version
 
 def makedirs(namedir):
   """Create a new directory named namedir. If a directory already exists copy it to namedir.bak"""
@@ -94,10 +94,10 @@ class Module(object):
     self.gui = gui
     try:
       self.validate()
-    except Invalid,e:
+    except Invalid as e:
       if debug:
         traceback.print_exc()
-      print "Error in module %s: %s" % (name,e)
+      print("Error in module %s: %s" % (name,e))
       raise SystemExit
 
   def validate(self):
@@ -175,8 +175,8 @@ class Component(object):
         cmake_vars = cmake_vars + salome_modules[mod]["linklibs"]
       else:
         default_lib = var_template.substitute(name=mod)
-        print "Unknown libraries for module " + mod
-        print "Using default library name " + default_lib
+        print("Unknown libraries for module " + mod)
+        print("Using default library name " + default_lib)
         cmake_vars = cmake_vars + default_lib + "\n  "
     
     return cmake_text, cmake_vars
@@ -252,7 +252,7 @@ class Component(object):
     """
     def get_dependent_modules(mod,modules):
       modules.add(mod)
-      if salome_modules[mod].has_key("depends"):
+      if "depends" in salome_modules[mod]:
         for m in salome_modules[mod]["depends"]:
           if m not in modules:
             get_dependent_modules(m,modules)
@@ -455,7 +455,7 @@ class Generator(object):
       srcs[compo.name] = fdict
 
     cmakecontent = ""
-    components_string = "".join(map(lambda x: x.name+" ", module.components))
+    components_string = "".join([x.name+" " for x in module.components])
 
     if self.module.gui:
       GUIname=module.name+"GUI"
@@ -482,8 +482,7 @@ class Generator(object):
       cmake_gui="OFF"
       
     prefix = os.path.abspath(self.module.prefix)
-    component_libs = "".join(map(lambda x: x.libraryName()+" ",
-                                           module.components))
+    component_libs = "".join([x.libraryName()+" " for x in module.components])
     add_modules = ""
     for x in self.used_modules:
       cmake_text = cmake_find_module.substitute(module=x)
@@ -539,11 +538,9 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 #            other_sks=other_sks+os.path.splitext(os.path.basename(fidl))[0]+"SK.cc "
 
     include_template=Template("$${${module}_ROOT_DIR}/idl/salome")
-    opt_inc="".join(map(lambda x:include_template.substitute(module=x)+"\n  ",
-                                       self.used_modules))
+    opt_inc="".join([include_template.substitute(module=x)+"\n  " for x in self.used_modules])
     link_template=Template("$${${module}_SalomeIDL${module}}")
-    opt_link="".join(map(lambda x:link_template.substitute(module=x)+"\n  ",
-                                       self.used_modules))
+    opt_link="".join([link_template.substitute(module=x)+"\n  " for x in self.used_modules])
     
     idlfiles={"CMakeLists.txt":cmake_idl.substitute(module=module.name,
                                                     extra_idl=other_idls,
@@ -682,16 +679,13 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
           elif src[-3:]==".ui":
             ui_files=ui_files+os.path.basename(src)+"\n  "
           elif src[-3:]==".ts":
-	    ts_files=ts_files+os.path.basename(src)+"\n  "
+            ts_files = ts_files + os.path.basename(src) + "\n  "
           else:
             other=other+os.path.basename(src)+"\n  "
 
-      compo_dirs = "".join(map(lambda x: 
-                                 "${PROJECT_SOURCE_DIR}/src/"+x.name+"\n  ",
-                                 self.module.components))
+      compo_dirs = "".join(["${PROJECT_SOURCE_DIR}/src/"+x.name+"\n  " for x in self.module.components])
       compo_dirs = compo_dirs + "${PROJECT_BINARY_DIR}/src/" + self.module.name + "GUI\n"
-      component_libs = "".join(map(lambda x:
-                              x.libraryName()+" ", self.module.components))
+      component_libs = "".join([x.libraryName()+" " for x in self.module.components])
       makefile=cmake_cpp_gui.substitute(module=self.module.name,
                                     include_dirs=compo_dirs,
                                     libs=component_libs,
@@ -713,19 +707,19 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 
   def makeMakefile(self,makefileItems):
     makefile=""
-    if makefileItems.has_key("header"):
+    if "header" in makefileItems:
       makefile=makefile + makefileItems["header"]+'\n'
-    if makefileItems.has_key("lib_LTLIBRARIES"):
+    if "lib_LTLIBRARIES" in makefileItems:
       makefile=makefile+"lib_LTLIBRARIES= "+" ".join(makefileItems["lib_LTLIBRARIES"])+'\n'
-    if makefileItems.has_key("salomepython_PYTHON"):
+    if "salomepython_PYTHON" in makefileItems:
       makefile=makefile+"salomepython_PYTHON= "+" ".join(makefileItems["salomepython_PYTHON"])+'\n'
-    if makefileItems.has_key("dist_salomescript_SCRIPTS"):
+    if "dist_salomescript_SCRIPTS" in makefileItems:
       makefile=makefile+"dist_salomescript_SCRIPTS= "+" ".join(makefileItems["dist_salomescript_SCRIPTS"])+'\n'
-    if makefileItems.has_key("salomeres_DATA"):
+    if "salomeres_DATA" in makefileItems:
       makefile=makefile+"salomeres_DATA= "+" ".join(makefileItems["salomeres_DATA"])+'\n'
-    if makefileItems.has_key("salomeinclude_HEADERS"):
+    if "salomeinclude_HEADERS" in makefileItems:
       makefile=makefile+"salomeinclude_HEADERS= "+" ".join(makefileItems["salomeinclude_HEADERS"])+'\n'
-    if makefileItems.has_key("body"):
+    if "body" in makefileItems:
       makefile=makefile+makefileItems["body"]+'\n'
     return makefile
 
@@ -798,7 +792,7 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 
   # For PaCO++
   def makexml(self):
-    from pacocompo import PACOComponent
+    from .pacocompo import PACOComponent
     interfaces = []
     for compo in self.module.components:
       if isinstance(compo, PACOComponent):
@@ -815,7 +809,7 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
        dic key = file name to create
        dic value = file content or dictionary defining the content of a sub directory
     """
-    for name, content in dic.items():
+    for name, content in list(dic.items()):
       filename = os.path.join(basedir, name)
       if isinstance(content, str):
         fil =  open(filename, 'w')
@@ -912,14 +906,14 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     modules = []
     if restrict:
       for mod in restrict:
-        if modules_dict.has_key(mod):
+        if mod in modules_dict:
           modules.append(modules_dict[mod])
     else:
-      modules = modules_dict.values()
+      modules = list(modules_dict.values())
 
     #add the alternate modules if given
     if altmodules:
-      for module, path in altmodules.items():
+      for module, path in list(altmodules.items()):
         modules.append('  <module name="%s" path="%s"/>' % (module, path))
 
     #add the generated module
@@ -965,4 +959,3 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
       host = socket.gethostname().split('.')[0]
       fil.write(command % host)
       fil.close()
-

@@ -26,15 +26,15 @@
 """
 import re, os, sys
 
-from gener import Component, Invalid, makedirs
+from module_generator.gener import Component, Invalid, makedirs
 
-from pyth_tmpl import pyinitEXEService, pyinitCEXEService, pyinitService
-import aster_tmpl
-from aster_tmpl import asterCEXEService, asterEXEService
-from aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
-from aster_tmpl import comm, make_etude, cexe, exeaster
-from aster_tmpl import container, component
-from aster_tmpl import cmake_src_compo_aster, cmake_src_compo_aster_lib
+from module_generator.pyth_tmpl import pyinitEXEService, pyinitCEXEService, pyinitService
+from module_generator import aster_tmpl
+from module_generator.aster_tmpl import asterCEXEService, asterEXEService
+from module_generator.aster_tmpl import asterService, asterEXECompo, asterCEXECompo, asterCompo
+from module_generator.aster_tmpl import comm, make_etude, cexe, exeaster
+from module_generator.aster_tmpl import container, component
+from module_generator.aster_tmpl import cmake_src_compo_aster, cmake_src_compo_aster_lib
 
 class ASTERComponent(Component):
   """

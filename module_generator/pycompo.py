@@ -21,8 +21,8 @@
   Module that defines PYComponent for SALOME components implemented in Python
 """
 import os
-from gener import Component, Invalid
-from pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo, cmake_src_compo_py
+from module_generator.gener import Component, Invalid
+from module_generator.pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo, cmake_src_compo_py
 import textwrap
 from string import split,rstrip,join
 
@@ -30,7 +30,7 @@ def indent(text, prefix='    '):
   """Indent text by prepending a given prefix to each line."""
   if not text: return ''
   lines = split(text, '\n')
-  lines = map(lambda line, prefix=prefix: prefix + line, lines)
+  lines = list(map(lambda line, prefix=prefix: prefix + line, lines))
   if lines: lines[-1] = rstrip(lines[-1])
   return join(lines, '\n')
 
@@ -99,8 +99,7 @@ class PYComponent(Component):
       raise Invalid("Invalid kind ()%s for component %s" % (
                                     self.kind, self.name))
     
-    sources = pyfile + "".join(map(lambda x: "\n  " + os.path.basename(x),
-                                   self.sources))
+    sources = pyfile + "".join(["\n  " + os.path.basename(x) for x in self.sources])
     cmake_content = cmake_src_compo_py.substitute(sources=sources)
     
     return {"CMakeLists.txt":cmake_content,

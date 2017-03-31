@@ -17,8 +17,8 @@
 # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
 #
 
-from gener import Component
-from cppcompo import CPPComponent
+from module_generator.gener import Component
+from module_generator.cppcompo import CPPComponent
 
 import platform
 archi = platform.architecture()[0]

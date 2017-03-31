@@ -20,7 +20,7 @@
 import os
 
 #import context from ..
-execfile("../context.py")
+exec(compile(open("../context.py").read(), "../context.py", 'exec'))
 from module_generator import Generator,Module,Service,F77Component
 
 cwd=os.getcwd()

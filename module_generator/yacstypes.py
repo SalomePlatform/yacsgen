@@ -62,7 +62,7 @@ def corba_rtn_type(typ, module):
   else:
     return corbaRtnTypes[typ]
 
-ValidTypes = corbaTypes.keys()
+ValidTypes = list(corbaTypes.keys())
 PyValidTypes = ValidTypes+["pyobj"]
 
 def add_type(typename, corbaType=None, corbaOutType=None, module="", idltype=None, corbaRtnType=None):
@@ -102,8 +102,8 @@ DatastreamParallelTypes = {"Param_Double_Port":"Param_Double_Port"}
 
 ValidImpl = ("CPP", "PY", "F77", "ASTER", "PACO")
 ValidImplTypes = ("sequential", "parallel")
-ValidStreamTypes = calciumTypes.keys()
-ValidParallelStreamTypes = DatastreamParallelTypes.keys()
+ValidStreamTypes = list(calciumTypes.keys())
+ValidParallelStreamTypes = list(DatastreamParallelTypes.keys())
 ValidDependencies = ("I", "T")
 
 #Add KERNEL YACS types : YACS name, c++ corba arg in, c++ corba arg out,defining module, repr corba idl, c++ corba return

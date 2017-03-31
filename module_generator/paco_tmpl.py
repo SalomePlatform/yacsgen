@@ -24,7 +24,7 @@
 try:
   from string import Template
 except:
-  from compat import Template,set
+  from module_generator.compat import Template,set
   
 compoMakefile="""
 include $$(top_srcdir)/adm_local/make_common_starter.am

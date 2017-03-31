@@ -23,24 +23,23 @@
 
 debug=1
 import os
-import string
 import fnmatch
 from tempfile import mkstemp
-from gener import Component, Invalid
-from hxx_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxx
+from module_generator.gener import Component, Invalid
+from module_generator.hxx_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxx
 from module_generator import Service
-from yacstypes import corba_rtn_type,moduleTypes
-from hxx_awk import parse01,parse1,parse2,parse3
-from hxx_awk import cpp2idl_mapping
+from module_generator.yacstypes import corba_rtn_type,moduleTypes
+from module_generator.hxx_awk import parse01,parse1,parse2,parse3
+from module_generator.hxx_awk import cpp2idl_mapping
 # these tables contain the part of code which depends upon c++ types
-from hxx_awk import cpp_impl_a,cpp_impl_b,cpp_impl_c  
-from hxx_awk import cpp2yacs_mapping
+from module_generator.hxx_awk import cpp_impl_a,cpp_impl_b,cpp_impl_c  
+from module_generator.hxx_awk import cpp2yacs_mapping
 from tempfile import mkdtemp
-from hxx_tmpl_gui import hxxgui_cxx, hxxgui_h, hxxgui_icon_ts
-from hxx_tmpl_gui import hxxgui_message_en, hxxgui_message_fr
-from hxx_tmpl_gui import hxxgui_config, hxxgui_xml_fr, hxxgui_xml_en
-from gener import Library
-from gui_tmpl import cppsalomeapp
+from module_generator.hxx_tmpl_gui import hxxgui_cxx, hxxgui_h, hxxgui_icon_ts
+from module_generator.hxx_tmpl_gui import hxxgui_message_en, hxxgui_message_fr
+from module_generator.hxx_tmpl_gui import hxxgui_config, hxxgui_xml_fr, hxxgui_xml_en
+from module_generator.gener import Library
+from module_generator.gui_tmpl import cppsalomeapp
 
 # ------------------------------------------------------------------------------
 
@@ -68,7 +67,7 @@ class HXX2SALOMEComponent(Component):
     f=os.popen(cmd1)
     class_name=f.readlines()[0]
     name=class_name
-    print "classname=",class_name
+    print("classname=",class_name)
     f.close()
 
     # create temporary awk files for the parsing
@@ -129,7 +128,7 @@ class HXX2SALOMEComponent(Component):
     result_parsing=open("parse_type_result","r")
     for line in result_parsing.readlines():
         line=line[0:-1] # get rid of trailing \n
-        words = string.split(line,';')
+        words = line.split(';')
 
         if len(words) >=3 and words[0] == "Function": # detect a new service
             function_name=words[2]
@@ -165,10 +164,10 @@ class HXX2SALOMEComponent(Component):
     #  - store it in service_definition[serv]["impl"]
     for serv in list_of_services:
         if debug:
-            print "service : ",serv
-            print "  inports  -> ",service_definition[serv]["inports"]
-            print "  outports -> ",service_definition[serv]["outports"]
-            print "  return   -> ",service_definition[serv]["ret"]
+            print("service : ",serv)
+            print("  inports  -> ",service_definition[serv]["inports"])
+            print("  outports -> ",service_definition[serv]["outports"])
+            print("  return   -> ",service_definition[serv]["ret"])
 
 
         # Part 1 : Argument pre-processing
@@ -199,7 +198,7 @@ class HXX2SALOMEComponent(Component):
               post=""
               pre=""
 
-              if string.find(cpp_impl_a[argtype],"auto_ptr" ) != -1 :
+              if cpp_impl_a[argtype].find("auto_ptr" ) != -1 :
                   # for auto_ptr argument, retrieve the raw pointer behind
                   post=".get()" 
               if  argtype == "const MEDMEM::MESH&"  or  \
@@ -229,7 +228,7 @@ class HXX2SALOMEComponent(Component):
         # Part 3.b : In Argument Post-processing
         for (argname,argtype) in service_definition[serv]["inports"]:
             # not all in types require a treatment
-            if cpp_impl_c.has_key(argtype): 
+            if argtype in cpp_impl_c: 
                 format=cpp_impl_c[argtype]
                 # id : treatment of %(module) is postponed in makecxx
                 s_argument_postprocessing += \
@@ -251,7 +250,7 @@ class HXX2SALOMEComponent(Component):
                                            s_argument_postprocessing + \
                                            s_rtn_processing
         if debug:
-            print "implementation :\n",service_definition[serv]["impl"]
+            print("implementation :\n",service_definition[serv]["impl"])
 
     #
     # Create a list of Service objects (called services), 
@@ -288,13 +287,13 @@ class HXX2SALOMEComponent(Component):
 
         code=service_definition[serv]["impl"]
         if debug:
-            print "service : ",serv
-            print "  inports  -> ",service_definition[serv]["inports"]
-            print "  converted inports  -> ",inports
-            print "  outports -> ",service_definition[serv]["outports"]
-            print "  converted outports  -> ",outports
-            print "  Return  -> ",service_definition[serv]["ret"]
-            print "  converted Return  -> ",Return
+            print("service : ",serv)
+            print("  inports  -> ",service_definition[serv]["inports"])
+            print("  converted inports  -> ",inports)
+            print("  outports -> ",service_definition[serv]["outports"])
+            print("  converted outports  -> ",outports)
+            print("  Return  -> ",service_definition[serv]["ret"])
+            print("  converted Return  -> ",Return)
 
         services.append(Service(serv, 
            inport=inports, 
@@ -430,7 +429,7 @@ class HXX2SALOMEComponent(Component):
     defs = []
     for serv in self.services:
       defs.append(serv.defs)
-      print "CNC bug : ",serv.body
+      print("CNC bug : ",serv.body)
       service = cxxService.substitute(
                            component=self.name, 
                            service=serv.name,
@@ -530,7 +529,7 @@ class HXX2SALOMEComponent(Component):
 
   def getIdlInterfaces(self):
     services = self.getIdlServices()
-    from hxx_tmpl import interfaceidlhxx
+    from .hxx_tmpl import interfaceidlhxx
     Inherited=""
     if self.use_medmem==True:
         Inherited="Engines::EngineComponent,SALOME::MultiCommClass,SALOME_MED::MED_Gen_Driver"
