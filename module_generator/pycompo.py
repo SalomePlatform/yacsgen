@@ -24,15 +24,14 @@ import os
 from module_generator.gener import Component, Invalid
 from module_generator.pyth_tmpl import pyinitService, pyService, pyCompoEXE, pyCompo, cmake_src_compo_py
 import textwrap
-from string import split,rstrip,join
 
 def indent(text, prefix='    '):
   """Indent text by prepending a given prefix to each line."""
   if not text: return ''
-  lines = split(text, '\n')
+  lines = text.split('\n')
   lines = list(map(lambda line, prefix=prefix: prefix + line, lines))
-  if lines: lines[-1] = rstrip(lines[-1])
-  return join(lines, '\n')
+  if lines: lines[-1] = lines[-1].rstrip()
+  return '\n'.join(lines)
 
 class PYComponent(Component):
   """
