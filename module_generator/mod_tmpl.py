@@ -25,6 +25,7 @@ except:
 application="""
 <application>
 <prerequisites path="${prerequisites}"/>
+<context path="${context}"/>
 ${resources}
 <modules>
 ${modules}

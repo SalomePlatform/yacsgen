@@ -925,14 +925,21 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     #add the generated module
     modules.append('  <module name="%s" path="%s"/>' % (self.module.name, os.path.abspath(self.module.prefix)))
 
-
+    ROOT_SALOME=os.getenv("ROOT_SALOME")
     #try to find a prerequisites file
     prerequisites = self.context.get("prerequisites")
     if not prerequisites:
       #try to find one in rootdir
-      prerequisites = os.path.join(rootdir, "profile%s.sh" % suffix)
+      prerequisites = os.path.join(ROOT_SALOME, "salome_prerequisites.sh")
     if not os.path.exists(prerequisites):
       raise Invalid("Can not create an application : prerequisites file not defined or does not exist")
+
+    salome_context = self.context.get("salome_context")
+    if not salome_context:
+      #try to find one in rootdir
+      salome_context = os.path.join(ROOT_SALOME, "salome_context.cfg")
+    if not os.path.exists(salome_context):
+      raise Invalid("Can not create an application : salome_context file not defined or does not exist")
 
     #add resources catalog if it exists
     resources_spec=""
@@ -941,6 +948,7 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 
     #create config_appli.xml file
     appli = application.substitute(prerequisites=prerequisites,
+                                   context=salome_context,
                                    modules="\n".join(modules),
                                    resources=resources_spec)
     fil = open(os.path.join(appliname, "config_appli.xml"), 'w')
