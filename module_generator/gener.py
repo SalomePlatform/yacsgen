@@ -817,7 +817,10 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     """
     for name, content in dic.items():
       filename = os.path.join(basedir, name)
-      if isinstance(content, str):
+      if isinstance(content, basestring):
+        if isinstance(content, unicode):
+            # encodage to utf-8 if unicode string
+            content=content.encode('utf8')
         fil =  open(filename, 'w')
         fil.write(content)
         fil.close()
