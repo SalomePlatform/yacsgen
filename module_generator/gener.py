@@ -811,13 +811,10 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     """
     for name, content in list(dic.items()):
       filename = os.path.join(basedir, name)
-      if isinstance(content, basestring):
-        if isinstance(content, unicode):
-            # encodage to utf-8 if unicode string
-            content=content.encode('utf8')
-        fil =  open(filename, 'w')
-        fil.write(content)
-        fil.close()
+      if isinstance(content, str):
+        # encodage to utf-8 if unicode string / on python3 str are unicode
+        with open(filename, 'w') as fil:
+          fil.write(content)
       else:
         if not os.path.exists(filename):
           os.makedirs(filename)
