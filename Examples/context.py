@@ -20,7 +20,8 @@
 import os,sys
 
 SALOME_ROOT=os.getenv("SALOME_DIR")
-SALOME_PREREQ=os.path.join(SALOME_ROOT, "salome_prerequisites.sh")
+SALOME_PACKAGES=os.getenv("SALOME_DIR")
+SALOME_PREREQ=os.path.join(SALOME_PACKAGES, "salome_prerequisites.sh")
 #SALOME_PREREQ=os.path.join(SALOME_ROOT, "salome_prerequisites_appli.sh")
 
 KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","")
