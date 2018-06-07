@@ -22,17 +22,17 @@
 """
 
 import os
-from gener import Component, Invalid
-from cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
-from cpp_tmpl import exeCPP, cmake_src_compo_cpp
-from yacstypes import corba_rtn_type, corba_in_type
-import mpi_tmpl
-from cppcompo import CPPComponent
+from module_generator.gener import Component, Invalid
+from module_generator.cpp_tmpl import initService, cxxService, hxxCompo, cxxCompo
+from module_generator.cpp_tmpl import exeCPP, cmake_src_compo_cpp
+from module_generator.yacstypes import corba_rtn_type, corba_in_type
+from module_generator import mpi_tmpl
+from module_generator.cppcompo import CPPComponent
 
 try:
   from string import Template
 except:
-  from compat import Template,set
+  from module_generator.compat import Template,set
 
 class MPIComponent(CPPComponent):
   """

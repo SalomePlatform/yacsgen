@@ -25,14 +25,14 @@
   Module that defines PACOComponent for SALOME PaCO++ components implemented in C++
 """
 import os
-from gener import Component, Invalid
-from paco_tmpl import compoMakefile, hxxCompo, cxxService
-from paco_tmpl import initService, cxxCompo, paco_sources
-from paco_tmpl import cxxFactoryDummy, cxxFactoryMpi, cxx_des_parallel_stream
-from paco_tmpl import hxxparallel_instream, hxxparallel_outstream, hxxinit_ok
-from paco_tmpl import hxxparallel_instream_init, hxxparallel_outstream_init, cxxService_connect
-from paco_tmpl import cxx_cons_service, cxx_cons_parallel_outstream, cxx_cons_parallel_instream
-from cata_tmpl import parallel_interface
+from module_generator.gener import Component, Invalid
+from module_generator.paco_tmpl import compoMakefile, hxxCompo, cxxService
+from module_generator.paco_tmpl import initService, cxxCompo, paco_sources
+from module_generator.paco_tmpl import cxxFactoryDummy, cxxFactoryMpi, cxx_des_parallel_stream
+from module_generator.paco_tmpl import hxxparallel_instream, hxxparallel_outstream, hxxinit_ok
+from module_generator.paco_tmpl import hxxparallel_instream_init, hxxparallel_outstream_init, cxxService_connect
+from module_generator.paco_tmpl import cxx_cons_service, cxx_cons_parallel_outstream, cxx_cons_parallel_instream
+from module_generator.cata_tmpl import parallel_interface
 
 class PACOComponent(Component):
 

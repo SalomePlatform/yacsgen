@@ -20,7 +20,7 @@
 try:
   from string import Template
 except:
-  from compat import Template,set
+  from module_generator.compat import Template,set
 
 hxxgui_cxx="""
 #include "${component_name}GUI.h"

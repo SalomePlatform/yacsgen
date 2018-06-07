@@ -17,7 +17,7 @@ class TestCompo(unittest.TestCase):
     #start salome and connect to it
     try:
       salome_module.main(["start", "-t"])
-    except SystemExit, e:
+    except SystemExit as e:
       pass
     import runSession
     runSession.configureSession()
@@ -44,7 +44,7 @@ class TestCompo(unittest.TestCase):
     xmlLoader = loader.YACSLoader()
     try:
       p = xmlLoader.load("coupling.xml")
-    except IOError,ex:
+    except IOError as ex:
       self.fail("IO exception:" + ex);
     self.assertTrue(p.isValid())
     e = pilot.ExecutorSwig()
@@ -54,7 +54,7 @@ class TestCompo(unittest.TestCase):
   def tearDown(self):
     try:
       salome_module.main(["killall"])
-    except SystemExit, e:
+    except SystemExit as e:
       pass
   
 if __name__ == '__main__':

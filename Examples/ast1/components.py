@@ -23,7 +23,7 @@
 import os
 
 #import context from ..
-execfile("../context.py")
+exec(compile(open("../context.py").read(), "../context.py", 'exec'))
 from module_generator import Generator,Module,ASTERComponent,Service,F77Component
 
 aster_root=os.path.join(aster_home,aster_version)

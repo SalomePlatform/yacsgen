@@ -38,10 +38,10 @@ def sorted(iterable, cmp=None, key=None, reverse=False) :
 		d = {}
 		for v in iterable :
 			k = key(v)
-			if not d.has_key(k) :
+			if k not in d :
 				d[k] = []
 			d[k].append(v)
-		keys = d.keys()
+		keys = list(d.keys())
 		keys.sort(cmp)
 		i = []
 		for k in keys :
@@ -78,9 +78,8 @@ class _TemplateMetaclass(type):
 		cls.pattern = re.compile(pattern, re.IGNORECASE | re.VERBOSE)
 
 
-class Template:
+class Template(metaclass=_TemplateMetaclass):
 	"""A string class for supporting $-substitutions."""
-	__metaclass__ = _TemplateMetaclass
 	
 	delimiter = '$'
 	idpattern = r'[_a-z][_a-z0-9]*'

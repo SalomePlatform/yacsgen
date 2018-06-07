@@ -22,13 +22,12 @@
 
 debug=1
 import os
-from gener import Component, Invalid
-from hxx_para_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxxpara
+from module_generator.gener import Component, Invalid
+from module_generator.hxx_para_tmpl import cxxService, hxxCompo, cxxCompo, cmake_src_compo_hxxpara
 from module_generator import Service
-import string
 from tempfile import mkstemp
-from yacstypes import corba_rtn_type,moduleTypes
-from gener import Library
+from module_generator.yacstypes import corba_rtn_type,moduleTypes
+from module_generator.gener import Library
 
 class HXX2SALOMEParaComponent(Component):
   def __init__(self, hxxfile , cpplib , cpp_path ):
@@ -49,12 +48,12 @@ class HXX2SALOMEParaComponent(Component):
     self.hxxfile=hxxfile  # to include it in servant implementation
 
     # grab name of c++ component
-    from hxx_awk import parse01,parse1,parse2,parse3
+    from .hxx_awk import parse01,parse1,parse2,parse3
     cmd1="""awk '$1 == "class" && $0 !~ /;/ {print $2}' """ + hxxfileful[0] + """|awk -F: '{printf "%s",$1}' """
     f=os.popen(cmd1)
     class_name=f.readlines()[0]
     name=class_name
-    print "classname=",class_name
+    print("classname=",class_name)
 
     if cpplib[:3]=="lib" and cpplib[-3:]==".so":
         cpplibname=cpplib[3:-3]  # get rid of lib and .so, to use within makefile.am
@@ -101,8 +100,8 @@ class HXX2SALOMEParaComponent(Component):
     #   ...
     # The service names are stored in list_of_services
     # The information relative to a service (called service_name) is stored in the dictionnary service_definition[service_name]
-    from hxx_awk import cpp2idl_mapping
-    from hxx_awk import cpp2yacs_mapping
+    from .hxx_awk import cpp2idl_mapping
+    from .hxx_awk import cpp2yacs_mapping
     cpp2yacs_mapping["const MEDCoupling::MEDCouplingFieldDouble*"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
     cpp2yacs_mapping["const MEDCoupling::MEDCouplingFieldDouble&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
     cpp2yacs_mapping["MEDCoupling::MEDCouplingFieldDouble*&"]="SALOME_MED/MPIMEDCouplingFieldDoubleCorbaInterface"
@@ -112,7 +111,7 @@ class HXX2SALOMEParaComponent(Component):
     result_parsing=open("parse_type_result","r")
     for line in result_parsing.readlines():
         line=line[0:-1] # get rid of trailing \n
-        words = string.split(line,';')
+        words = line.split(';')
 
         if len(words) >=3 and words[0] == "Function": # detect a new service
             function_name=words[2]
@@ -140,19 +139,19 @@ class HXX2SALOMEParaComponent(Component):
             else:
                 service_definition[list_of_services[-1]]["outports"].append( (argname,typename) )
 
-    if service_definition.has_key('getInputFieldTemplate'):
+    if 'getInputFieldTemplate' in service_definition:
         del service_definition['getInputFieldTemplate']
     #
     # generate implementation of c++ servant
     # store it in service_definition[serv]["impl"]
     #
-    from hxx_awk import cpp_impl_a,cpp_impl_b,cpp_impl_c  # these tables contain the part of code which depends upon c++ types
+    from .hxx_awk import cpp_impl_a,cpp_impl_b,cpp_impl_c  # these tables contain the part of code which depends upon c++ types
     cpp_impl_b["MEDCoupling::MEDCouplingFieldDouble*"]="""\tMEDCoupling::MPIMEDCouplingFieldDoubleServant * _rtn_field_i = new MEDCoupling::MPIMEDCouplingFieldDoubleServant(_orb,_poa,this,_rtn_cpp);
 \t_rtn_cpp->decrRef();
 \tSALOME_MED::MPIMEDCouplingFieldDoubleCorbaInterface_ptr _rtn_ior = _rtn_field_i->_this();\n"""
     cpp_impl_a["const MEDCoupling::MEDCouplingFieldDouble*"]="\tMEDCoupling::MEDCouplingFieldDouble* _%(arg)s=cppCompo_->getInputFieldTemplate();\n\t_setInputField(%(arg)s,_%(arg)s);\n\t_initializeCoupling(%(arg)s);\n"
 
-    from yacstypes import corbaTypes,corbaOutTypes
+    from .yacstypes import corbaTypes,corbaOutTypes
     format_thread_signature="void * th_%s(void * st);" # this thread declaration will be included in servant's header
     format_thread_struct="typedef struct {\n  int ip;\n  Engines::IORTab* tior;\n%(arg_decl)s} thread_%(serv_name)s_str;" # this thread declaration will be included in servant's header
     format_thread_create="""
@@ -219,10 +218,10 @@ void *th_%(serv_name)s(void *s)
     self.thread_impl=""  # the implementation of the thread functions used to invoque services on slave processors 
     for serv in list_of_services:
         if debug:
-            print "service : ",serv
-            print "  inports  -> ",service_definition[serv]["inports"]
-            print "  outports -> ",service_definition[serv]["outports"]
-            print "  return   -> ",service_definition[serv]["ret"]
+            print("service : ",serv)
+            print("  inports  -> ",service_definition[serv]["inports"])
+            print("  outports -> ",service_definition[serv]["outports"])
+            print("  return   -> ",service_definition[serv]["ret"])
 
         # Part 0 : specific treatments for parallel components (call threads to forward the invocation to the service to all processes)
         service_definition[serv]["thread_func_decl"]=format_thread_signature % serv
@@ -273,7 +272,7 @@ void *th_%(serv_name)s(void *s)
               # special treatment for some arguments
               post=""
               pre=""
-              if string.find(cpp_impl_a[argtype],"auto_ptr" ) != -1 :
+              if cpp_impl_a[argtype].find("auto_ptr" ) != -1 :
                   post=".get()" # for auto_ptr argument, retrieve the raw pointer behind
               if  argtype == "const MEDMEM::MESH&"  or  argtype == "const MEDMEM::SUPPORT&" : 
                   pre="*"  # we cannot create MESHClient on the stack (private constructor), so we create it on the heap and dereference it
@@ -291,7 +290,7 @@ void *th_%(serv_name)s(void *s)
                                                                                               # because we don't know here the module name
         # Part 3.b : In Argument Post-processing
         for (argname,argtype) in service_definition[serv]["inports"]:
-            if cpp_impl_c.has_key(argtype): # not all in types require a treatment
+            if argtype in cpp_impl_c: # not all in types require a treatment
                 format=cpp_impl_c[argtype]
                 s_argument_postprocessing += format % {"arg" : argname, "module" : "%(module)s" } # id : treatment of %(module) is postponed in makecxx
 
@@ -302,7 +301,7 @@ void *th_%(serv_name)s(void *s)
 
         service_definition[serv]["impl"] = s_thread_call + s_argument_processing + s_call_cpp_function + s_thread_join  + s_argument_postprocessing + s_rtn_processing
         if debug:
-            print "implementation :\n",service_definition[serv]["impl"]
+            print("implementation :\n",service_definition[serv]["impl"])
 
     #
     # Create a list of Service objects (called services), and give it to Component constructor
@@ -337,13 +336,13 @@ void *th_%(serv_name)s(void *s)
 
         code=service_definition[serv]["impl"]
         if debug:
-            print "service : ",serv
-            print "  inports  -> ",service_definition[serv]["inports"]
-            print "  converted inports  -> ",inports
-            print "  outports -> ",service_definition[serv]["outports"]
-            print "  converted outports  -> ",outports
-            print "  Return  -> ",service_definition[serv]["ret"]
-            print "  converted Return  -> ",Return
+            print("service : ",serv)
+            print("  inports  -> ",service_definition[serv]["inports"])
+            print("  converted inports  -> ",inports)
+            print("  outports -> ",service_definition[serv]["outports"])
+            print("  converted outports  -> ",outports)
+            print("  Return  -> ",service_definition[serv]["ret"])
+            print("  converted Return  -> ",Return)
 
         services.append(Service(serv, 
            inport=inports, 
@@ -441,10 +440,10 @@ void *th_%(serv_name)s(void *s)
     thread_func_decl="\n".join(self.thread_func_decl)
     thread_str_decl="\n".join(self.thread_str_decl)
     if debug:
-        print "thread_func_decl : "
-        print thread_func_decl
-        print "thread_str_decl : "
-        print thread_str_decl
+        print("thread_func_decl : ")
+        print(thread_func_decl)
+        print("thread_str_decl : ")
+        print(thread_str_decl)
 
     if self.inheritedclass:
       inheritedclass= " public virtual " + self.inheritedclass + ","
@@ -473,7 +472,7 @@ void *th_%(serv_name)s(void *s)
 
   def getIdlInterfaces(self):
     services = self.getIdlServices()
-    from hxx_tmpl import interfaceidlhxx
+    from .hxx_tmpl import interfaceidlhxx
     Inherited=""
     Inherited="SALOME_MED::ParaMEDMEMComponent"
     return interfaceidlhxx.substitute(component=self.name,inherited=Inherited, services="\n".join(services))

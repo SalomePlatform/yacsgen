@@ -18,4 +18,4 @@
 #
 
 def f():
-  print "coucou"
+  print("coucou")

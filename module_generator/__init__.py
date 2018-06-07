@@ -22,15 +22,15 @@ The python module module_generator defines classes which can be used to define a
 generates a SALOME source module, its installation and a SALOME application including this module and
 other preexisting SALOME modules like GEOM, SMESH or others.
 """
-from gener import Module, Service, Generator
-from fcompo import F77Component
-from cppcompo import CPPComponent
-from pacocompo import PACOComponent
-from pycompo import PYComponent
-from astcompo import ASTERComponent
-from hxxcompo import HXX2SALOMEComponent
-from hxxparacompo import HXX2SALOMEParaComponent
-from yacstypes import add_type
-from salomemodules import add_module
-from gener import Library
-from mpicompo import MPIComponent
+from module_generator.gener import Module, Service, Generator
+from module_generator.fcompo import F77Component
+from module_generator.cppcompo import CPPComponent
+from module_generator.pacocompo import PACOComponent
+from module_generator.pycompo import PYComponent
+from module_generator.astcompo import ASTERComponent
+from module_generator.hxxcompo import HXX2SALOMEComponent
+from module_generator.hxxparacompo import HXX2SALOMEParaComponent
+from module_generator.yacstypes import add_type
+from module_generator.salomemodules import add_module
+from module_generator.gener import Library
+from module_generator.mpicompo import MPIComponent
