@@ -41,12 +41,12 @@ public:
   virtual bool Load(SALOMEDS::SComponent_ptr theComponent, const SALOMEDS::TMPFile& theStream, const char* theURL, bool isMultiFile){return 0;};
   virtual bool LoadASCII(SALOMEDS::SComponent_ptr theComponent, const SALOMEDS::TMPFile& theStream, const char* theURL, bool isMultiFile){return 0;};
   virtual void Close(SALOMEDS::SComponent_ptr IORSComponent){};
-  virtual char* ComponentDataType(){return "cppcompos";};
+  virtual char* ComponentDataType(){return (char*)"cppcompos";};
   virtual char* IORToLocalPersistentID(SALOMEDS::SObject_ptr theSObject, const char* IORString, CORBA::Boolean isMultiFile, CORBA::Boolean isASCII){return 0;};
   virtual char* LocalPersistentIDToIOR(SALOMEDS::SObject_ptr theSObject, const char* aLocalPersistentID, CORBA::Boolean isMultiFile,
                                        CORBA::Boolean isASCII){return 0;};
   virtual bool  CanPublishInStudy(CORBA::Object_ptr theIOR){return 0;};
-  virtual SALOMEDS::SObject_ptr PublishInStudy(SALOMEDS::Study_ptr theStudy,SALOMEDS::SObject_ptr theSObject,CORBA::Object_ptr theObject,
+  virtual SALOMEDS::SObject_ptr PublishInStudy(SALOMEDS::SObject_ptr theSObject,CORBA::Object_ptr theObject,
                                                const char* theName){return 0;};
   virtual CORBA::Boolean CanCopy(SALOMEDS::SObject_ptr theObject){return 0;};
   virtual SALOMEDS::TMPFile* CopyFrom(SALOMEDS::SObject_ptr theObject, CORBA::Long& theObjectID){return 0;};

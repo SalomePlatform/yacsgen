@@ -24,6 +24,7 @@
 #include <SUIT_Study.h>
 #include <SalomeApp_Application.h>
 #include <SALOME_LifeCycleCORBA.hxx>
+#include <SALOME_KernelServices.hxx>
 
 #include <SALOMEconfig.h>
 #include CORBA_CLIENT_HEADER(cppcompos)
@@ -100,10 +101,7 @@ bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
   setMenuShown( true );
   setToolShown( true );
 
-  SALOME_NamingService *aNamingService = SalomeApp_Application::namingService();
-  CORBA::Object_var aSMObject = aNamingService->Resolve("/myStudyManager");
-  SALOMEDS::StudyManager_var aStudyManager = SALOMEDS::StudyManager::_narrow(aSMObject);
-  SALOMEDS::Study_var aDSStudy = aStudyManager->GetStudyByID(theStudy->id());
+  SALOMEDS::Study_var aDSStudy = KERNEL::getStudyServant();
 
   SALOMEDS::SComponent_var aFather = aDSStudy->FindComponent("cppcompos");
   if (aFather->_is_nil())
@@ -117,7 +115,7 @@ bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
       aStudyBuilder->DefineComponentInstance(aFather, engine);
     }
   CORBA::Boolean valid;
-  engine->DumpPython(aDSStudy,1,0,valid);
+  engine->DumpPython(1,0,valid);
 
   return bOk;
 }

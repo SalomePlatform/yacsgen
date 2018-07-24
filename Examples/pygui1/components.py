@@ -48,7 +48,7 @@ class A(SALOME_DriverPy.SALOME_DriverPy_i):
     def createObject( self, study, name ):
       "Create object.  "
       try:
-        print study,name
+        print (study,name)
         builder = study.NewBuilder()
         father = study.FindComponent( "pycompos" )
         if father is None:

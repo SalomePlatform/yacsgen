@@ -149,7 +149,7 @@ c1=CPPComponent("compo1",services=[
 pydefs="""import SALOME_TYPES"""
 
 pybody="""
-print a,b,c,d,d2,d3,e,f,g
+print (a,b,c,d,d2,d3,e,f,g)
 aa=SALOME_TYPES.Parameter(name="a",value="45.")
 ab=[]
 ac=[1,2,3]
@@ -159,11 +159,11 @@ ad3=[[[[1,2,3]]]]
 ae=["aaa","bbb"]
 af=SALOME_TYPES.ParametricInput(inputVarList=ae,outputVarList=ae, inputValues=[[[[1,2,3]]]],specificParameters=[])
 ag=SALOME_TYPES.ParametricOutput(outputValues=[[[[1,2,3]]]], specificOutputInfos=[], returnCode=1, errorMessage="error")
-print aa,ab,ac,ad,ad2,ad3,ae,af,ag
+print (aa,ab,ac,ad,ad2,ad3,ae,af,ag)
 """
 
 s2pybody="""
-print "service s2 python component"
+print ("service s2 python component")
 aa=a
 a.Register()
 """

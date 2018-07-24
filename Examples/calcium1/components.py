@@ -243,8 +243,8 @@ defs="""
 body="""
 #b1
 info,name= calcium.cp_cd(component)
-print "name=",name
-print "info=",info
+print ("name=",name)
+print ("info=",info)
 
 dep=calcium.CP_ITERATION
 
@@ -253,7 +253,7 @@ val=numpy.zeros(10,'d')
 val[0]=7.7
 val[5]=a*b
 nval=10
-print "--------> Appel calcium.cp_edb",val
+print ("--------> Appel calcium.cp_edb",val)
 info=calcium.cp_edb(component, dep, 0., 1, "ba", nval,val)
 info=calcium.cp_edb(component, dep, 0., 2, "ba", nval,val)
 info=calcium.cp_edb(component, dep, 0., 3, "ba", nval,val)
@@ -264,124 +264,124 @@ val=calcium.stringArray(3,8)
 val[0]="coucouc"
 val[1]="bonjour"
 val[2]="salut"
-print "--------> Appel calcium.cp_ech",val
+print ("--------> Appel calcium.cp_ech",val)
 info=calcium.cp_ech(component, dep, 0., 1, "bb", 3,val)
 
 #int
 val=numpy.zeros(10,'i')
 val[0]=1
 val[1]=3
-print "--------> Appel calcium.cp_een",val
+print ("--------> Appel calcium.cp_een",val)
 info=calcium.cp_een(component, dep, 0., 1, "bc", 3,val)
 
 val=numpy.zeros(10,'F')
 val[0]=1+2j
 val[1]=3+2j
-print "--------> Appel calcium.cp_ecp",val
+print ("--------> Appel calcium.cp_ecp",val)
 info=calcium.cp_ecp(component, dep, 0., 1, "bd", 3,val)
 
 val=numpy.zeros(10,'f')
 val[0]=1.3
 val[1]=3.2
-print "--------> Appel calcium.cp_ere",val
+print ("--------> Appel calcium.cp_ere",val)
 info=calcium.cp_ere(component, dep, 0., 1, "be", 3,val)
 
 val=numpy.zeros(10,'i')
 val[0]=True
 val[1]=False
 val[2]=False
-print "--------> Appel calcium.cp_elo",val
+print ("--------> Appel calcium.cp_elo",val)
 info=calcium.cp_elo(component, dep, 0., 1, "bf", 3,val)
 
 val=numpy.zeros(10,'l')
 val[0]=1
 val[1]=3
 val[2]=333
-print "--------> Appel calcium.cp_eln",val
+print ("--------> Appel calcium.cp_eln",val)
 info=calcium.cp_eln(component, dep, 0., 1, "bg", 3,val)
 
 val=numpy.zeros(10,'i')
 val[0]=1
 val[1]=3
 val[2]=4
-print "--------> Appel calcium.cp_een",val
+print ("--------> Appel calcium.cp_een",val)
 info=calcium.cp_een(component, dep, 0., 1, "bh", 3,val)
 
 val=numpy.zeros(10,'l')
 val[0]=1
 val[1]=3
 val[2]=333
-print "--------> Appel calcium.cp_elg",val
+print ("--------> Appel calcium.cp_elg",val)
 info=calcium.cp_elg(component, dep, 0., 1, "bi", 3,val)
-print "info=",info
+print ("info=",info)
 
 #read
 val=numpy.zeros(10,'d')
-print "--------> Appel calcium.cp_ldb"
+print ("--------> Appel calcium.cp_ldb")
 info,tt,ii,mval=calcium.cp_ldb(component, dep, 0.,1., 1, "aa", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.array(["","","",], dtype='S13')
-print "--------> Appel calcium.cp_lch"
+print ("--------> Appel calcium.cp_lch")
 info,tt,ii,mval=calcium.cp_lch(component, dep, 0.,1., 1, "ab", 3,val)
-print mval,val
-print val.dtype
+print (mval,val)
+print (val.dtype)
 
 val=numpy.array(["            ","  ","  ",], dtype='S13')
-print "--------> Appel calcium.cp_lch"
+print ("--------> Appel calcium.cp_lch")
 info,tt,ii,mval=calcium.cp_lch(component, dep, 0.,1., 1, "ab", 3,val)
-print mval,val
-print val.dtype
+print (mval,val)
+print (val.dtype)
 
 val=calcium.stringArray(3,8)
-print "--------> Appel calcium.cp_lch"
+print ("--------> Appel calcium.cp_lch")
 info,tt,ii,mval=calcium.cp_lch(component, dep, 0.,1., 1, "ab", 3,val)
-print mval,val
-print val[0]
-print val[1]
-print val[2]
+print (mval,val)
+print (val[0])
+print (val[1])
+print (val[2])
 
 val=numpy.zeros(10,'i')
-print "--------> Appel calcium.cp_len"
+print ("--------> Appel calcium.cp_len")
 info,tt,ii,mval=calcium.cp_len(component, dep, 0.,1., 1, "ac", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'F')
-print "--------> Appel calcium.cp_lcp"
+print ("--------> Appel calcium.cp_lcp")
 info,tt,ii,mval=calcium.cp_lcp(component, dep, 0.,1., 1, "ad", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'f')
-print "--------> Appel calcium.cp_lre"
+print ("--------> Appel calcium.cp_lre")
 info,tt,ii,mval=calcium.cp_lre(component, dep, 0.,1., 1, "ae", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'i')
-print "--------> Appel calcium.cp_llo"
+print ("--------> Appel calcium.cp_llo")
 info,tt,ii,mval=calcium.cp_llo(component, dep, 0.,1., 1, "af", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'l')
-print "--------> Appel calcium.cp_lln"
+print ("--------> Appel calcium.cp_lln")
 info,tt,ii,mval=calcium.cp_lln(component, dep, 0.,1., 1, "ag", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'i')
-print "--------> Appel calcium.cp_len"
+print ("--------> Appel calcium.cp_len")
 info,tt,ii,mval=calcium.cp_len(component, dep, 0.,1., 1, "ah", 3,val)
-print mval,val
+print (mval,val)
 
 val=numpy.zeros(10,'l')
-print "--------> Appel calcium.cp_llg"
+print ("--------> Appel calcium.cp_llg")
 info,tt,ii,mval=calcium.cp_llg(component, dep, 0.,1., 1, "ai", 3,val)
-print "info=",info
-print mval,val
+print ("info=",info)
+print (mval,val)
 
 info=calcium.cp_fini(component,"aa",1)
-print "info=",info
+print ("info=",info)
 
 info=calcium.cp_effi(component,"aa",3)
-print "info=",info
+print ("info=",info)
 
 import time
 time.sleep(15)
@@ -389,7 +389,7 @@ time.sleep(15)
 c=a+b
 d=a-b
 err=calcium.cp_fin(component,calcium.CP_ARRET)
-print "err=",err
+print ("err=",err)
 """
 c2=PYComponent("compo2",services=[
           Service("s1",inport=[("a","double"),("b","double")],

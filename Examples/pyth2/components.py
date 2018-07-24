@@ -32,11 +32,11 @@ body="""
       val=numpy.zeros(10,'d')
       val[5]=a*b
       nval=10
-      print "--------> Appel calcium.cp_edb"
+      print ("--------> Appel calcium.cp_edb")
       info=calcium.cp_edb(component, dep, 0., 1, "ba", nval,val)
       val=numpy.zeros(10,'d')
       info,tt,ii,mval=calcium.cp_ldb(component, dep, 0.,1., 1, "aa", nval,val)
-      print mval,val
+      print (mval,val)
       c=a+b
       d=a-b
       err=calcium.cp_fin(component,calcium.CP_ARRET)
