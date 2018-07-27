@@ -160,15 +160,15 @@ o8={"outputValues":o19,
       <outport name="o8" type="SALOME_TYPES/ParametricOutput"/>
    </inline>
    <inline name="PyScript0005">
-      <script><code><![CDATA[print i1
-print i2
-print i3
-print i4
-print i8
-print i9
-print i5
-print i6
-print i7
+      <script><code><![CDATA[print(i1)
+print(i2)
+print(i3)
+print(i4)
+print(i8)
+print(i9)
+print(i5)
+print(i6)
+print(i7)
 ]]></code></script>
       <inport name="i1" type="SALOME_TYPES/Parameter"/>
       <inport name="i2" type="SALOME_TYPES/ParameterList"/>
@@ -181,15 +181,15 @@ print i7
       <inport name="i7" type="SALOME_TYPES/ParametricOutput"/>
    </inline>
    <inline name="PyScript006">
-      <script><code><![CDATA[print i1
-print i2
-print i3
-print i4
-print i8
-print i9
-print i5
-print i6
-print i7
+      <script><code><![CDATA[print(i1)
+print(i2)
+print(i3)
+print(i4)
+print(i8)
+print(i9)
+print(i5)
+print(i6)
+print(i7)
 ]]></code></script>
       <inport name="i1" type="SALOME_TYPES/Parameter"/>
       <inport name="i2" type="SALOME_TYPES/ParameterList"/>
