@@ -118,7 +118,7 @@ class PYComponent(Component):
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
+          pyparams.append("      %s=pickle.loads(%s)" %(name, name))
       inparams = ",".join(params)
       convertinparams = '\n'.join(pyparams)
 
@@ -128,7 +128,7 @@ class PYComponent(Component):
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
+          pyparams.append("      %s=pickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
       #dedent and indent the body
@@ -182,7 +182,7 @@ class PYComponent(Component):
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          pyparams.append("      %s=cPickle.loads(%s)" %(name, name))
+          pyparams.append("      %s=pickle.loads(%s)" %(name, name))
       inparams = ",".join(params)
       convertinparams = '\n'.join(pyparams)
 
@@ -192,7 +192,7 @@ class PYComponent(Component):
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          pyparams.append("      %s=cPickle.dumps(%s,-1)" %(name, name))
+          pyparams.append("      %s=pickle.dumps(%s,-1)" %(name, name))
       outparams = ",".join(params)
       convertoutparams = '\n'.join(pyparams)
       #dedent and indent the body

@@ -30,7 +30,7 @@ import calcium
 import dsccalcium
 import SALOME
 import Engines
-import cPickle
+import pickle
 
 try:
   import numpy
@@ -70,10 +70,10 @@ pyCompoEXE="""#!/usr/bin/env python
 
 if __name__ == '__main__':
   from omniORB import CORBA
-  print sys.argv
+  print( sys.argv)
   orb = CORBA.ORB_init(sys.argv, CORBA.ORB_ID)
   poa = orb.resolve_initial_references("RootPOA")
-  print "ORB and POA initialized",orb,poa
+  print( "ORB and POA initialized",orb,poa)
   sys.stdout.flush()
   sys.stderr.flush()
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
   compo=${component}(orb,poa,container,containerName, instanceName, "${component}")
   comp_o = compo._this()
   comp_iors = orb.object_to_string(comp_o)
-  print "ior ${component}",comp_iors
+  print( "ior ${component}",comp_iors)
 
   sys.stdout.flush()
   sys.stderr.flush()
@@ -94,7 +94,7 @@ if __name__ == '__main__':
   poaManager.activate()
 
   orb.run()
-  print "fin du composant ${component} standalone"
+  print( "fin du composant ${component} standalone")
 
 """
 

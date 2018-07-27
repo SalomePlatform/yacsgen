@@ -191,9 +191,9 @@ asterService="""
     if not j.cr.estvide():
        msg="ERREUR DE COMPILATION DANS ACCAS - INTERRUPTION"
        self.MESSAGE(msg)
-       print ">> JDC.py : DEBUT RAPPORT"
-       print j.cr
-       print ">> JDC.py : FIN RAPPORT"
+       print (">> JDC.py : DEBUT RAPPORT")
+       print (j.cr)
+       print (">> JDC.py : FIN RAPPORT")
        j.supprime()
        sys.stdout.flush()
        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr),"${component}.py",0))
@@ -223,14 +223,14 @@ asterService="""
        msg="ERREUR A L'INTERPRETATION DANS ACCAS - INTERRUPTION"
        self.MESSAGE(msg)
        ier=1
-       print ">> JDC.py : DEBUT RAPPORT"
-       print j.cr
-       print ">> JDC.py : FIN RAPPORT"
+       print (">> JDC.py : DEBUT RAPPORT")
+       print (j.cr)
+       print (">> JDC.py : FIN RAPPORT")
        sys.stdout.flush()
        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr), "${component}.py",0))
 
     if j.par_lot == 'NON':
-       print "FIN EXECUTION"
+       print ("FIN EXECUTION")
        #err=calcium.cp_fin(self.proxy,calcium.CP_ARRET)
        #retour sans erreur (il faut pousser les variables de sortie)
        sys.stdout.flush()
@@ -242,9 +242,9 @@ asterService="""
     if not cr.estvide():
        msg="ERREUR A LA VERIFICATION SYNTAXIQUE - INTERRUPTION"
        self.MESSAGE(msg)
-       print ">> JDC.py : DEBUT RAPPORT"
-       print cr
-       print ">> JDC.py : FIN RAPPORT"
+       print( ">> JDC.py : DEBUT RAPPORT")
+       print( cr)
+       print( ">> JDC.py : FIN RAPPORT")
        sys.stdout.flush()
        raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(cr),"${component}.py",0))
 
@@ -256,9 +256,9 @@ asterService="""
           msg="ERREUR A L'EXECUTION - INTERRUPTION"
           self.MESSAGE(msg)
           ier=1
-          print ">> JDC.py : DEBUT RAPPORT"
-          print j.cr
-          print ">> JDC.py : FIN RAPPORT"
+          print( ">> JDC.py : DEBUT RAPPORT")
+          print( j.cr)
+          print( ">> JDC.py : FIN RAPPORT")
           sys.stdout.flush()
           raise SALOME.SALOME_Exception(SALOME.ExceptionStruct(SALOME.BAD_PARAM,msg+'\\n'+str(j.cr),"${component}.py",0))
        else:
@@ -380,15 +380,15 @@ from SALOME_ContainerPy import SALOME_ContainerPy_i
 
 if __name__ == '__main__':
 
-  print sys.argv
+  print( sys.argv)
   orb = CORBA.ORB_init(sys.argv, CORBA.ORB_ID)
   poa = orb.resolve_initial_references("RootPOA")
-  print "ORB and POA initialized"
+  print( "ORB and POA initialized")
   containerName=os.getenv("SALOME_CONTAINERNAME")
   cpy_i = SALOME_ContainerPy_i(orb, poa, containerName)
-  print "SALOME_ContainerPy_i instance created ",cpy_i
+  print( "SALOME_ContainerPy_i instance created ",cpy_i)
   cpy_o = cpy_i._this()
-  print "SALOME_ContainerPy_i instance activated ",cpy_o
+  print( "SALOME_ContainerPy_i instance activated ",cpy_o)
   sys.stdout.flush()
   sys.stderr.flush()
 
@@ -398,7 +398,7 @@ if __name__ == '__main__':
 
   #Block for ever
   orb.run()
-  print "fin container aster"
+  print( "fin container aster")
   sys.stdout.flush()
   sys.stderr.flush()
 """
@@ -409,10 +409,10 @@ from ${component}_module import ${component}
 
 if __name__ == '__main__':
 
-  print sys.argv
+  print( sys.argv)
   orb = CORBA.ORB_init(sys.argv, CORBA.ORB_ID)
   poa = orb.resolve_initial_references("RootPOA")
-  print "ORB and POA initialized",orb,poa
+  print( "ORB and POA initialized",orb,poa)
   sys.stdout.flush()
   sys.stderr.flush()
 
@@ -423,7 +423,7 @@ if __name__ == '__main__':
   compo=${component}(orb,poa,container,containerName, instanceName, "${component}")
   comp_o = compo._this()
   comp_iors = orb.object_to_string(comp_o)
-  print "ior aster",comp_iors
+  print( "ior aster",comp_iors)
 
   sys.stdout.flush()
   sys.stderr.flush()
@@ -433,7 +433,7 @@ if __name__ == '__main__':
   poaManager.activate()
 
   orb.run()
-  print "fin du composant aster standalone"
+  print( "fin du composant aster standalone")
 
 """
 component=Template(component)

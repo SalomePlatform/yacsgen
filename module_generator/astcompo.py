@@ -220,7 +220,7 @@ from Execution.E_SUPERV import SUPERV
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          datas.append('"%s":cPickle.loads(%s)' % (name, name))
+          datas.append('"%s":pickle.loads(%s)' % (name, name))
         else:
           datas.append('"%s":%s' % (name, name))
       #ajout de l'adresse du composant
@@ -234,7 +234,7 @@ from Execution.E_SUPERV import SUPERV
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          datas.append('cPickle.dumps(j.g_context["%s"],-1)'%name)
+          datas.append('pickle.dumps(j.g_context["%s"],-1)'%name)
         else:
           datas.append('j.g_context["%s"]'%name)
       outparams = ",".join(params)
@@ -283,7 +283,7 @@ from Execution.E_SUPERV import SUPERV
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          datas.append('"%s":cPickle.loads(%s)' % (name, name))
+          datas.append('"%s":pickle.loads(%s)' % (name, name))
         else:
           datas.append('"%s":%s' % (name, name))
       #ajout de l'adresse du composant
@@ -296,7 +296,7 @@ from Execution.E_SUPERV import SUPERV
       for name, typ in serv.outport:
         params.append(name)
         if typ == "pyobj":
-          datas.append('cPickle.dumps(j.g_context["%s"],-1)'%name)
+          datas.append('pickle.dumps(j.g_context["%s"],-1)'%name)
         else:
           datas.append('j.g_context["%s"]'%name)
       outparams = ",".join(params)
@@ -354,7 +354,7 @@ from Execution.E_SUPERV import SUPERV
         if typ=="file":continue #files are not passed through service interface
         params.append(name)
         if typ == "pyobj":
-          datas.append('"%s":cPickle.loads(%s)' % (name, name))
+          datas.append('"%s":pickle.loads(%s)' % (name, name))
         else:
           datas.append('"%s":%s' % (name, name))
       #ajout de l'adresse du composant
@@ -367,7 +367,7 @@ from Execution.E_SUPERV import SUPERV
       for name, typ in serv.outport:
         params.append(name)
         if typ == "pyobj":
-          datas.append('cPickle.dumps(j.g_context["%s"],-1)'%name)
+          datas.append('pickle.dumps(j.g_context["%s"],-1)'%name)
         else:
           datas.append('j.g_context["%s"]'%name)
       outparams = ",".join(params)

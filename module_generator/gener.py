@@ -294,7 +294,7 @@ class Service(object):
 
       >>> s1 = module_generator.Service('myservice', inport=[("a","double"),],
                                         instream=[("aa","CALCIUM_double","I")],
-                                        body="print a")
+                                        body="print( a)")
 
 
   """
