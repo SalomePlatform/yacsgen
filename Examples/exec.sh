@@ -4,7 +4,7 @@
 com=$*
 
 # Modify to your SALOME installation
-export SALOME_DIR=__ROOT_SALOME__
+export SALOME_DIR=__YACSGEN_INSTALL_PATH__
 export SALOME_PACKAGES=__YACSGEN_INSTALL_PATH__
 
 source $SALOME_PACKAGES/salome_prerequisites.sh
