@@ -4,11 +4,11 @@
 com=$*
 
 # Modify to your SALOME installation
-export SALOME_DIR=/home/I35256/salome/C9
+export SALOME_DIR=__YACSGEN_INSTALL_PATH__
+export SALOME_PACKAGES=__YACSGEN_INSTALL_PATH__
 
-source $SALOME_DIR/salome_prerequisites.sh
-source $SALOME_DIR/salome_modules.sh
-source $SALOME_DIR/modules/build/YACS_master/.yamm/env_build.sh
+source $SALOME_PACKAGES/salome_prerequisites.sh
+source $SALOME_PACKAGES/salome_modules.sh
 
 echo execution: $com
 $com
