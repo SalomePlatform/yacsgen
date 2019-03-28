@@ -48,10 +48,10 @@ idldefs="""
 #include "MEDCouplingCorbaServant.idl"
 """
 
-linklibs="""  ${MED_SalomeIDLMED}
-  ${MED_med}
-  ${MED_medcouplingcorba}
-  ${MED_medcouplingclient}
+linklibs="""
+  ${FIELDS_SalomeIDLMED}
+  ${FIELDS_medcouplingcorba}
+  ${FIELDS_medcouplingclient}
 """
 salome_modules["MED"]={"idldefs" : idldefs, "linklibs" : linklibs}
 

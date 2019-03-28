@@ -485,8 +485,8 @@ class Generator(object):
     component_libs = "".join([x.libraryName()+" " for x in module.components])
     add_modules = ""
     for x in self.used_modules:
-      cmake_text = cmake_find_module.substitute(module=x)
       if x == "MED":
+        cmake_text = cmake_find_module.substitute(module="FIELDS")
         cmake_text = cmake_text + """
 #####################################
 # FIND MEDCOUPLING
@@ -503,6 +503,9 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 #####################################
 
 """
+      else:
+        cmake_text = cmake_find_module.substitute(module=x)
+
       add_modules = add_modules + cmake_text
       pass
     
@@ -538,9 +541,18 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 #            other_sks=other_sks+os.path.splitext(os.path.basename(fidl))[0]+"SK.cc "
 
     include_template=Template("$${${module}_ROOT_DIR}/idl/salome")
-    opt_inc="".join([include_template.substitute(module=x)+"\n  " for x in self.used_modules])
     link_template=Template("$${${module}_SalomeIDL${module}}")
-    opt_link="".join([link_template.substitute(module=x)+"\n  " for x in self.used_modules])
+    opt_inc=""
+    opt_link=""
+    for x in self.used_modules:
+      if x=="MED":
+        # here template cannot be used as we mix FIELDS and MED
+        opt_inc+="${FIELDS_ROOT_DIR}/idl/salome\n  "
+        opt_link+="${FIELDS_SalomeIDLMED}\n  "
+      else:
+        opt_inc+=include_template.substitute(module=x)+"\n  "
+        opt_link+=link_template.substitute(module=x)+"\n  "
+
     
     idlfiles={"CMakeLists.txt":cmake_idl.substitute(module=module.name,
                                                     extra_idl=other_idls,
