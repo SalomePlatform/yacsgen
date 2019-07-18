@@ -136,7 +136,7 @@ ${initservice}
     return jdc
 
   def insertPrePost(self,jdc,prepost):
-    if prepost <> "":
+    if prepost != "":
       exec(prepost)
       try:
         jdc = os.linesep + pre + os.linesep + jdc + os.linesep + post + os.linesep
@@ -149,7 +149,7 @@ ${initservice}
       self.jdc.g_context.update(args)
       CONTEXT.set_current_step(self.jdc)
       linecache.cache['<string>']=0,None,string.split(text,'\\n'),'<string>'
-      exec text in self.jdc.const_context,self.jdc.g_context
+      exec(text in self.jdc.const_context,self.jdc.g_context)
       CONTEXT.unset_current_step()
     except EOFError:
       CONTEXT.unset_current_step()
