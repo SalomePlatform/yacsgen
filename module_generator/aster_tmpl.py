@@ -89,7 +89,6 @@ asterCEXECompo="""
 # Interet: introduire DEBUT() dans ce prefixe pour ne plus avoir a s'en preoccuper (ex: boucle for each)
 import sys,traceback,os
 import string
-import cPickle
 import ${module}_ORB__POA
 import calcium
 import dsccalcium
@@ -281,7 +280,7 @@ asterCEXEService="""
     self.beginService("${component}.${service}")
     try:
       args=${dvars}
-      if not args.has_key("jdc"):
+      if "jdc" not in args:
         fcomm=open("jdc",'r')
         jdc=fcomm.read()
         fcomm.close()
