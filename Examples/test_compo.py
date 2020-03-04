@@ -8,22 +8,9 @@ import os
 import sys
 
 import imp
-appli_dir = "appli"
-sys.path[:0] = [os.path.join(appli_dir, "bin", "salome", "appliskel")]
-salome_module = imp.load_source("SALOME", os.path.join(appli_dir, "salome"))
 
 class TestCompo(unittest.TestCase):
   def setUp(self):
-    #start salome and connect to it
-    try:
-      salome_module.main(["start", "-t"])
-    except SystemExit as e:
-      pass
-    import runSession
-    runSession.configureSession()
-    import setenv
-    setenv.main(True)
-    
     # creat study and load catalogs
     import SALOMERuntime
     SALOMERuntime.RuntimeSALOME_setRuntime()
@@ -52,9 +39,6 @@ class TestCompo(unittest.TestCase):
     self.assertEqual(p.getEffectiveState(), pilot.DONE)
     
   def tearDown(self):
-    try:
-      salome_module.main(["killall"])
-    except SystemExit as e:
       pass
   
 if __name__ == '__main__':
