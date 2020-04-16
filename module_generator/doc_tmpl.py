@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2019  EDF R&D
+# Copyright (C) 2009-2020  EDF R&D
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -104,7 +104,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'${module}'
-copyright = u'2010-2019'
+copyright = u'2010-2020'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
