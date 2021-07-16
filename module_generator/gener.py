@@ -832,14 +832,17 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
           os.makedirs(filename)
         self.makeFiles(content, filename)
 
-  def configure(self):
+  def configure(self, extra_params = None):
     """Execute the second build step (configure) with installation prefix as given by the prefix attribute of module"""
+    if extra_params is None:
+        extra_params = ""
     prefix = os.path.abspath(self.module.prefix)
 
     self.build_dir = "%s_build" % self.module.name
     makedirs(self.build_dir)
     
-    build_sh = "cd %s; cmake ../%s -DCMAKE_INSTALL_PREFIX:PATH=%s"%(self.build_dir, self.sourceDir(), prefix) 
+    build_sh = "cd %s; cmake ../%s -DCMAKE_INSTALL_PREFIX:PATH=%s %s"%(
+                self.build_dir, self.sourceDir(), prefix, extra_params)
     ier = os.system(build_sh)
     if ier != 0:
       raise Invalid("configure has ended in error")
@@ -860,7 +863,8 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     if ier != 0:
       raise Invalid("install has ended in error")
 
-  def make_appli(self, appliname, restrict=None, altmodules=None, resources=""):
+  def make_appli(self, appliname, restrict=None, altmodules=None, resources="",
+                 sys_modules=None):
     """
    Create a SALOME application containing the module and preexisting SALOME modules.
 
@@ -874,6 +878,8 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
    :param altmodules: can be used to add SALOME modules that cannot be managed with the precedent rule. This parameter
       is a dict with a module name as the key and the installation path as the value.
    :param resources: can be used to define an alternative resources catalog (path of the file).
+   :param sys_modules: list of system modules to be loaded with "module load"
+      command within the salome environment.
 
    For example, the following calls create a SALOME application with external modules and resources catalog in "appli" directory::
 
@@ -887,6 +893,8 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
 
     """
     makedirs(appliname)
+    if sys_modules is None:
+        sys_modules = []
 
     rootdir, kerdir = os.path.split(self.kernel)
 
@@ -952,9 +960,14 @@ ENDIF(EXISTS ${MEDCOUPLING_ROOT_DIR})
     if os.path.isfile(resources):
       resources_spec='<resources path="%s" />' % os.path.abspath(resources)
 
+    sys_modules_str = ""
+    for mod in sys_modules:
+        sys_modules_str += "  <env_module name='{}'/>\n".format(mod)
+
     #create config_appli.xml file
     appli = application.substitute(prerequisites=prerequisites,
                                    context=salome_context,
+                                   env_modules=sys_modules_str,
                                    modules="\n".join(modules),
                                    resources=resources_spec)
     fil = open(os.path.join(appliname, "config_appli.xml"), 'w')

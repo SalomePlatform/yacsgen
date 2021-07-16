@@ -58,4 +58,5 @@ g.make()
 g.install()
 g.make_appli("appli",
              restrict=["KERNEL","GUI","YACS","MED"],
+             sys_modules=SYS_MODULES
             )

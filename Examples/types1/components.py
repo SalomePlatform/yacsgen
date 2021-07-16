@@ -201,5 +201,9 @@ g.generate()
 g.configure()
 g.make()
 g.install()
-g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR, "GEOM":GEOM_ROOT_DIR})
+g.make_appli("appli", restrict=["KERNEL"],
+             altmodules={"GUI":GUI_ROOT_DIR,
+                         "YACS":YACS_ROOT_DIR,
+                         "GEOM":GEOM_ROOT_DIR},
+             sys_modules=SYS_MODULES)
 

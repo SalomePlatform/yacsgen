@@ -27,6 +27,9 @@ application="""
 <prerequisites path="${prerequisites}"/>
 <context path="${context}"/>
 ${resources}
+<env_modules>
+${env_modules}
+</env_modules>
 <modules>
 ${modules}
 </modules>

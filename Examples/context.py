@@ -37,6 +37,4 @@ context={'update':1,
          "geom":GEOM_ROOT_DIR,
         }
 
-
-aster_home=os.path.expanduser("~/Aster/V10.3/aster")
-aster_version="STA10.3"
+SYS_MODULES=[]

@@ -57,6 +57,7 @@ g.configure()
 g.make()
 g.install()
 g.make_appli("appli",
-             restrict=["KERNEL","GUI","YACS","JOBMANAGER"])
+             restrict=["KERNEL","GUI","YACS","JOBMANAGER"],
+             sys_modules=SYS_MODULES)
 
 

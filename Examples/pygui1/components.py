@@ -109,9 +109,11 @@ modul=Module("pycompos",components=[c1],prefix="./install",
 
 g=Generator(modul,context)
 g.generate()
+#g.configure("-DTBB_INCLUDE_DIR=/opt/tbb/2018.u6/include  -DTBB_ROOT=/opt/tbb/2018.u6/")
 g.configure()
 g.make()
 g.install()
-g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR, "YACS":YACS_ROOT_DIR})
+g.make_appli("appli", restrict=["KERNEL"], altmodules={"GUI":GUI_ROOT_DIR,
+                                "YACS":YACS_ROOT_DIR}, sys_modules=SYS_MODULES)
 
 
