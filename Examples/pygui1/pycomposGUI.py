@@ -22,7 +22,6 @@ import os
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, uic, QtWidgets
-from PyQt5.QtWebKitWidgets import QWebView
 
 import salome
 import pycompos_ORB
@@ -128,10 +127,8 @@ def OnGUIEvent( commandID ):
   print("pycompos.OnGUIEvent(): command = %d" % commandID)
   if commandID==941:
     widget=QMainWindow(sgPyQt.getDesktop())
-    web = QWebView(widget)
-    page=os.path.join(os.environ["pycompos_ROOT_DIR"],"share","doc","salome","gui","pycompos","index.html")
-    web.load(QUrl(page))
-    widget.setCentralWidget(web)
+    mywidget = QLabel("Hello world!", widget)
+    widget.setCentralWidget(mywidget)
     widget.show()
 
   elif commandID==942:
