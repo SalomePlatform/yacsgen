@@ -20,20 +20,19 @@
 #ifndef _cppcomposGUI_H_
 #define _cppcomposGUI_H_
 
-#include <SalomeApp_Module.h>
+#include <LightApp_Module.h>
 #include "ui_demo.h"
 
 class SUIT_ViewManager;
 class SUIT_ViewWindow;
 
-class cppcomposGUI: public SalomeApp_Module
+class cppcomposGUI: public LightApp_Module
 {
   Q_OBJECT
 
 public:
   cppcomposGUI();
   void    initialize( CAM_Application* );
-  QString engineIOR() const;
   virtual void  windows( QMap<int, int>& theMap ) const;
 
 public slots:

@@ -43,7 +43,7 @@ extern "C" {
 
 // Constructor
 cppcomposGUI::cppcomposGUI() :
-  SalomeApp_Module( "cppcompos" ) // default name
+  LightApp_Module( "cppcompos" ) // default name
 {
 }
 
@@ -53,7 +53,7 @@ cppcomposGUI::cppcomposGUI() :
 void cppcomposGUI::initialize( CAM_Application* app )
 {
 
-  SalomeApp_Module::initialize( app );
+  LightApp_Module::initialize( app );
 
   QWidget* aParent = application()->desktop();
   SUIT_ResourceMgr* aResourceMgr = app->resourceMgr();
@@ -90,16 +90,10 @@ void cppcomposGUI::windows( QMap<int, int>& theMap ) const
 //  theMap.insert( SalomeApp_Application::WT_PyConsole,     Qt::BottomDockWidgetArea );
 }
 
-// Module's engine IOR
-QString cppcomposGUI::engineIOR() const
-{
-  return "Fake";
-}
-
 // Module's activation
 bool cppcomposGUI::activateModule( SUIT_Study* theStudy )
 {
-  bool bOk = SalomeApp_Module::activateModule( theStudy );
+  bool bOk = LightApp_Module::activateModule( theStudy );
 
   if(bOk)
   {
@@ -120,7 +114,7 @@ bool cppcomposGUI::deactivateModule( SUIT_Study* theStudy )
   _myWidget->setVisible(false);
   _myViewManager->setShown(false);
 
-  return SalomeApp_Module::deactivateModule( theStudy );
+  return LightApp_Module::deactivateModule( theStudy );
 }
 
 void cppcomposGUI::onWindowActivated( SUIT_ViewWindow* svw)
