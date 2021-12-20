@@ -31,6 +31,7 @@ cxxCompo="""
 #include <CalciumException.hxx>
 ${CalciumInterface}
 #include <signal.h>
+#include <SALOME_Embedded_NamingService_Client.hxx>
 #include <SALOME_NamingService.hxx>
 #include <Utils_SALOME_Exception.hxx>
 #include <pthread.h>
@@ -230,7 +231,6 @@ extern "C"
     CORBA::Object_var obj;
     try
       {
-        SALOME_NamingService * salomens = new SALOME_NamingService(orb);
         obj = orb->resolve_initial_references("RootPOA");
         PortableServer::POA_var  poa = PortableServer::POA::_narrow(obj);
         PortableServer::POAManager_var pman = poa->the_POAManager();
@@ -243,7 +243,18 @@ extern "C"
         obj=myEngine->POA_${module}_ORB::${component}::_this();
         Engines::EngineComponent_var component = Engines::EngineComponent::_narrow(obj);
         string component_registerName = containerName + "/" + instanceName;
-        salomens->Register(component,component_registerName.c_str());
+        Engines::EmbeddedNamingService_var embedded_NS = container->get_embedded_NS_if_ssl();
+        if( CORBA::is_nil(embedded_NS))
+        {
+          // Use the salome session to get the naming service
+          SALOME_NamingService salome_NS(orb);
+          salome_NS.Register(component,component_registerName.c_str());
+        }
+        else
+        {
+          SALOME_Embedded_NamingService_Client ns_client(embedded_NS);
+          ns_client.Register(component,component_registerName.c_str());
+        }
         orb->run();
         orb->destroy();
       }
