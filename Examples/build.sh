@@ -9,7 +9,7 @@ script_dir=`dirname $0`
 #set -e
 
 cd $script_dir
-
+$script_dir/clean.sh
 list_dirs="calcium1 calcium2 cpp1 cpp2 cppgui1 fort1 fort2 pydoc1 pygui1 pyth1 pyth2 types1"
 #" mpi1 parahxx1 hxx1"
 for dir in $list_dirs ; do

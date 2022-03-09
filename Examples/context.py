@@ -19,10 +19,8 @@
 
 import os,sys
 
-SALOME_ROOT=os.getenv("SALOME_DIR")
-SALOME_PACKAGES=os.getenv("SALOME_DIR")
-SALOME_PREREQ=os.path.join(SALOME_PACKAGES, "salome_prerequisites.sh")
-#SALOME_PREREQ=os.path.join(SALOME_ROOT, "salome_prerequisites_appli.sh")
+SALOME_ROOT=os.getenv("ROOT_SALOME_INSTALL")
+SALOME_PREREQ=os.path.join(SALOME_ROOT, "env.d", "envProducts.sh")
 
 KERNEL_ROOT_DIR=os.getenv("KERNEL_ROOT_DIR","")
 GUI_ROOT_DIR=os.getenv("GUI_ROOT_DIR","")
@@ -37,4 +35,6 @@ context={'update':1,
          "geom":GEOM_ROOT_DIR,
         }
 
-SYS_MODULES=[]
+sys.path.insert(0, SALOME_ROOT)
+import salome_common
+SYS_MODULES=salome_common.MODULES

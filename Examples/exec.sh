@@ -2,14 +2,8 @@
 # execute a command within SALOME environment 
 
 com=$*
+SCRIPT_DIR=`dirname $0`
 
-# Modify to your SALOME installation
-export SALOME_DIR=__YACSGEN_INSTALL_PATH__
-export SALOME_PACKAGES=__YACSGEN_INSTALL_PATH__
-
-source $SALOME_PACKAGES/salome_prerequisites.sh
-source $SALOME_PACKAGES/salome_modules.sh
-
-echo execution: $com
-$com
-
+SALOME_APPLI_PATH=/home/I35256/salome/base/appli_DEV_package
+$SALOME_APPLI_PATH/salome shell -- bash $SCRIPT_DIR/salome_env_exec.sh $com
+exit $?
