@@ -3,7 +3,7 @@
 #  Created   :
 #  Author    :
 #  Project   : SALOME
-#  Copyright : CEA 2005-2021
+#  Copyright : CEA 2005-2022
 #==============================================================================
 #
 # Test du composant CALCUL
