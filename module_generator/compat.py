@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #coding: iso-8859-15
 #
-# Copyright (C) 2005-2023  EDF R&D
+# Copyright (C) 2005-2023  EDF
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
