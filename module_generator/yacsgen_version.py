@@ -18,6 +18,6 @@
 #
 
 major_version=9
-minor_version=12
+minor_version=13
 patch_version=0
 complete_version="%d.%d.%d" % (major_version, minor_version, patch_version)
