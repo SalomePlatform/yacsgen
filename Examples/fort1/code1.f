@@ -1,4 +1,4 @@
-C Copyright (C) 2009-2024  EDF
+C Copyright (C) 2009-2025  EDF
 C
 C This library is free software; you can redistribute it and/or
 C modify it under the terms of the GNU Lesser General Public
