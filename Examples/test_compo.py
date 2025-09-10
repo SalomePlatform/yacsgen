@@ -12,11 +12,11 @@ import imp
 class TestCompo(unittest.TestCase):
   def setUp(self):
     # creat study and load catalogs
-    import SALOMERuntime
+    from salome.yacs import SALOMERuntime
     SALOMERuntime.RuntimeSALOME_setRuntime()
     salome_runtime = SALOMERuntime.getSALOMERuntime()
     
-    import salome
+    from salome.kernel import salome
     salome.salome_init()
     
     mc = salome.naming_service.Resolve('/Kernel/ModulCatalog')
@@ -25,8 +25,8 @@ class TestCompo(unittest.TestCase):
     salome_runtime.addCatalog(session_catalog)
 
   def test_exec_scheme(self):
-    import pilot
-    import loader
+    from salome.yacs import pilot
+    from salome.yacs import loader
 
     xmlLoader = loader.YACSLoader()
     try:

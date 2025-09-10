@@ -23,7 +23,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, uic, QtWidgets
 
-import salome
+from salome.kernel import salome
 import pycompos_ORB
 
 # Get SALOME PyQt interface

@@ -28,8 +28,8 @@ sys.path=sys.path+[${python_path}]
 import ${module}_ORB__POA
 import calcium
 import dsccalcium
-import SALOME
-import Engines
+from salome.kernel import SALOME
+from salome.kernel import Engines
 import pickle
 
 try:

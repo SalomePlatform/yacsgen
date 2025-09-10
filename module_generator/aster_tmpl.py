@@ -27,7 +27,7 @@ import sys,traceback,os
 import ${module}_ORB__POA
 import calcium
 import dsccalcium
-import SALOME
+from salome.kernel import SALOME
 import linecache
 import shutil
 
@@ -92,7 +92,7 @@ import string
 import ${module}_ORB__POA
 import calcium
 import dsccalcium
-import SALOME
+from salome.kernel import SALOME
 import linecache
 ${importesuperv}
 

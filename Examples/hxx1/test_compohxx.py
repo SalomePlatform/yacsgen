@@ -8,8 +8,8 @@
 #
 # Test du composant CALCUL
 #
-import SALOME
-import salome
+from salome.kernel import SALOME
+from salome.kernel import salome
 salome.salome_init()
 print("Test du composant CALCUL genere par hxx2salome")
 import hxxcompos_ORB
