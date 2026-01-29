@@ -18,10 +18,19 @@
 #
 
 import os
-
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5 import QtCore, uic, QtWidgets
+usePySide = 'SALOME_USE_PYSIDE' in os.environ
+if usePySide:
+  from PySide2 import QtCore, QtWidgets
+  from PySide2.QtCore import
+  from PySide2.QtWidgets import
+  from PySide2.QtUiTools import QUiLoader
+  from PySide2.QtCore import QFile
+  from PySide2.QtCore import Slot
+else:
+ from PyQt5.QtCore import *
+ from PyQt5.QtWidgets import *
+ from PyQt5 import QtCore, uic, QtWidgets
+ from PyQt5.QtCore import pyqtSlot as QtPySlot
 
 import salome
 import pycompos_ORB
@@ -113,10 +122,16 @@ def CreateObject():
 class DemoImpl(QtWidgets.QDialog):
     def __init__(self, *args):
         super(DemoImpl, self).__init__(*args)
+        if usePySide:
+          loader = QUiLoader()
+          ui_file = QFile(os.path.join(os.environ["pycompos_ROOT_DIR"],"share","salome","resources","pycompos","demo.ui"))
+          ui_file.open(QFile.ReadOnly)
+          loader.load(ui_file, self)
+          ui_file.close()
+        else:
+          uic.loadUi(os.path.join(os.environ["pycompos_ROOT_DIR"],"share","salome","resources","pycompos","demo.ui"), self)
 
-        uic.loadUi(os.path.join(os.environ["pycompos_ROOT_DIR"],"share","salome","resources","pycompos","demo.ui"), self)
-
-    @QtCore.pyqtSlot()
+    @QtPySlot()
     def on_button1_clicked(self):
         for s in "This is a demo".split(" "):
             self.list.addItem(s)
