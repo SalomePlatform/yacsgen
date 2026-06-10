@@ -7,8 +7,6 @@ import unittest
 import os
 import sys
 
-import imp
-
 class TestCompo(unittest.TestCase):
   def setUp(self):
     # creat study and load catalogs
