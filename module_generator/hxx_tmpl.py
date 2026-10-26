@@ -128,7 +128,12 @@ ${servicesdef}
     char* ComponentDataType();
 
 private:
+#if defined(__APPLE__)
+    // libc++ (macOS) removed std::auto_ptr in C++17
+    std::unique_ptr<${component}> cppCompo_;
+#else
     std::auto_ptr<${component}> cppCompo_;
+#endif
 
 };
 
